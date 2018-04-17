@@ -101,6 +101,16 @@ class NeoSegment():
         self.Seg.analogsignals.append(Sig)
         self.UpdateSignalsDict()
 
+    def AppendSignal(self, ChName, Vect):
+        sig = self.Seg.analogsignals[self.SigNames[ChName]]
+
+        v_old = np.array(sig)
+        v_new = np.vstack((v_old, Vect))
+
+        sig_new = sig.duplicate_with_new_array(signal=v_new*sig.units)
+
+        self.SetSignal(ChName, sig_new)
+
 
 class NeoSignal():
     def __init__(self, NeoSeg=None, SigName=None, Signal=None):
@@ -135,17 +145,4 @@ class NeoSignal():
             Tstop = Time[1]
 
         return (Tstart, Tstop)
-
-    def AppendSignal(self, ChName, Vect):
-        sig = self.Signal(ChName,
-                          Scale=False)
-        S_old = sig.copy()
-        v_old = np.array(sig)
-        v_new = np.vstack((v_old, Vect))
-        sig_new = neo.AnalogSignal(v_new,
-                                   units=S_old.units,
-                                   sampling_rate=S_old.sampling_rate,
-                                   t_start=S_old.t_start,
-                                   name=S_old.name)
-        self.SetSignal(ChName, sig_new)
 

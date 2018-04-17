@@ -5,31 +5,139 @@ Created on Wed Apr 11 11:12:23 2018
 
 @author: aguimera
 """
+import numpy as np
+import matplotlib.pyplot as plt
+import quantities as pq
+from scipy import signal
+from collections import OrderedDict
 
-#def PlotPSD(self, Time, nFFT=2**17, FMin=None, Resamp=False):
-#
-#    if not self.FigFFT or not plt.fignum_exists(self.FigFFT.number):
-#        self.FigFFT, self.AxFFT = plt.subplots()
-#
-#    PSD = {}
-#    for sl in self.Slots:
-#        sig = sl.GetSignal(Time, Resamp=Resamp)
-#        if FMin:
-#            nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1)) 
-#
-#        ff, psd = signal.welch(x=sig, fs=sig.sampling_rate,
-#                               window='hanning',
-#                               nperseg=nFFT, scaling='density', axis=0)
-#        slN = sl.SigName
-#        PSD[slN] = {}
-#        PSD[slN]['psd'] = psd
-#        PSD[slN]['ff'] = ff
-#        self.AxFFT.loglog(ff, psd, label=sl.DispName)
-#
-#    self.AxFFT.set_xlabel('Frequency [Hz]')
-#    self.AxFFT.set_ylabel('PSD [V^2/Hz]')
-#    self.AxFFT.legend()
-#    return PSD
+
+def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
+                        RelaxTime=None):
+    """
+    Returns the times when the analog signal crosses a threshold.
+    Usually used for extracting spike times from a membrane potential.
+    Adapted from version in NeuroTools.
+
+    Parameters
+    ----------
+    signal : neo AnalogSignal object
+        'signal' is an analog signal.
+    threshold : A quantity, e.g. in mV
+        'threshold' contains a value that must be reached
+        for an event to be detected. Default: 0.0 * mV.
+    sign : 'above' or 'below'
+        'sign' determines whether to count thresholding crossings
+        that cross above or below the threshold.
+    format : None or 'raw'
+        Whether to return as SpikeTrain (None)
+        or as a plain array of times ('raw').
+
+    Returns
+    -------
+    result_st : neo SpikeTrain object
+        'result_st' contains the spike times of each of the events (spikes)
+        extracted from the signal.
+    """
+
+    assert threshold is not None, "A threshold must be provided"
+
+    if sign == 'above':
+        cutout = np.where(signal > threshold)[0]
+    elif sign == 'below':
+        cutout = np.where(signal < threshold)[0]
+
+    if len(cutout) <= 0:
+        events = np.zeros(0)
+    else:
+        take = np.where(np.diff(cutout) > 1)[0] + 1
+        take = np.append(0, take)
+
+        time = signal.times
+        events = time[cutout][take]
+
+    if RelaxTime:
+        outevents = []
+        told = 0*pq.s
+        for te in events:
+            if (te-told) > RelaxTime:
+                outevents.append(te)
+                told = te
+    else:
+        outevents = events
+
+    return outevents
+
+
+def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
+            scaling='density', Units=None):
+
+    if Ax is None:
+        Fig, Ax = plt.subplots()
+
+    PSD = {}
+    for sl in Signals:
+        if not hasattr(sl, 'GetSignal'):
+            continue
+        sig = sl.GetSignal(Time, Units=Units)
+        if FMin is not None:
+            nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
+
+        ff, psd = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
+                               window='hanning',
+                               nperseg=nFFT,
+                               scaling=scaling)
+        if scaling == 'density':
+            units = sig.units**2/pq.Hz
+        elif scaling == 'spectrum':
+            units = sig.units**2
+
+        slN = sl.Name
+        PSD[slN] = {}
+        PSD[slN]['psd'] = psd * units
+        PSD[slN]['ff'] = ff
+
+        if hasattr(sl, 'Line'):
+            Line = sl.Line
+        else:
+            Line = '-'
+        if hasattr(sl, 'Color'):
+            Color = sl.Color
+        else:
+            Color = None
+        if hasattr(sl, 'Alpha'):
+            Alpha = sl.Alpha
+        else:
+            Alpha = 1
+        if hasattr(sl, 'DispName'):
+            label = sl.DispName
+        else:
+            label = sl.Name
+
+        Ax.loglog(ff, psd,
+                  Line,
+                  color=Color,
+                  label=label,
+                  alpha=Alpha)
+
+    Ax.set_xlabel('Frequency [Hz]')
+    Ax.set_ylabel('[' + str(units).split(' ')[-1] + ']')
+    
+    handles, labels = Ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+
+    nLines = len(by_label)
+    nlc = 4
+    if nLines > nlc:
+        ncol = (nLines / nlc) + ((nLines % nlc) > 0)
+    else:
+        ncol = 1
+    Ax.legend(by_label.values(), by_label.keys(),
+              loc='best',
+              ncol=ncol,
+              fontsize='x-small')
+
+    return PSD
 
 #
 #    def PlotHist(self, Time, Resamp=False, Binds=250):

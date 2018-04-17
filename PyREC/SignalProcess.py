@@ -27,7 +27,7 @@ def Resample(sig, Fs=None, MaxPoints=None):
         dowrate = fact.denominator
         uprate = fact.numerator
     else:
-        dowrate = sig.times.shape[0]/MaxPoints
+        dowrate = int(sig.times.shape[0]/MaxPoints)
         if dowrate > 0:
             f = float(1/float(dowrate))
             uprate = 1
@@ -35,7 +35,9 @@ def Resample(sig, Fs=None, MaxPoints=None):
     if dowrate > 0:
         print sig.sampling_rate*f, f, uprate, dowrate
         rs = signal.resample_poly(np.array(sig), uprate, dowrate)
-        return sig.duplicate_with_new_array(signal=rs*sig.units)
+        sig = sig.duplicate_with_new_array(signal=rs*sig.units)
+        sig.sampling_rate = sig.sampling_rate*f
+        return sig
     else:
         return sig
 

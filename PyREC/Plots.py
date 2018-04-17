@@ -6,112 +6,67 @@ Created on Wed Jul 26 12:11:53 2017
 @author: aguimera
 """
 
-import neo
 import numpy as np
 import matplotlib.pyplot as plt
 import quantities as pq
 from scipy import signal
-from scipy import interpolate
-import pickle
-from fractions import Fraction
-from matplotlib import cm
 import matplotlib.colors as colors
-
-
-def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
-                        RelaxTime=None):
-    """
-    Returns the times when the analog signal crosses a threshold.
-    Usually used for extracting spike times from a membrane potential.
-    Adapted from version in NeuroTools.
-
-    Parameters
-    ----------
-    signal : neo AnalogSignal object
-        'signal' is an analog signal.
-    threshold : A quantity, e.g. in mV
-        'threshold' contains a value that must be reached
-        for an event to be detected. Default: 0.0 * mV.
-    sign : 'above' or 'below'
-        'sign' determines whether to count thresholding crossings
-        that cross above or below the threshold.
-    format : None or 'raw'
-        Whether to return as SpikeTrain (None)
-        or as a plain array of times ('raw').
-
-    Returns
-    -------
-    result_st : neo SpikeTrain object
-        'result_st' contains the spike times of each of the events (spikes)
-        extracted from the signal.
-    """
-
-    assert threshold is not None, "A threshold must be provided"
-
-    if sign == 'above':
-        cutout = np.where(signal > threshold)[0]
-    elif sign == 'below':
-        cutout = np.where(signal < threshold)[0]
-
-    if len(cutout) <= 0:
-        events = np.zeros(0)
-    else:
-        take = np.where(np.diff(cutout) > 1)[0] + 1
-        take = np.append(0, take)
-
-        time = signal.times
-        events = time[cutout][take]
-
-    if RelaxTime:
-        outevents = []
-        told = 0*pq.s
-        for te in events:
-            if (te-told) > RelaxTime:
-                outevents.append(te)
-                told = te
-    else:
-        outevents = events
-
-    return outevents
+from collections import OrderedDict
 
 
 class SpecSlot():
-    def __init__(self):
-        self.SpecFmin = 0.5
-        self.SpecFmax = 15
-        self.SpecTimeRes = 0.05
-        self.SpecMinPSD = -3
-        self.SpecCmap = 'jet'
-        if self.PlotType == 'Spectrogram':
-            sig = self.GetSignal(Time, Resamp=False)
+    def __init__(self, Signal, Units=None, Position=None, DispName=None,):
+        self.Fmin = 0.5
+        self.Fmax = 15
+        self.TimeRes = 0.05
+        self.MinPSD = 1e-13
+        self.MaxPSD = 1e-10
+        self.Cmap = 'jet'
+        self.LogScale = False
 
-            nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/self.SpecFmin))+1))
-            Ts = sig.sampling_period.magnitude
-            noverlap = int((Ts*nFFT - self.SpecTimeRes)/Ts)
+        self.Signal = Signal
 
-            f, t, Sxx = signal.spectrogram(sig, sig.sampling_rate,
-                                           window='hanning',
-                                           nperseg=nFFT,
-                                           noverlap=noverlap,
-                                           scaling='density',
-                                           axis=0)
-            finds = np.where(f < self.SpecFmax)[0][1:]
-            r, g, c = Sxx.shape
-            S = Sxx.reshape((r, c))[finds][:]
-            cax = self.Ax.pcolor(t*pq.s+sig.t_start, f[finds], S,
-                                 cmap=self.SpecCmap,
-                                 norm=colors.LogNorm(self.SpecMinPSD,
-                                                     self.SpecMaxPSD))
-            fig = plt.figure()
-            fig.colorbar(cax)
+        self.Units = Units
+        self.Position = Position
+        if DispName is None:
+            self.DispName = self.Signal.Name
+        else:
+            self.DispName = DispName
+
+    def PlotSignal(self, Time, Units=None):
+        if Units is not None:
+            self.Units = Units
+        sig = self.Signal.GetSignal(Time, Units=self.Units)
+
+        nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/self.Fmin))+1))
+        Ts = sig.sampling_period.magnitude
+        noverlap = int((Ts*nFFT - self.TimeRes)/Ts)
+
+        f, t, Sxx = signal.spectrogram(sig, sig.sampling_rate,
+                                       window='hanning',
+                                       nperseg=nFFT,
+                                       noverlap=noverlap,
+                                       scaling='density',
+                                       axis=0)
+        finds = np.where(f < self.Fmax)[0][1:]
+        r, g, c = Sxx.shape
+        S = Sxx.reshape((r, c))[finds][:]
+        cax = self.Ax.pcolor(t*pq.s+sig.t_start, f[finds], S,
+                             cmap=self.Cmap,
+                             norm=colors.Normalize(self.MinPSD,
+                                                   self.MaxPSD))
+#        fig = plt.figure()
+#        fig.colorbar(cax)
 #                self.Fig.colorbar(cax, orientation='horizontal')
 
 #                self.Ax.set_yscale('log')
 
 
 class WaveSlot():
+    UnitsInLabel = True
+
     def __init__(self, Signal, Units=None, Position=None, DispName=None,
-                 Color='k', Line='-', Alpha=1, Ymax=0, Ymin=0, AutoScale=True):
+                 Color='k', Line='-', Alpha=1, Ylim=None):
         self.Signal = Signal
 
         self.Units = Units
@@ -127,9 +82,9 @@ class WaveSlot():
         self.Color = Color
         self.Line = Line
         self.Alpha = Alpha
-        self.Ymax = Ymax
-        self.Ymin = Ymin
-        self.AutoScale = AutoScale
+        self.Ylim = Ylim
+
+        self.Name = self.Signal.Name
 
     def PlotSignal(self, Time, Units=None):
         if self.Ax is None:
@@ -138,35 +93,42 @@ class WaveSlot():
             self.Units = Units
 
         sig = self.Signal.GetSignal(Time, self.Units)
+
+        if self.UnitsInLabel is True:
+            su = str(sig.units).split(' ')[-1]
+            label = "{} [{}]".format(self.DispName, su)
+        else:
+            label = self.DispName
+
         self.Ax.plot(sig.times,
                      sig,
                      self.Line,
                      color=self.Color,
-                     label=self.DispName,
+                     label=label,
                      alpha=self.Alpha)
 
-        if self.AutoScale:
-            ylim = (np.min(sig), np.max(sig))
-            self.Ax.set_ylim(ylim)
-        else:
-            ylim = (self.Ymin, self.Ymax)
-            self.Ax.set_ylim(ylim)
+        if self.Ylim is not None:
+            self.Ax.set_ylim(self.Ylim)
 
     def PlotEvent(self, Time, color=None, alpha=0.5):
         if color is None:
             color = 'r--'
         self.Ax.plot((Time, Time), (1, -1), color, alpha=alpha)
 
+    def GetSignal(self, Time, Units=None):
+        return self.Signal.GetSignal(Time, Units)
+
 
 class PlotSlots():
     LegNlabCol = 4  # Number of labels per col in legend
-    LegFontSize = 'x-small'
+    LegFontSize = 'xx-small'
 
-    def __init__(self, Slots, ShowLegend=False, figsize=None,
-                 ShowAxis=True):
-        self.ShowLegend = ShowLegend
+    def __init__(self, Slots, ShowNameOn='Axis', figsize=None,
+                 ShowAxis=True, AutoScale=True):
+        self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
         self.Slots = Slots
         self.ShowAxis = ShowAxis
+        self.AutoScale = AutoScale
 
         Pos = []
         for isl, sl in enumerate(self.Slots):
@@ -184,16 +146,16 @@ class PlotSlots():
         else:
             self.Axs = [A, ]
 
-        for sl in self.Slots:  # init slots axis
+        for sl in self.Slots:
             sl.Ax = self.Axs[sl.Position]
-            sl.Fig = self.Fig
 
-            if not ShowLegend:  # Add labels to axis
-                lb = sl.Ax.get_ylabel()
-                sl.Ax.set_ylabel(lb + ' ' + sl.DispName + '\n',
-                                 rotation='horizontal',
-                                 ha='center')
-        self.FormatFigure()
+        self.SlotsInAxs = {}
+        for ax in self.Axs:
+            sll = []
+            for sl in self.Slots:
+                if sl.Ax == ax:
+                    sll.append(sl)
+            self.SlotsInAxs.update({ax: sll})
 
     def ClearAxes(self):
         for sl in self.Slots:
@@ -227,31 +189,42 @@ class PlotSlots():
         self.Fig.subplots_adjust(hspace=0)
 
     def AddLegend(self, Ax):
-        nLines = len(Ax.lines)
-        nlc = self.LegNlabCol
-        if nLines > nlc:
-            ncol = (nLines / nlc) + ((nLines % nlc) > 0)
-        else:
-            ncol = 1
-        Ax.legend(loc='best',
-                  fancybox=True,
-                  shadow=True,
-                  ncol=ncol,
-                  fontsize=self.LegFontSize)
+        if self.ShowNameOn is None:
+            return
+        elif self.ShowNameOn == 'Axis':
+            lbls = []
+            for sl in self.SlotsInAxs[Ax]:
+                su = str(sl.Units).split(' ')[-1]
+                lbls.append("{} [{}]".format(sl.DispName, su))
+            sl.Ax.set_ylabel('\n'.join(set(lbls)))
+        elif self.ShowNameOn == 'Legend':
+            handles, labels = Ax.get_legend_handles_labels()
+            by_label = OrderedDict(zip(labels, handles))
+
+            nLines = len(by_label)
+            nlc = self.LegNlabCol
+            if nLines > nlc:
+                ncol = (nLines / nlc) + ((nLines % nlc) > 0)
+            else:
+                ncol = 1
+            Ax.legend(by_label.values(), by_label.keys(),
+                      loc='best',
+                      ncol=ncol,
+                      fontsize=self.LegFontSize)
 
     def PlotChannels(self, Time, Units=None):
         self.ClearAxes()
         for sl in self.Slots:
             sl.PlotSignal(Time, Units=Units)
-
         if Time is not None:
             sl.Ax.set_xlim(Time[0], Time[1])
 
-        if self.ShowLegend:
-            for (Ax, AutoScale) in self.Axs:
-                self.AddLegend(Ax)
-                if AutoScale:
-                    Ax.autoscale(enable=True, axis='y', tight=True)
+        for Ax in self.Axs:
+            self.AddLegend(Ax)
+            if self.AutoScale:
+                Ax.autoscale(enable=True, axis='y')
+
+        self.FormatFigure()
 
     def PlotEvents(self, Time, (EventRec, EventName), color=None, alpha=0.5):
 
