@@ -12,6 +12,7 @@ import quantities as pq
 from scipy import signal
 import matplotlib.colors as colors
 from collections import OrderedDict
+from scipy.interpolate import interp2d
 
 
 class SpecSlot():
@@ -23,10 +24,12 @@ class SpecSlot():
         self.MinPSD = None
         self.MaxPSD = None
         self.MaxPSDrange = None
+        self.LogNormalize = True
         self.Cmap = 'jet'
         self.LogScale = False
 
         self.Ax = None
+        self.CAx = None
         self.Fig = None
 
         self.Signal = Signal
@@ -56,10 +59,10 @@ class SpecSlot():
 
         finds = np.where((self.Fmin < f) & (f < self.Fmax))[0][1:]
         r, g, c = Sxx.shape
-        S = Sxx.reshape((r, c))[finds][:]
+        data = Sxx.reshape((r, c))[finds][:]
 
         if self.MaxPSD is None:
-            MaxPSD = S.max()
+            MaxPSD = data.max()
         else:
             MaxPSD = self.MaxPSD
 
@@ -71,17 +74,26 @@ class SpecSlot():
         else:
             MinPSD = self.MinPSD
 
+        if self.LogNormalize:
+            Norm = colors.LogNorm(MinPSD, MaxPSD)
+        else:
+            Norm = colors.Normalize(MinPSD, MaxPSD)
+
         if self.Ax is None:
             self.Fig, self.Ax = plt.subplots()
 
-        cax = self.Ax.pcolor(t*pq.s + sig.t_start,
-                             f[finds],
-                             S,
-                             cmap=self.Cmap,
-                             norm=colors.LogNorm(MinPSD,
-                                                 MaxPSD))
+        x = t + sig.t_start.magnitude
+        y = f[finds].magnitude
+        img = self.Ax.imshow(data,
+                             cmap='jet',
+                             norm=Norm,
+                             interpolation='quadric',
+                             origin='lower',
+                             aspect='auto',
+                             extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
+        cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
+        cbar.ax.tick_params(labelsize='x-small')
 
-#        self.Fig.colorbar(cax, orientation='horizontal')
         if self.LogScale:
             self.Ax.set_yscale('log')
 
@@ -162,17 +174,19 @@ class PlotSlots():
                 sl.Position = isl
             Pos.append(sl.Position)
 
-        self.Fig, A = plt.subplots(max(Pos) + 1, 1,
+        self.Fig, A = plt.subplots(max(Pos) + 1, 2,
                                    sharex=True,
-                                   figsize=figsize)
-        if type(A).__module__ == np.__name__:
-            self.Axs = []
-            for a in A:
-                self.Axs.append(a)
-        else:
-            self.Axs = [A, ]
+                                   figsize=figsize,
+                                   gridspec_kw={'width_ratios': (10, 1)})
+        self.Axs = [a[0] for a in A]
+        self.CAxs = [a[1] for a in A]
+
+        for ca in self.CAxs:
+            ca.axis('off')
 
         for sl in self.Slots:
+            if isinstance(sl, SpecSlot):
+                sl.CAx = self.CAxs[sl.Position]
             sl.Ax = self.Axs[sl.Position]
             sl.Fig = self.Fig
 
@@ -213,7 +227,7 @@ class PlotSlots():
                 Ax.spines['bottom'].set_visible(False)
 
         self.Fig.tight_layout()
-        self.Fig.subplots_adjust(hspace=0)
+        self.Fig.subplots_adjust(hspace=0, wspace=0)
 
     def AddLegend(self, Ax):
         if self.ShowNameOn is None:
