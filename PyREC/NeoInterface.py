@@ -13,6 +13,8 @@ import quantities as pq
 
 class NeoSegment():
     def __init__(self, RecordFile=None, Seg=None):
+        self.SigNames = {}
+        self.EventNames = {}
         if not RecordFile:
             self.Seg = Seg
             if self.Seg:
@@ -36,12 +38,18 @@ class NeoSegment():
         self.UpdateEventDict()
 
     def SaveRecord(self, FileName):
-        out_f = neo.io.NixIO(filename=FileName)
-        out_bl = neo.Block(name='NewBlock')
+        if FileName.endswith('.h5'):
+            out_f = neo.io.NixIO(filename=FileName)
+        elif FileName.endswith('.mat'):
+            out_f = neo.io.NeoMatlabIO(filename=FileName)
+        else:
+            return
 
+        out_bl = neo.Block(name='NewBlock')
         out_bl.segments.append(self.Seg)
         out_f.write_block(out_bl)
-        out_f.close()
+        if FileName.endswith('.h5'):
+            out_f.close()
 
     def UpdateSignalsDict(self):
         self.SigNames = {}
