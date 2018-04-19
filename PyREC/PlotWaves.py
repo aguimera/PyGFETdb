@@ -91,8 +91,13 @@ class SpecSlot():
                              origin='lower',
                              aspect='auto',
                              extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
+
         cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
-        cbar.ax.tick_params(labelsize='x-small')
+        cbar.ax.tick_params(length=1, labelsize='x-small')
+
+        su = str(sig.units).split(' ')[-1]
+        label = "[{}^2]".format(su)
+        cbar.set_label(label, fontsize='x-small')
 
         if self.LogScale:
             self.Ax.set_yscale('log')
@@ -147,14 +152,6 @@ class WaveSlot():
 
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)
-
-    def PlotEvent(self, Time, color=None, alpha=0.5):
-        if color is None:
-            color = 'r--'
-        self.Ax.plot((Time, Time), (1, -1), color, alpha=alpha)
-
-    def GetSignal(self, Time, Units=None):
-        return self.Signal.GetSignal(Time, Units)
 
 
 class PlotSlots():
@@ -212,7 +209,7 @@ class PlotSlots():
                 Ax.spines['right'].set_visible(False)
     #            Ax.spines['left'].set_visible(False)
                 Ax.spines['bottom'].set_visible(False)
-                Ax.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+                Ax.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
 
             TimeAx = self.Axs[-1]
             TimeAx.set_xlabel('Time [s]')
@@ -230,7 +227,9 @@ class PlotSlots():
         self.Fig.subplots_adjust(hspace=0, wspace=0)
 
     def AddLegend(self, Ax):
-        if self.ShowNameOn is None:
+        if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
+            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Frequency [Hz]')
+        elif self.ShowNameOn is None:
             return
         elif self.ShowNameOn == 'Axis':
             lbls = []
@@ -267,10 +266,8 @@ class PlotSlots():
 
         self.FormatFigure()
 
-    def PlotEvents(self, Time, (EventRec, EventName), color=None, alpha=0.5):
-
-        Te = EventRec.GetEventTimes(EventName, Time)
-        for te in Te:
-            for sl in self.Slots:
-                sl.PlotEvent(te, color=color, alpha=alpha)
-
+    def PlotEvents(self, Times, color='r', alpha=0.5):
+        for ax in self.Axs:
+            ylim = ax.get_ylim()
+            ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
+        
