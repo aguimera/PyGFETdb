@@ -122,7 +122,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
 
     Ax.set_xlabel('Frequency [Hz]')
     Ax.set_ylabel('[' + str(units).split(' ')[-1] + ']')
-    
+
     handles, labels = Ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
 
@@ -138,6 +138,101 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
               fontsize='x-small')
 
     return PSD
+
+
+def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
+                 OverLap=True, Std=True, Units=None, FileOutPrefix=None):
+
+    ft, Axt = plt.subplots()
+
+    for sl in Signals:
+        avg = np.array([])
+        fig, Ax = plt.subplots()
+
+        Ts = sl.signal.sampling_period
+        nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
+        t = np.arange(nSamps)*Ts + TimeAvg[0]
+
+        for et in TimesEvent:
+            start = et+TimeAvg[0]
+            stop = et+TimeAvg[1]
+
+            st = sl.GetSignal((start, stop), Units=Units)[:nSamps]
+            try:
+                avg = np.hstack([avg, st]) if avg.size else st
+                if OverLap:
+                    Ax.plot(t, st, 'k-', alpha=0.1)
+            except:
+                print 'Error', nSamps, et, avg.shape, st.shape
+
+        MeanT = np.mean(avg, axis=1)
+        Ax.plot(t, MeanT, 'r-')
+        if Std:
+            StdT = np.std(avg, axis=1)
+            Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
+                            facecolor='r', alpha=0.5)
+
+        ylim = Ax.get_ylim()
+        Ax.vlines(0, ylim[0], ylim[1],
+                  linestyles='dashdot',
+                  alpha=0.7,
+                  colors='g')
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+        plt.title(sl.Name)
+        Ax.set_xlabel('Time [s]')
+        su = str(st.units).split(' ')[-1]
+        Ax.set_ylabel(sl.Name + ' [' + su + ']')
+
+        Axt.plot(t, MeanT, label=sl.Name)
+        if FileOutPrefix is not None:
+            fig.savefig(FileOutPrefix + sl.Name + '.png')
+
+    ylim = Axt.get_ylim()
+    Axt.vlines(0, ylim[0], ylim[1],
+               linestyles='dashdot',
+               alpha=0.7,
+               colors='g')
+
+    Axt.set_ylabel('[' + su + ']')
+    Axt.set_xlabel('Time [s]')
+    Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+    Axt.legend()
+    if FileOutPrefix is not None:
+        ft.savefig(FileOutPrefix + '.png')
+
+
+#        if Spect:
+#            nFFT = int(2**(np.around(np.log2(Fs/sl.SpecFmin))+1))
+#            noverlap = int((Ts*nFFT - sl.SpecTimeRes)/Ts)
+#            TWindOff = (nFFT * Ts)/8
+#
+#            f, tsp, Sxx = signal.spectrogram(MeanT, Fs,
+#                                             window='hanning',
+#                                             nperseg=nFFT,
+#                                             noverlap=noverlap,
+#                                             scaling='density',
+#                                             axis=0)
+#
+#            finds = np.where(f < sl.SpecFmax)[0][1:]
+#            print Sxx.shape
+#            r, c = Sxx.shape
+#            S = Sxx.reshape((r, c))[finds][:]
+#            pcol = AxS.pcolormesh(tsp + TimeWindow[0].magnitude + TWindOff,
+#                                  f[finds],
+#                                  np.log10(S),
+#                                  vmin=np.log10(np.max(S))+sl.SpecMinPSD,
+#                                  vmax=np.log10(np.max(S)),
+#                                  cmap=sl.SpecCmap)
+#            f, a = plt.subplots(1, 1)
+#            f.colorbar(pcol)
+#
+#        Axt.plot(t, np.mean(avg, axis=1), label=sl.DispName)
+#        ft.canvas.draw()
+#
+#    Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+#    Axt.legend()
+#    ft.canvas.draw()
+#    plt.show()
 
 #
 #    def PlotHist(self, Time, Resamp=False, Binds=250):
@@ -175,88 +270,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
 #        return PSD
 
 
-#    def PlotEventAvg(self, (EventRec, EventName), Time, TimeWindow,
-#                     OverLap=True, Std=False, Spect=False, Resamp=False):
-#
-#        ft, Axt = plt.subplots()
-#
-#        for sl in self.Slots:
-#            avg = np.array([])
-#            if Spect:
-#                ft, (Ax, AxS) = plt.subplots(2, 1, sharex=True)
-#            else:
-#                ft, Ax = plt.subplots()
-#
-#            if Resamp:
-#                Fs = sl.ResampleFs.magnitude
-#            else:
-#                Fs = sl.Signal().sampling_rate.magnitude
-#
-#            Ts = 1/Fs
-#            nSamps = int((TimeWindow[1]-TimeWindow[0])/Ts)
-#            t = np.arange(nSamps)*Ts*pq.s + TimeWindow[0]
-#
-#            etimes = EventRec.GetEventTimes(EventName, Time)
-#            for et in etimes:
-#                start = et+TimeWindow[0]
-#                stop = et+TimeWindow[1]
-#
-#                if sl.Signal().t_start < start and sl.Signal().t_stop > stop:
-#                    st = sl.GetSignal((start, stop), Resamp=Resamp)[:nSamps]
-#                    try:
-#                        avg = np.hstack([avg, st]) if avg.size else st
-#                        if OverLap:
-#                            Ax.plot(t, st, 'k-', alpha=0.1)
-#                    except:
-#                        print 'Error', nSamps, et, avg.shape, st.shape
-#
-#            print EventName, 'Counts', len(etimes)
-#
-#            MeanT = np.mean(avg, axis=1)
-#            Ax.plot(t, MeanT, 'r-')
-#            if Std:
-#                StdT = np.std(avg, axis=1)
-#                Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
-#                                facecolor='r', alpha=0.5)
-#
-#            ylim = Ax.get_ylim()
-#            Ax.plot((0, 0), (1, -1), 'g-.', alpha=0.7)
-#            Ax.set_ylim(ylim)
-#            Ax.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
-#
-#            plt.title(sl.DispName)
-#            if Spect:
-#                nFFT = int(2**(np.around(np.log2(Fs/sl.SpecFmin))+1))
-#                noverlap = int((Ts*nFFT - sl.SpecTimeRes)/Ts)
-#                TWindOff = (nFFT * Ts)/8
-#
-#                f, tsp, Sxx = signal.spectrogram(MeanT, Fs,
-#                                                 window='hanning',
-#                                                 nperseg=nFFT,
-#                                                 noverlap=noverlap,
-#                                                 scaling='density',
-#                                                 axis=0)
-#
-#                finds = np.where(f < sl.SpecFmax)[0][1:]
-#                print Sxx.shape
-#                r, c = Sxx.shape
-#                S = Sxx.reshape((r, c))[finds][:]
-#                pcol = AxS.pcolormesh(tsp + TimeWindow[0].magnitude + TWindOff,
-#                                      f[finds],
-#                                      np.log10(S),
-#                                      vmin=np.log10(np.max(S))+sl.SpecMinPSD,
-#                                      vmax=np.log10(np.max(S)),
-#                                      cmap=sl.SpecCmap)
-#                f, a = plt.subplots(1, 1)
-#                f.colorbar(pcol)
-#
-#            Axt.plot(t, np.mean(avg, axis=1), label=sl.DispName)
-#            ft.canvas.draw()
-#
-#        Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
-#        Axt.legend()
-#        ft.canvas.draw()
-#        plt.show()
+
 #
 #    def PlotPSDSNR(self, (EventRec, EventName), TDelay, TEval, DevDCVals,
 #                   Time=None, nFFT=2**17):

@@ -16,8 +16,7 @@ from qtpy.QtWidgets import QHeaderView
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QFileDialog, QColorDialog, QInputDialog, QAction
-from PyREC.RecordCore import NeoRecord
-from PyREC.RecordPlot import PltSlot, PlotRecord, threshold_detection
+from PyREC.NeoInterface import NeoSegment
 
 
 class RecordExplorer(QtWidgets.QMainWindow):
@@ -74,71 +73,20 @@ class RecordExplorer(QtWidgets.QMainWindow):
 
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
-        uipath = os.path.join(os.path.dirname(__file__), 'GuiRecordExplorer.ui')
+        uipath = os.path.join(os.path.dirname(__file__),
+                              'GuiRecordExplorer.ui')
         uic.loadUi(uipath, self)
-        
-        self.InitMenu()
 
         self.setWindowTitle('Record Explorer')
 
-        self.ButFileRec.clicked.connect(self.ButFileRecClick)
-        self.ButADDRec.clicked.connect(self.ButADDRecClick)
-        self.ButDelete.clicked.connect(self.ButDeleteClick)
-
-        self.ButFileRec2.clicked.connect(self.ButFileRec2Click)
-        self.ButADDRec2.clicked.connect(self.ButADDRec2Click)
-
-        self.SpnTStart.valueChanged.connect(self.SpnTStartChanged)
-        self.SpnTShow.valueChanged.connect(self.SpnTShowChanged)
-        self.SLTStart.valueChanged.connect(self.SLTStartChanged)
-        self.SLTStop.valueChanged.connect(self.SLTStopChanged)
-        self.ButNextEvent.clicked.connect(self.ButNextEventClick)
-
-        self.ButPSD.clicked.connect(self.ButButPSDClick)
-        self.ButEventAvg.clicked.connect(self.ButEventAvgClick)
-
-        self.ButSaveView.clicked.connect(self.ButSaveViewClick)
-
-        self.ButThres.clicked.connect(self.ButThresClick)
-        self.ButPSDSNR.clicked.connect(self.ButPSDSNRClick)
-
-        self.ButLoadDC.clicked.connect(self.ButLoadDCClick)
-        self.ButViewDC.clicked.connect(self.ButViewDCClick)
-
         self.ButColor.clicked.connect(self.ButColorClick)
-
-        # Init Tables
-        self.TblChs.setColumnCount(len(self.ChFields))
-        for c in self.ChFields.values():
-            self.TblChs.setHorizontalHeaderItem(c[1],
-                                                QtWidgets.QTableWidgetItem(c[0]))
-        header = self.TblChs.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-
-        self.ButPlot.clicked.connect(self.ButPlotClick)
-
-    def CloseFigures(self):
-        plt.close('all')
-
-    def SaveFigures(self):
-        Dir = QFileDialog.getExistingDirectory(self)
-        Prefix, okPressed = QInputDialog.getText(self,
-                                                 'Prefix',
-                                                 'Prefix for files',
-                                                 text='Figure')
-
-        if Dir and okPressed:
-            for i in plt.get_fignums():
-                plt.figure(i)
-                for ext in self.OutFigFormats:
-                    fileOut = Dir + '/' + Prefix + '{}.' + ext
-                    print fileOut
-                    plt.savefig(fileOut.format(i))
 
     def ButColorClick(self):
         color = QColorDialog.getColor()
         if color.isValid():
-            print color.name(), color.rgba64()
+            self.CurrentSelColor = color
+            style = 'QPushButton {background-color:' + color.name() + '}'
+            self.ButColor.setStyleSheet(style)
 
     def ButFileRecClick(self):
 

@@ -124,8 +124,10 @@ class NeoSignal():
     def __init__(self, NeoSeg=None, SigName=None, Signal=None):
         if Signal is None:
             self.Signal = NeoSeg.GetSignal(SigName)
+            self.signal = NeoSeg.GetSignal(SigName)
         else:
             self.Signal = Signal
+            self.signal = Signal
         self.Name = self.Signal.name
 
     def GetSignal(self, Time, Units=None):

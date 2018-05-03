@@ -55,6 +55,7 @@ def Filter(sig, Type, Order, Freqs):
 class SignalProcess():
     def __init__(self, Signal, ProcessChain):
         self.Signal = Signal
+        self.signal = Signal.signal
         self.ProcessChain = ProcessChain
         self.Name = Signal.Name
 

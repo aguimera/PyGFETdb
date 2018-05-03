@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -133,33 +133,7 @@
                          <item>
                           <widget class="QPushButton" name="ButColor">
                            <property name="text">
-                            <string>PushButton</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="label_21">
-                           <property name="text">
-                            <string>UnitGain</string>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QSpinBox" name="SpnRecGain">
-                           <property name="prefix">
                             <string/>
-                           </property>
-                           <property name="maximum">
-                            <number>100000000</number>
-                           </property>
-                           <property name="value">
-                            <number>1000000</number>
-                           </property>
-                           <property name="displayIntegerBase">
-                            <number>10</number>
                            </property>
                           </widget>
                          </item>
@@ -175,30 +149,6 @@
                             </size>
                            </property>
                           </spacer>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="label_22">
-                           <property name="text">
-                            <string>Plott Type</string>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QComboBox" name="CmbWaveType">
-                           <item>
-                            <property name="text">
-                             <string>Wave</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Spectrogram</string>
-                            </property>
-                           </item>
-                          </widget>
                          </item>
                         </layout>
                        </widget>
@@ -1461,7 +1411,7 @@
      <x>0</x>
      <y>0</y>
      <width>938</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
