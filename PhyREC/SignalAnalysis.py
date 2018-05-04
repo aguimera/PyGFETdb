@@ -1,0 +1,335 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 11 11:12:23 2018
+
+@author: aguimera
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import quantities as pq
+from scipy import signal
+from collections import OrderedDict
+
+
+def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
+                        RelaxTime=None):
+    """
+    Returns the times when the analog signal crosses a threshold.
+    Usually used for extracting spike times from a membrane potential.
+    Adapted from version in NeuroTools.
+
+    Parameters
+    ----------
+    signal : neo AnalogSignal object
+        'signal' is an analog signal.
+    threshold : A quantity, e.g. in mV
+        'threshold' contains a value that must be reached
+        for an event to be detected. Default: 0.0 * mV.
+    sign : 'above' or 'below'
+        'sign' determines whether to count thresholding crossings
+        that cross above or below the threshold.
+    format : None or 'raw'
+        Whether to return as SpikeTrain (None)
+        or as a plain array of times ('raw').
+
+    Returns
+    -------
+    result_st : neo SpikeTrain object
+        'result_st' contains the spike times of each of the events (spikes)
+        extracted from the signal.
+    """
+
+    assert threshold is not None, "A threshold must be provided"
+
+    if sign == 'above':
+        cutout = np.where(signal > threshold)[0]
+    elif sign == 'below':
+        cutout = np.where(signal < threshold)[0]
+
+    if len(cutout) <= 0:
+        events = np.zeros(0)
+    else:
+        take = np.where(np.diff(cutout) > 1)[0] + 1
+        take = np.append(0, take)
+
+        time = signal.times
+        events = time[cutout][take]
+
+    if RelaxTime:
+        outevents = []
+        told = 0*pq.s
+        for te in events:
+            if (te-told) > RelaxTime:
+                outevents.append(te)
+                told = te
+    else:
+        outevents = events
+
+    return outevents
+
+
+def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
+            scaling='density', Units=None):
+
+    if Ax is None:
+        Fig, Ax = plt.subplots()
+
+    PSD = {}
+    for sl in Signals:
+        if not hasattr(sl, 'GetSignal'):
+            continue
+        sig = sl.GetSignal(Time, Units=Units)
+        if FMin is not None:
+            nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
+
+        ff, psd = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
+                               window='hanning',
+                               nperseg=nFFT,
+                               scaling=scaling)
+        if scaling == 'density':
+            units = sig.units**2/pq.Hz
+        elif scaling == 'spectrum':
+            units = sig.units**2
+
+        slN = sl.Name
+        PSD[slN] = {}
+        PSD[slN]['psd'] = psd * units
+        PSD[slN]['ff'] = ff
+
+        if hasattr(sl, 'Line'):
+            Line = sl.Line
+        else:
+            Line = '-'
+        if hasattr(sl, 'Color'):
+            Color = sl.Color
+        else:
+            Color = None
+        if hasattr(sl, 'Alpha'):
+            Alpha = sl.Alpha
+        else:
+            Alpha = 1
+        if hasattr(sl, 'DispName'):
+            label = sl.DispName
+        else:
+            label = sl.Name
+
+        Ax.loglog(ff, psd,
+                  Line,
+                  color=Color,
+                  label=label,
+                  alpha=Alpha)
+
+    Ax.set_xlabel('Frequency [Hz]')
+    Ax.set_ylabel('[' + str(units).split(' ')[-1] + ']')
+
+    handles, labels = Ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+
+    nLines = len(by_label)
+    nlc = 4
+    if nLines > nlc:
+        ncol = (nLines / nlc) + ((nLines % nlc) > 0)
+    else:
+        ncol = 1
+    Ax.legend(by_label.values(), by_label.keys(),
+              loc='best',
+              ncol=ncol,
+              fontsize='x-small')
+
+    return PSD
+
+
+def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
+                 OverLap=True, Std=True, Units=None, FileOutPrefix=None):
+
+    ft, Axt = plt.subplots()
+
+    for sl in Signals:
+        avg = np.array([])
+        fig, Ax = plt.subplots()
+
+        Ts = sl.signal.sampling_period
+        nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
+        t = np.arange(nSamps)*Ts + TimeAvg[0]
+
+        for et in TimesEvent:
+            start = et+TimeAvg[0]
+            stop = et+TimeAvg[1]
+
+            st = sl.GetSignal((start, stop), Units=Units)[:nSamps]
+            try:
+                avg = np.hstack([avg, st]) if avg.size else st
+                if OverLap:
+                    Ax.plot(t, st, 'k-', alpha=0.1)
+            except:
+                print 'Error', nSamps, et, avg.shape, st.shape
+
+        MeanT = np.mean(avg, axis=1)
+        Ax.plot(t, MeanT, 'r-')
+        if Std:
+            StdT = np.std(avg, axis=1)
+            Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
+                            facecolor='r', alpha=0.5)
+
+        ylim = Ax.get_ylim()
+        Ax.vlines(0, ylim[0], ylim[1],
+                  linestyles='dashdot',
+                  alpha=0.7,
+                  colors='g')
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+        plt.title(sl.Name)
+        Ax.set_xlabel('Time [s]')
+        su = str(st.units).split(' ')[-1]
+        Ax.set_ylabel(sl.Name + ' [' + su + ']')
+
+        Axt.plot(t, MeanT, label=sl.Name)
+        if FileOutPrefix is not None:
+            fig.savefig(FileOutPrefix + sl.Name + '.png')
+
+    ylim = Axt.get_ylim()
+    Axt.vlines(0, ylim[0], ylim[1],
+               linestyles='dashdot',
+               alpha=0.7,
+               colors='g')
+
+    Axt.set_ylabel('[' + su + ']')
+    Axt.set_xlabel('Time [s]')
+    Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+    Axt.legend()
+    if FileOutPrefix is not None:
+        ft.savefig(FileOutPrefix + '.png')
+
+
+#        if Spect:
+#            nFFT = int(2**(np.around(np.log2(Fs/sl.SpecFmin))+1))
+#            noverlap = int((Ts*nFFT - sl.SpecTimeRes)/Ts)
+#            TWindOff = (nFFT * Ts)/8
+#
+#            f, tsp, Sxx = signal.spectrogram(MeanT, Fs,
+#                                             window='hanning',
+#                                             nperseg=nFFT,
+#                                             noverlap=noverlap,
+#                                             scaling='density',
+#                                             axis=0)
+#
+#            finds = np.where(f < sl.SpecFmax)[0][1:]
+#            print Sxx.shape
+#            r, c = Sxx.shape
+#            S = Sxx.reshape((r, c))[finds][:]
+#            pcol = AxS.pcolormesh(tsp + TimeWindow[0].magnitude + TWindOff,
+#                                  f[finds],
+#                                  np.log10(S),
+#                                  vmin=np.log10(np.max(S))+sl.SpecMinPSD,
+#                                  vmax=np.log10(np.max(S)),
+#                                  cmap=sl.SpecCmap)
+#            f, a = plt.subplots(1, 1)
+#            f.colorbar(pcol)
+#
+#        Axt.plot(t, np.mean(avg, axis=1), label=sl.DispName)
+#        ft.canvas.draw()
+#
+#    Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+#    Axt.legend()
+#    ft.canvas.draw()
+#    plt.show()
+
+#
+#    def PlotHist(self, Time, Resamp=False, Binds=250):
+#        fig, Ax = plt.subplots()
+#
+#        for sl in self.Slots:
+#            Ax.hist(sl.GetSignal(Time, Resamp=Resamp),
+#                    Binds,
+#                    alpha=0.5)
+#            Ax.set_yscale('log')
+#
+#    def PlotPSD(self, Time, nFFT=2**17, FMin=None, Resamp=False):
+#
+#        if not self.FigFFT or not plt.fignum_exists(self.FigFFT.number):
+#            self.FigFFT, self.AxFFT = plt.subplots()
+#
+#        PSD = {}
+#        for sl in self.Slots:
+#            sig = sl.GetSignal(Time, Resamp=Resamp)
+#            if FMin:
+#                nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1)) 
+#
+#            ff, psd = signal.welch(x=sig, fs=sig.sampling_rate,
+#                                   window='hanning',
+#                                   nperseg=nFFT, scaling='density', axis=0)
+#            slN = sl.SigName
+#            PSD[slN] = {}
+#            PSD[slN]['psd'] = psd
+#            PSD[slN]['ff'] = ff
+#            self.AxFFT.loglog(ff, psd, label=sl.DispName)
+#
+#        self.AxFFT.set_xlabel('Frequency [Hz]')
+#        self.AxFFT.set_ylabel('PSD [V^2/Hz]')
+#        self.AxFFT.legend()
+#        return PSD
+
+
+
+#
+#    def PlotPSDSNR(self, (EventRec, EventName), TDelay, TEval, DevDCVals,
+#                   Time=None, nFFT=2**17):
+#
+#        etimes = EventRec.GetEventTimes(EventName, Time)
+#
+#        DevACVals = {}
+#
+#        for sl in self.Slots:
+#            fig, (ax1, ax2)  = plt.subplots(1,2)
+#            psd = np.array([])
+#            DCVals = DevDCVals[sl.SigName]
+#            for ne, et in enumerate(etimes):
+#                start = et+TDelay
+#                stop = et+TDelay+TEval
+#
+#                sig = sl.GetSignal((start, stop), Resamp=False)
+#                fpsd, npsd = signal.welch(x=sig, fs=sig.sampling_rate,
+#                                          window='hanning',
+#                                          nperseg=nFFT, scaling='density', axis=0)                
+#                psd = np.hstack([psd, npsd]) if psd.size else npsd
+#
+##                Flin = fpsd[1:].magnitude
+##                Flog = np.logspace(np.log10(Flin[0]),
+##                                   np.log10(Flin[-1]), 100)
+##                Flog = np.round(Flog, 9)
+##                Flin = np.round(Flin, 9)
+##                intpsd = interpolate.interp1d(Flin, npsd[1:].transpose())(Flog)
+##                a, b, _ = FETAna.noise.FitNoise(Flog,
+##                                                intpsd, Fmin=150, Fmax=5e3)
+#
+#                ax1.loglog(fpsd, npsd)
+##                ax2.loglog(Flog, intpsd/FETAna.noise(Flog, a, b))
+#
+#            psdD = {'Vd0': psd.transpose()}
+#            ACVals = {'PSD': psdD,
+#                      'gm': None,
+#                      'Vgs': DCVals['Vgs'],
+#                      'Vds': DCVals['Vds'],
+#                      'Fpsd': fpsd.magnitude,
+#                      'Fgm': None,
+#                      'ChName': sl.SigName,
+#                      'Name': sl.DispName,
+#                      'GMPoly': DCVals['GMPoly'],
+#                      'IdsPoly': DCVals['IdsPoly'],
+#                      'Ud0': DCVals['Ud0'],
+#                      'IsOK': DCVals['IsOK'],
+#                      'DateTime': DCVals['DateTime']}
+#            DevACVals[sl.DispName] = ACVals
+#            fig.canvas.draw()
+#            plt.show()
+#
+#        FETAna.InterpolatePSD(DevACVals)
+#        FETAna.FitACNoise(DevACVals, Fmin=150, Fmax=5e3, IsOkFilt=False)
+#        pltPSD = FETplt.PyFETPlot()
+#        pltPSD.AddAxes(('PSD', 'NoA', 'NoB'))
+#        pltPSD.AddLegend()
+#        pltPSD.PlotDataCh(DevACVals)
+#
+#        pickle.dump(DevACVals, open('test.pkl', 'wb'))
+#
+#        return DevACVals
