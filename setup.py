@@ -39,7 +39,7 @@ install_requires = ['numpy',
                     'neo>=0.5.2',
                     'nixio']
 
-console_scripts = ['PyRecExplorer = PyREC.GuiRecordView.GuiRecordExplorer:main',
+console_scripts = ['PhyRecExplorer = PhyREC.GuiRecordView.GuiRecordExplorer:main',
                    ]
 
 entry_points = {'console_scripts': console_scripts, }
@@ -60,7 +60,7 @@ classifiers = ['Development Status :: 3 - Alpha',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: User Interfaces']
 
-setup(name="PyREC",
+setup(name="PhyREC",
       version=_version,
       description="Library for electrphysiological analysis based on neo",
       long_description=long_description,
@@ -68,8 +68,8 @@ setup(name="PyREC",
       author_email="anton.guimera@csic.es",
       maintainer="Anton Guimerà-Brunet",
       maintainer_email="anton.guimera@csic.es",
-      url="https://github.com/aguimera/PyREC",
-      download_url="https://github.com/aguimera/PyREC",
+      url="https://github.com/aguimera/PhyREC",
+      download_url="https://github.com/aguimera/PhyREC",
       license="GPLv3",
       packages=find_packages(),
       classifiers=classifiers,
