@@ -5,7 +5,7 @@ Created on Mon Apr 30 00:22:59 2018
 
 @author: aguimera
 """
-import PyREC.SignalProcess as RPro
+import PhyREC.SignalProcess as RPro
 import types
 import inspect
 

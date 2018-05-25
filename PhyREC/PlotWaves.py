@@ -128,6 +128,14 @@ class WaveSlot():
 
         self.Name = self.Signal.Name
 
+    def GetSignal(self, Time, Units=None):
+        if Units is not None:
+            self.Units = Units
+
+        sig = self.Signal.GetSignal(Time, self.Units)
+        self.units = sig.units
+        return sig
+
     def PlotSignal(self, Time, Units=None):
         if self.Ax is None:
             self.Fig, self.Ax = plt.subplots()
@@ -223,8 +231,13 @@ class PlotSlots():
                 Ax.spines['left'].set_visible(False)
                 Ax.spines['bottom'].set_visible(False)
 
-        self.Fig.tight_layout()
-        self.Fig.subplots_adjust(hspace=0, wspace=0)
+        self.Fig.subplots_adjust(top=1.0,
+                                 bottom=0.05,
+                                 left=0.1,
+                                 right=1.0,
+                                 hspace=0.0,
+                                 wspace=0.0)
+#        self.Fig.tight_layout()
 
     def AddLegend(self, Ax):
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):

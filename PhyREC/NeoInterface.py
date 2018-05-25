@@ -15,13 +15,13 @@ class NeoSegment():
     def __init__(self, RecordFile=None, Seg=None):
         self.SigNames = {}
         self.EventNames = {}
-        if not RecordFile:
-            self.Seg = Seg
-            if self.Seg:
+        if RecordFile is None:
+            if Seg is None:
+                self.Seg = neo.Segment('New Seg')
+            else:
+                self.Seg = Seg
                 self.UpdateEventDict()
                 self.UpdateSignalsDict()
-            else:
-                self.Seg = neo.Segment('New Seg')
             return
 
         ftype = RecordFile.split('.')[-1]

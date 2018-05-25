@@ -75,7 +75,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
     if Ax is None:
         Fig, Ax = plt.subplots()
 
-    PSD = {}
+    PSD = {}        
     for sl in Signals:
         if not hasattr(sl, 'GetSignal'):
             continue

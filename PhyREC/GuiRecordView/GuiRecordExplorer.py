@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QHeaderView
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QFileDialog, QColorDialog, QInputDialog, QAction
-from PyREC.NeoInterface import NeoSegment
+from PhyREC.NeoInterface import NeoSegment
 
 
 class RecordExplorer(QtWidgets.QMainWindow):
