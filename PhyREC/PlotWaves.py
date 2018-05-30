@@ -234,14 +234,15 @@ class PlotSlots():
         self.Fig.subplots_adjust(top=1.0,
                                  bottom=0.05,
                                  left=0.1,
-                                 right=1.0,
+                                 right=0.94,
                                  hspace=0.0,
                                  wspace=0.0)
 #        self.Fig.tight_layout()
 
     def AddLegend(self, Ax):
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
-            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Frequency [Hz]')
+            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Frequency [Hz]',
+                                                 fontsize=self.LegFontSize)
         elif self.ShowNameOn is None:
             return
         elif self.ShowNameOn == 'Axis':
@@ -249,7 +250,8 @@ class PlotSlots():
             for sl in self.SlotsInAxs[Ax]:
                 su = str(sl.Units).split(' ')[-1]
                 lbls.append("{} [{}]".format(sl.DispName, su))
-            sl.Ax.set_ylabel('\n'.join(set(lbls)))
+            sl.Ax.set_ylabel('\n'.join(set(lbls)),
+                             fontsize=self.LegFontSize)
         elif self.ShowNameOn == 'Legend':
             handles, labels = Ax.get_legend_handles_labels()
             by_label = OrderedDict(zip(labels, handles))
