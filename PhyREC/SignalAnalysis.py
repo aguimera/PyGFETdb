@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import quantities as pq
 from scipy import signal
 from collections import OrderedDict
+import PhyREC.PlotWaves as Rplt
+import neo
+from PhyREC.NeoInterface import NeoSegment, NeoSignal
 
 
 def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
@@ -141,14 +144,30 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
 
 
 def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
-                 OverLap=True, Std=True, Units=None, FileOutPrefix=None):
+                 OverLap=True, Std=True, Units=None,
+                 FileOutPrefix=None, SpecSlot=None):
 
-    ft, Axt = plt.subplots()
+    if len(Signals)>1:
+        ft, Axt = plt.subplots()
+    else:
+        ft = None
+        Axt = None
 
     for sl in Signals:
         avg = np.array([])
-        fig, Ax = plt.subplots()
-
+        if SpecSlot is None:
+            fig, Ax = plt.subplots()
+            Ax.set_xlabel('Time [s]')
+        else:
+            fig, ((Ax, ac),(Axs, Axc)) = plt.subplots(2,
+                                          2,
+                                          sharex=True,
+                                          gridspec_kw={'width_ratios': (10, 1)})    
+            ac.axis('off')
+            Axc.axis('off')
+            Axs.set_xlabel('Time [s]')
+            Axs.set_ylabel('Frequency [Hz]')
+            
         Ts = sl.signal.sampling_period
         nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
         t = np.arange(nSamps)*Ts + TimeAvg[0]
@@ -166,6 +185,15 @@ def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
                 print 'Error', nSamps, et, avg.shape, st.shape
 
         MeanT = np.mean(avg, axis=1)
+
+        if SpecSlot is not None:
+            SpecSlot.Ax = Axs
+            SpecSlot.CAx = Axc
+            SpecSlot.Signal = NeoSignal(Signal=st.duplicate_with_new_array(signal=MeanT*st.units))
+            SpecSlot.Signal.signal.t_start = t[0]
+            SpecSlot.DispName = SpecSlot.Signal.Name
+            SpecSlot.PlotSignal(None)
+
         Ax.plot(t, MeanT, 'r-')
         if Std:
             StdT = np.std(avg, axis=1)
@@ -178,25 +206,31 @@ def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
                   alpha=0.7,
                   colors='g')
         Ax.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
-        plt.title(sl.Name)
-        Ax.set_xlabel('Time [s]')
-        su = str(st.units).split(' ')[-1]
-        Ax.set_ylabel(sl.Name + ' [' + su + ']')
 
-        Axt.plot(t, MeanT, label=sl.Name)
+#        plt.title(sl.Name)
+        
+        su = str(st.units).split(' ')[-1]
+#        Ax.set_ylabel(sl.Name + ' [' + su + ']')
+        Ax.set_ylabel(sl.Name)
+
+        if Axt is not None:
+            Axt.plot(t, MeanT, label=sl.Name)
+
         if FileOutPrefix is not None:
             fig.savefig(FileOutPrefix + sl.Name + '.png')
+        
 
-    ylim = Axt.get_ylim()
-    Axt.vlines(0, ylim[0], ylim[1],
-               linestyles='dashdot',
-               alpha=0.7,
-               colors='g')
+    if Axt is not None:
+        ylim = Axt.get_ylim()
+        Axt.vlines(0, ylim[0], ylim[1],
+                   linestyles='dashdot',
+                   alpha=0.7,
+                   colors='g')
+        Axt.set_ylabel('[' + su + ']')
+        Axt.set_xlabel('Time [s]')
+        Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+        Axt.legend()
 
-    Axt.set_ylabel('[' + su + ']')
-    Axt.set_xlabel('Time [s]')
-    Axt.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
-    Axt.legend()
     if FileOutPrefix is not None:
         ft.savefig(FileOutPrefix + '.png')
 

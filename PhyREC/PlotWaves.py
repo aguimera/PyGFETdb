@@ -37,7 +37,8 @@ class SpecSlot():
         self.Units = Units
         self.Position = Position
         if DispName is None:
-            self.DispName = self.Signal.Name
+            if Signal is not None:
+                self.DispName = self.Signal.Name
         else:
             self.DispName = DispName
 
@@ -109,8 +110,9 @@ class WaveSlot():
     def __init__(self, Signal, Units=None, Position=None, DispName=None,
                  Color='k', Line='-', Alpha=1, Ylim=None, LineWidth=0.5):
         self.Signal = Signal
+        self.signal = Signal.signal
 
-        self.Units = Units
+        self.units = Units
         self.Position = Position
         if DispName is None:
             self.DispName = self.Signal.Name
@@ -129,20 +131,16 @@ class WaveSlot():
         self.Name = self.Signal.Name
 
     def GetSignal(self, Time, Units=None):
-        if Units is not None:
-            self.Units = Units
-
-        sig = self.Signal.GetSignal(Time, self.Units)
+        sig = self.Signal.GetSignal(Time, Units)
         self.units = sig.units
         return sig
 
     def PlotSignal(self, Time, Units=None):
         if self.Ax is None:
             self.Fig, self.Ax = plt.subplots()
-        if Units is not None:
-            self.Units = Units
 
-        sig = self.Signal.GetSignal(Time, self.Units)
+        sig = self.Signal.GetSignal(Time, Units)
+        self.units = sig.units
 
         if self.UnitsInLabel is True:
             su = str(sig.units).split(' ')[-1]
@@ -183,6 +181,8 @@ class PlotSlots():
                                    sharex=True,
                                    figsize=figsize,
                                    gridspec_kw={'width_ratios': (10, 1)})
+        if len(A.shape) == 1:
+            A = A[:, None].transpose()
         self.Axs = [a[0] for a in A]
         self.CAxs = [a[1] for a in A]
 
@@ -248,7 +248,7 @@ class PlotSlots():
         elif self.ShowNameOn == 'Axis':
             lbls = []
             for sl in self.SlotsInAxs[Ax]:
-                su = str(sl.Units).split(' ')[-1]
+                su = str(sl.units).split(' ')[-1]
                 lbls.append("{} [{}]".format(sl.DispName, su))
             sl.Ax.set_ylabel('\n'.join(set(lbls)),
                              fontsize=self.LegFontSize)
