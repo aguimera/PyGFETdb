@@ -9,7 +9,7 @@ Created on Wed Jul 26 12:11:53 2017
 import neo
 import numpy as np
 import quantities as pq
-
+import os
 
 class NeoSegment():
     def __init__(self, RecordFile=None, Seg=None):
@@ -37,7 +37,13 @@ class NeoSegment():
         self.UpdateSignalsDict()
         self.UpdateEventDict()
 
-    def SaveRecord(self, FileName):
+    def SaveRecord(self, FileName, OverWrite=True):
+        if os.path.isfile(FileName):
+            if OverWrite:
+                os.remove(FileName)
+            else:
+                print 'Warning File Exsist'
+                
         if FileName.endswith('.h5'):
             out_f = neo.io.NixIO(filename=FileName)
         elif FileName.endswith('.mat'):
@@ -144,15 +150,21 @@ class NeoSignal():
         if Time is None:
             return (self.Signal.t_start, self.Signal.t_stop)
 
-        if Time[0] < self.Signal.t_start:
+        elif Time[0] is None or Time[0] < self.Signal.t_start:
             Tstart = self.Signal.t_start
         else:
             Tstart = Time[0]
 
-        if Time[1] > self.Signal.t_stop:
+        if Time[1] is None or Time[1] > self.Signal.t_stop:
             Tstop = self.Signal.t_stop
         else:
             Tstop = Time[1]
 
         return (Tstart, Tstop)
+
+    def AppendSignal(self, Vect):
+        v_old = np.array(self.Signal)
+        v_new = np.vstack((v_old, Vect))*self.Signal.units
+
+        self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
 
