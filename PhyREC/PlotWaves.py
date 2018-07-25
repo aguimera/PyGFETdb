@@ -94,11 +94,11 @@ class SpecSlot():
                              extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
 
         cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
-        cbar.ax.tick_params(length=1, labelsize='x-small')
+        cbar.ax.tick_params(length=1, labelsize='xx-small')
 
         su = str(sig.units).split(' ')[-1]
         label = "[{}^2]".format(su)
-        cbar.set_label(label, fontsize='x-small')
+        cbar.set_label(label, fontsize='xx-small')
 
         if self.LogScale:
             self.Ax.set_yscale('log')
@@ -165,10 +165,10 @@ class PlotSlots():
     LegFontSize = 'xx-small'
 
     def __init__(self, Slots, ShowNameOn='Axis', figsize=None,
-                 ShowAxis=True, AutoScale=True):
+                 ShowAxis='All', AutoScale=True):
         self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
         self.Slots = Slots
-        self.ShowAxis = ShowAxis
+        self.ShowAxis = ShowAxis      # 'All', int, None
         self.AutoScale = AutoScale
 
         Pos = []
@@ -209,20 +209,14 @@ class PlotSlots():
                 sl.Ax.lines[0].remove()
 
     def FormatFigure(self):
-        if self.ShowAxis:
+        if self.ShowAxis == 'All':
             for Ax in self.Axs:
-    #            Ax.get_yaxis().set_visible(False)
                 Ax.get_xaxis().set_visible(False)
                 Ax.spines['top'].set_visible(False)
                 Ax.spines['right'].set_visible(False)
-    #            Ax.spines['left'].set_visible(False)
                 Ax.spines['bottom'].set_visible(False)
                 Ax.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
-
-            TimeAx = self.Axs[-1]
-            TimeAx.set_xlabel('Time [s]')
-            TimeAx.get_xaxis().set_visible(True)
-        else:
+        elif self.ShowAxis is None:        
             for Ax in self.Axs:
                 Ax.get_yaxis().set_visible(False)
                 Ax.get_xaxis().set_visible(False)
@@ -230,18 +224,33 @@ class PlotSlots():
                 Ax.spines['right'].set_visible(False)
                 Ax.spines['left'].set_visible(False)
                 Ax.spines['bottom'].set_visible(False)
+        else:
+            for nAx, Ax in enumerate(self.Axs):
+                Ax.spines['top'].set_visible(False)
+                Ax.spines['bottom'].set_visible(False)
+                Ax.spines['right'].set_visible(False)
+                if nAx == self.ShowAxis:
+                    continue
+                Ax.get_yaxis().set_visible(False)
+                Ax.get_xaxis().set_visible(False)
+                Ax.spines['left'].set_visible(False)
 
-        self.Fig.subplots_adjust(top=1.0,
-                                 bottom=0.05,
+        if self.ShowAxis is not None:
+            TimeAx = self.Axs[-1]
+            TimeAx.set_xlabel('Time [s]', fontsize=self.LegFontSize)
+            TimeAx.get_xaxis().set_visible(True)
+
+        self.Fig.subplots_adjust(top=0.975,
+                                 bottom=0.095,
                                  left=0.1,
-                                 right=0.94,
+                                 right=0.95,
                                  hspace=0.0,
                                  wspace=0.0)
 #        self.Fig.tight_layout()
 
     def AddLegend(self, Ax):
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
-            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Frequency [Hz]',
+            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Freq. [Hz]',
                                                  fontsize=self.LegFontSize)
         elif self.ShowNameOn is None:
             return
@@ -251,7 +260,9 @@ class PlotSlots():
                 su = str(sl.units).split(' ')[-1]
                 lbls.append("{} [{}]".format(sl.DispName, su))
             sl.Ax.set_ylabel('\n'.join(set(lbls)),
-                             fontsize=self.LegFontSize)
+                             fontsize=self.LegFontSize,
+#                             rotation='horizontal',
+                             )
         elif self.ShowNameOn == 'Legend':
             handles, labels = Ax.get_legend_handles_labels()
             by_label = OrderedDict(zip(labels, handles))
@@ -263,7 +274,6 @@ class PlotSlots():
             else:
                 ncol = 1
             Ax.legend(by_label.values(), by_label.keys(),
-                      loc='best',
                       ncol=ncol,
                       fontsize=self.LegFontSize)
 
@@ -272,7 +282,10 @@ class PlotSlots():
         for sl in self.Slots:
             sl.PlotSignal(Time, Units=Units)
         if Time is not None:
-            sl.Ax.set_xlim(Time[0], Time[1])
+            if Time[0] is not None:
+                sl.Ax.set_xlim(left=Time[0].magnitude)
+            if Time[1] is not None:
+                sl.Ax.set_xlim(right=Time[1].magnitude)
 
         for Ax in self.Axs:
             self.AddLegend(Ax)
@@ -281,7 +294,23 @@ class PlotSlots():
 
         self.FormatFigure()
 
-    def PlotEvents(self, Times, color='r', alpha=0.5):
+    def PlotEvents(self, Times, color='r', alpha=0.5,
+                   Labels=None, lAx=0, fontsize='xx-small'):
+
+        self.Texts = []
+        if Labels is not None:
+            for ilbl, lbl in enumerate(Labels):
+                for ax in self.Axs:
+                    ylim = ax.get_ylim()
+                    ax.vlines(Times[ilbl], ylim[0], ylim[1],
+                              color=color,
+                              alpha=alpha)
+                lax = self.Axs[lAx]
+                ylim = lax.get_ylim()
+                txt = lax.text(Times[ilbl], ylim[1], lbl, fontsize=fontsize)
+                self.Texts.append(txt)
+            return
+
         for ax in self.Axs:
             ylim = ax.get_ylim()
             ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)

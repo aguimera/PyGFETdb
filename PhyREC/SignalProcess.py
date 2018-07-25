@@ -9,9 +9,9 @@ import numpy as np
 from scipy import signal
 from fractions import Fraction
 
+
 def DownSampling(sig, Fact, zero_phase=True):
     print sig.sampling_rate, sig.sampling_rate/Fact
-    
     rs = signal.decimate(np.array(sig),
                          q=Fact,
                          zero_phase=zero_phase,
@@ -20,10 +20,21 @@ def DownSampling(sig, Fact, zero_phase=True):
     sig.sampling_rate = sig.sampling_rate/Fact
     return sig
 
+
 def RemoveDC(sig, Type='constant'):
     st = np.array(sig)
     st = signal.detrend(st, type=Type, axis=0)
     return sig.duplicate_with_new_array(signal=st*sig.units)
+
+
+def SetZero(sig, TWind):
+    st = np.array(sig)
+    Ind1 = int(TWind[0]*sig.sampling_rate.magnitude)
+    Ind2 = int(TWind[1]*sig.sampling_rate.magnitude)
+    offset = np.mean(sig[Ind1:Ind2]).magnitude
+    print sig.name, offset
+    st_corrected = st-offset
+    return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
 
 
 def Gain(sig, Gain):

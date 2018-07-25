@@ -69,6 +69,7 @@ class NeoSegment():
                 name = str(sig.name)
 
             self.SigNames.update({name: i})
+        self.signames = self.SigNames.keys()
 
     def UpdateEventDict(self):
         self.EventNames = {}
@@ -150,7 +151,10 @@ class NeoSignal():
         if Time is None:
             return (self.Signal.t_start, self.Signal.t_stop)
 
-        elif Time[0] is None or Time[0] < self.Signal.t_start:
+        if len(Time) == 1:
+            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+
+        if Time[0] is None or Time[0] < self.Signal.t_start:
             Tstart = self.Signal.t_start
         else:
             Tstart = Time[0]
