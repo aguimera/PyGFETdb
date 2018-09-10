@@ -10,6 +10,8 @@ import neo
 import numpy as np
 import quantities as pq
 import os
+import McsPy.McsData as McsData
+
 
 class NeoSegment():
     def __init__(self, RecordFile=None, Seg=None):
@@ -43,7 +45,7 @@ class NeoSegment():
                 os.remove(FileName)
             else:
                 print 'Warning File Exsist'
-                
+
         if FileName.endswith('.h5'):
             out_f = neo.io.NixIO(filename=FileName)
         elif FileName.endswith('.mat'):
@@ -172,3 +174,30 @@ class NeoSignal():
 
         self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
 
+
+def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
+    Dat = McsData.RawData(McsFile)
+    Rec = Dat.recordings[0]
+    NSamps = Rec.duration
+
+    if OutSeg is None:
+        OutSeg = NeoSegment()
+
+    for AnaStrn, AnaStr in Rec.analog_streams.iteritems():
+        if len(AnaStr.channel_infos) == 1:
+            continue
+
+        for Chn, Chinfo in AnaStr.channel_infos.iteritems():
+            print 'Analog Stream ', Chinfo.label, Chinfo.sampling_frequency
+            ChName = str(SigNamePrefix + Chinfo.label)
+            print ChName
+
+            Fs = Chinfo.sampling_frequency
+            Var, Unit = AnaStr.get_channel_in_range(Chn, 0, NSamps)
+            sig = neo.AnalogSignal(pq.Quantity(Var, Chinfo.info['Unit']),
+                                   t_start=0*pq.s,
+                                   sampling_rate=Fs.magnitude*pq.Hz,
+                                   name=ChName)
+
+            OutSeg.AddSignal(sig)
+    return OutSeg
