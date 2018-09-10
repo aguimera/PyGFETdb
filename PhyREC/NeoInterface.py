@@ -10,7 +10,6 @@ import neo
 import numpy as np
 import quantities as pq
 import os
-import McsPy.McsData as McsData
 
 
 class NeoSegment():
@@ -176,6 +175,8 @@ class NeoSignal():
 
 
 def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
+    import McsPy.McsData as McsData
+
     Dat = McsData.RawData(McsFile)
     Rec = Dat.recordings[0]
     NSamps = Rec.duration
