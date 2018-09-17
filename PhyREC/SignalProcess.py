@@ -71,17 +71,3 @@ def Filter(sig, Type, Order, Freqs):
     st = signal.filtfilt(b, a, st, axis=0)
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
-
-
-class SignalProcess():
-    def __init__(self, Signal, ProcessChain):
-        self.Signal = Signal
-        self.signal = Signal.signal
-        self.ProcessChain = ProcessChain
-        self.Name = Signal.Name
-
-    def GetSignal(self, Time, Units=None):
-        sig = self.Signal.GetSignal(Time, Units)
-        for Proc in self.ProcessChain:
-            sig = Proc['function'](sig, **Proc['args'])
-        return sig

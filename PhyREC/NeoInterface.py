@@ -12,44 +12,42 @@ import quantities as pq
 import os
 
 
-class NeoSignal():
-    def __init__(self, NeoSeg=None, SigName=None, Signal=None):
-        if Signal is None:
-            self.Signal = NeoSeg.GetSignal(SigName)
-            self.signal = NeoSeg.GetSignal(SigName)
-        else:
-            self.Signal = Signal
-            self.signal = Signal
-        self.Name = self.Signal.name
-
-    def GetSignal(self, Time, Units=None):
-        time = self.CheckTime(Time)
-
-        sl = self.Signal.time_slice(time[0], time[1])
-
-        if Units is None:
-            return sl
-        else:
-            return sl.rescale(Units)
+class NeoSignal(neo.AnalogSignal):
+    ProcessChain = None
 
     def CheckTime(self, Time):
         if Time is None:
-            return (self.Signal.t_start, self.Signal.t_stop)
+            return (self.t_start, self.t_stop)
 
         if len(Time) == 1:
-            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+            Time = (Time[0], Time[0] + self.sampling_period)
 
-        if Time[0] is None or Time[0] < self.Signal.t_start:
-            Tstart = self.Signal.t_start
+        if Time[0] is None or Time[0] < self.t_start:
+            Tstart = self.t_start
         else:
             Tstart = Time[0]
 
-        if Time[1] is None or Time[1] > self.Signal.t_stop:
-            Tstop = self.Signal.t_stop
+        if Time[1] is None or Time[1] > self.t_stop:
+            Tstop = self.t_stop
         else:
             Tstop = Time[1]
 
         return (Tstart, Tstop)
+
+    def GetSignal(self, Time, Units=None):
+        time = self.CheckTime(Time)
+
+        sl = self.time_slice(time[0], time[1])
+
+        if Units is not None:
+            sl = sl.rescale(Units)
+
+        if self.ProcessChain is None:
+            return sl
+        else:
+            for Proc in self.ProcessChain:
+                sl = Proc['function'](sl, **Proc['args'])
+            return sl
 
     def AppendSignal(self, Vect):
         v_old = np.array(self.Signal)

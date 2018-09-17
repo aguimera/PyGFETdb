@@ -110,12 +110,11 @@ class WaveSlot():
     def __init__(self, Signal, Units=None, Position=None, DispName=None,
                  Color='k', Line='-', Alpha=1, Ylim=None, LineWidth=0.5):
         self.Signal = Signal
-        self.signal = Signal.signal
 
         self.units = Units
         self.Position = Position
         if DispName is None:
-            self.DispName = self.Signal.Name
+            self.DispName = self.Signal.name
         else:
             self.DispName = DispName
 
@@ -128,10 +127,15 @@ class WaveSlot():
         self.Ylim = Ylim
         self.LineWidth = LineWidth
 
-        self.Name = self.Signal.Name
+        self.Name = self.Signal.name
 
     def GetSignal(self, Time, Units=None):
-        sig = self.Signal.GetSignal(Time, Units)
+        if Units is None:
+            _Units = self.units
+        else:
+            _Units = Units
+        print _Units
+        sig = self.Signal.GetSignal(Time, _Units)
         self.units = sig.units
         return sig
 
@@ -139,8 +143,7 @@ class WaveSlot():
         if self.Ax is None:
             self.Fig, self.Ax = plt.subplots()
 
-        sig = self.Signal.GetSignal(Time, Units)
-        self.units = sig.units
+        sig = self.GetSignal(Time, Units)
 
         if self.UnitsInLabel is True:
             su = str(sig.units).split(' ')[-1]
