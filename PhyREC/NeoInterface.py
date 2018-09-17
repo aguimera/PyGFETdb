@@ -12,6 +12,52 @@ import quantities as pq
 import os
 
 
+class NeoSignal():
+    def __init__(self, NeoSeg=None, SigName=None, Signal=None):
+        if Signal is None:
+            self.Signal = NeoSeg.GetSignal(SigName)
+            self.signal = NeoSeg.GetSignal(SigName)
+        else:
+            self.Signal = Signal
+            self.signal = Signal
+        self.Name = self.Signal.name
+
+    def GetSignal(self, Time, Units=None):
+        time = self.CheckTime(Time)
+
+        sl = self.Signal.time_slice(time[0], time[1])
+
+        if Units is None:
+            return sl
+        else:
+            return sl.rescale(Units)
+
+    def CheckTime(self, Time):
+        if Time is None:
+            return (self.Signal.t_start, self.Signal.t_stop)
+
+        if len(Time) == 1:
+            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+
+        if Time[0] is None or Time[0] < self.Signal.t_start:
+            Tstart = self.Signal.t_start
+        else:
+            Tstart = Time[0]
+
+        if Time[1] is None or Time[1] > self.Signal.t_stop:
+            Tstop = self.Signal.t_stop
+        else:
+            Tstop = Time[1]
+
+        return (Tstart, Tstop)
+
+    def AppendSignal(self, Vect):
+        v_old = np.array(self.Signal)
+        v_new = np.vstack((v_old, Vect))*self.Signal.units
+
+        self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
+
+
 class NeoSegment():
     def __init__(self, RecordFile=None, Seg=None):
         self.SigNames = {}
@@ -103,7 +149,12 @@ class NeoSegment():
         self.Seg.analogsignals[self.SigNames[ChName]] = Sig
 
     def GetSignal(self, ChName):
-        return self.Seg.analogsignals[self.SigNames[ChName]]
+        sig = self.Seg.analogsignals[self.SigNames[ChName]]
+        sig.__class__ = NeoSignal
+        return sig
+
+    def Signals(self):
+        return self.Seg.analogsignals
 
     def AddEvent(self, Times, Name):
         eve = neo.Event(times=Times,
@@ -126,52 +177,6 @@ class NeoSegment():
         sig_new = sig.duplicate_with_new_array(signal=v_new*sig.units)
 
         self.SetSignal(ChName, sig_new)
-
-
-class NeoSignal():
-    def __init__(self, NeoSeg=None, SigName=None, Signal=None):
-        if Signal is None:
-            self.Signal = NeoSeg.GetSignal(SigName)
-            self.signal = NeoSeg.GetSignal(SigName)
-        else:
-            self.Signal = Signal
-            self.signal = Signal
-        self.Name = self.Signal.name
-
-    def GetSignal(self, Time, Units=None):
-        time = self.CheckTime(Time)
-
-        sl = self.Signal.time_slice(time[0], time[1])
-
-        if Units is None:
-            return sl
-        else:
-            return sl.rescale(Units)
-
-    def CheckTime(self, Time):
-        if Time is None:
-            return (self.Signal.t_start, self.Signal.t_stop)
-
-        if len(Time) == 1:
-            Time = (Time[0], Time[0] + self.Signal.sampling_period)
-
-        if Time[0] is None or Time[0] < self.Signal.t_start:
-            Tstart = self.Signal.t_start
-        else:
-            Tstart = Time[0]
-
-        if Time[1] is None or Time[1] > self.Signal.t_stop:
-            Tstop = self.Signal.t_stop
-        else:
-            Tstop = Time[1]
-
-        return (Tstart, Tstop)
-
-    def AppendSignal(self, Vect):
-        v_old = np.array(self.Signal)
-        v_new = np.vstack((v_old, Vect))*self.Signal.units
-
-        self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
 
 
 def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
