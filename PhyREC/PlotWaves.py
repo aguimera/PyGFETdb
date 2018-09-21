@@ -15,6 +15,74 @@ from collections import OrderedDict
 from scipy.interpolate import interp2d
 
 
+def DrawBarScale(Ax, Location='Bottom Left',
+                 xsize=None, ysize=None, xoff=0.1, yoff=0.1,
+                 xlabelpad=-0.04, ylabelpad=-0.04,
+                 xunit='sec', yunit='mV', LineWidth=5, Color='k',
+                 FontSize=None):
+
+    # calculate length of the bars
+    xmin, xmax, ymin, ymax = Ax.axis()
+    AxTrans = Ax.transAxes
+    if xsize is None:
+        xsize = (xmax - xmin)/5
+        xsize = int(np.round(xsize, 0))
+    if ysize is None:
+        ysize = (ymax - ymin)/5
+        ysize = int(np.round(ysize, 0))
+    xlen = 1/((xmax - xmin)/xsize)  # length in axes coord
+    ylen = 1/((ymax - ymin)/ysize)
+
+    # calculate locations
+    if Location == 'Bottom Rigth':
+        xoff = 1 - xoff
+        ylabelpad = - ylabelpad
+        xlen = - xlen
+    elif Location == 'Top Left':
+        yoff = 1 - yoff
+        ylen = - ylen
+        xlabelpad = -xlabelpad
+    elif Location == 'Top Rigth':
+        xoff = 1 - xoff
+        ylabelpad = - ylabelpad
+        xlen = - xlen
+        yoff = 1 - yoff
+        ylen = - ylen
+        xlabelpad = -xlabelpad
+    xdraw = xoff + xlen
+    ydraw = yoff + ylen
+
+    # Draw lines
+    Ax.hlines(yoff, xoff, xdraw,
+              Color,
+              linewidth=LineWidth,
+              transform=AxTrans,
+              clip_on=False)
+
+    Ax.text(xoff + xlen/2,
+            yoff + xlabelpad,
+            str(xsize) + ' ' + xunit,
+            horizontalalignment='center',
+            verticalalignment='center',
+            fontsize=FontSize,
+            transform=AxTrans)
+
+    Ax.vlines(xoff, yoff, ydraw,
+              Color,
+              linewidth=LineWidth,
+              transform=AxTrans,
+              clip_on=False)
+
+    Ax.text(xoff + ylabelpad,
+            yoff + ylen/2,
+            str(ysize) + ' ' + yunit,
+            horizontalalignment='center',
+            verticalalignment='center',
+            rotation='vertical',
+            fontsize=FontSize,
+            transform=AxTrans)
+
+
 class SpecSlot():
     def __init__(self, Signal, Units=None, Position=None, DispName=None,):
         self.Fres = 5.0
@@ -105,10 +173,10 @@ class SpecSlot():
 
 
 class WaveSlot():
-    UnitsInLabel = True
 
     def __init__(self, Signal, Units=None, Position=None, DispName=None,
-                 Color='k', Line='-', Alpha=1, Ylim=None, LineWidth=0.5):
+                 Color='k', Line='-', Alpha=1, Ylim=None, LineWidth=0.5,
+                 Ax=None, Fig=None, UnitsInLabel=True, clip_on=True):
         self.Signal = Signal
 
         self.units = Units
@@ -118,23 +186,25 @@ class WaveSlot():
         else:
             self.DispName = DispName
 
-        self.Ax = None
-        self.Fig = None
+        self.Ax = Ax
+        self.Fig = Fig
 
         self.Color = Color
         self.Line = Line
         self.Alpha = Alpha
         self.Ylim = Ylim
         self.LineWidth = LineWidth
+        self.clip_on = clip_on
 
         self.Name = self.Signal.name
+
+        self.UnitsInLabel = UnitsInLabel
 
     def GetSignal(self, Time, Units=None):
         if Units is None:
             _Units = self.units
         else:
             _Units = Units
-        print _Units
         sig = self.Signal.GetSignal(Time, _Units)
         self.units = sig.units
         return sig
@@ -157,7 +227,8 @@ class WaveSlot():
                      linewidth=self.LineWidth,
                      color=self.Color,
                      label=label,
-                     alpha=self.Alpha)
+                     alpha=self.Alpha,
+                     clip_on=self.clip_on)
 
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)
@@ -166,13 +237,36 @@ class WaveSlot():
 class PlotSlots():
     LegNlabCol = 4  # Number of labels per col in legend
     LegFontSize = 'xx-small'
+    ScaleBarKwargs = {'Location': 'Bottom Left',
+                      'xsize': None,
+                      'ysize': None,
+                      'xoff': 0.1,
+                      'yoff': 0.1,
+                      'xlabelpad': -0.04,
+                      'ylabelpad': -0.04,
+                      'xunit': 'sec',
+                      'yunit': None,
+                      'LineWidth': 5,
+                      'Color': 'k',
+                      'FontSize': None}
 
     def __init__(self, Slots, ShowNameOn='Axis', figsize=None,
-                 ShowAxis='All', AutoScale=True):
+                 ShowAxis='All', AutoScale=True, Fig=None,
+                 ScaleBarAx=None):
         self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
         self.Slots = Slots
         self.ShowAxis = ShowAxis      # 'All', int, None
         self.AutoScale = AutoScale
+        self.ScaleBarAx = ScaleBarAx
+
+        if Fig is not None:
+            self.Fig = Fig
+            self.Axs = []
+            self.CAxs = []
+            for sl in self.Slots:
+                self.Axs.append(sl.Ax)
+            self.SortSlotsAx()
+            return
 
         Pos = []
         for isl, sl in enumerate(self.Slots):
@@ -197,7 +291,11 @@ class PlotSlots():
                 sl.CAx = self.CAxs[sl.Position]
             sl.Ax = self.Axs[sl.Position]
             sl.Fig = self.Fig
+            sl.Ax.set_facecolor('#FFFFFF00')
 
+        self.SortSlotsAx()
+
+    def SortSlotsAx(self):
         self.SlotsInAxs = {}
         for ax in self.Axs:
             sll = []
@@ -243,13 +341,22 @@ class PlotSlots():
             TimeAx.set_xlabel('Time [s]', fontsize=self.LegFontSize)
             TimeAx.get_xaxis().set_visible(True)
 
-        self.Fig.subplots_adjust(top=0.975,
-                                 bottom=0.095,
-                                 left=0.1,
-                                 right=0.95,
-                                 hspace=0.0,
-                                 wspace=0.0)
-#        self.Fig.tight_layout()
+        if self.ScaleBarAx is not None:
+            if self.ScaleBarKwargs['yunit'] is None:
+                sl = self.SlotsInAxs[self.Axs[self.ScaleBarAx]][0]
+                su = str(sl.units).split(' ')[-1]
+                self.ScaleBarKwargs['yunit'] = su
+            DrawBarScale(self.Axs[self.ScaleBarAx], **self.ScaleBarKwargs)
+
+        if len(self.CAxs) == 0:
+            self.Fig.tight_layout()
+        else:
+            self.Fig.subplots_adjust(top=0.975,
+                                     bottom=0.095,
+                                     left=0.1,
+                                     right=0.95,
+                                     hspace=0.0,
+                                     wspace=0.0)
 
     def AddLegend(self, Ax):
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
@@ -318,3 +425,10 @@ class PlotSlots():
             ylim = ax.get_ylim()
             ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
         
+
+
+
+
+
+
+
