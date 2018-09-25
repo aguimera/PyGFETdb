@@ -405,7 +405,7 @@ class PlotSlots():
         self.FormatFigure()
 
     def PlotEvents(self, Times, color='r', alpha=0.5,
-                   Labels=None, lAx=0, fontsize='xx-small'):
+                   Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
 
         self.Texts = []
         if Labels is not None:
@@ -416,8 +416,11 @@ class PlotSlots():
                               color=color,
                               alpha=alpha)
                 lax = self.Axs[lAx]
-                ylim = lax.get_ylim()
-                txt = lax.text(Times[ilbl], ylim[1], lbl, fontsize=fontsize)
+                if LabPosition == 'top':
+                    ylim = lax.get_ylim()[1]
+                else:
+                    ylim = lax.get_ylim()[0]
+                txt = lax.text(Times[ilbl], ylim, lbl, fontsize=fontsize)
                 self.Texts.append(txt)
             return
 

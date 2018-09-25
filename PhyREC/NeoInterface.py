@@ -14,6 +14,7 @@ import os
 
 class NeoSignal(neo.AnalogSignal):
     ProcessChain = None
+    ProcessChainTime = None
 
     def CheckTime(self, Time):
         if Time is None:
@@ -37,16 +38,20 @@ class NeoSignal(neo.AnalogSignal):
     def GetSignal(self, Time, Units=None):
         time = self.CheckTime(Time)
 
-        sl = self.time_slice(time[0], time[1])
-
-        if Units is not None:
-            sl = sl.rescale(Units)
-
         if self.ProcessChain is None:
+            sl = self.time_slice(time[0], time[1])
+            if Units is not None:
+                sl = sl.rescale(Units)
             return sl
         else:
+            ProcTime = self.CheckTime(self.ProcessChainTime)
+            sl = self.time_slice(ProcTime[0], ProcTime[1])
             for Proc in self.ProcessChain:
                 sl = Proc['function'](sl, **Proc['args'])
+
+            sl = sl.time_slice(time[0], time[1])
+            if Units is not None:
+                sl = sl.rescale(Units)
             return sl
 
     def AppendSignal(self, Vect):
