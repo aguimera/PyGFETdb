@@ -95,7 +95,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         elif scaling == 'spectrum':
             units = sig.units**2
 
-        slN = sl.Name
+        slN = sl.name
         PSD[slN] = {}
         PSD[slN]['psd'] = psd * units
         PSD[slN]['ff'] = ff
@@ -115,7 +115,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         if hasattr(sl, 'DispName'):
             label = sl.DispName
         else:
-            label = sl.Name
+            label = sl.name
 
         Ax.loglog(ff, psd,
                   Line,

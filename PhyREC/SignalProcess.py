@@ -29,11 +29,9 @@ def RemoveDC(sig, Type='constant'):
 
 def SetZero(sig, TWind):
     st = np.array(sig)
-    Ind1 = int(TWind[0]*sig.sampling_rate.magnitude)
-    Ind2 = int(TWind[1]*sig.sampling_rate.magnitude)
-    offset = np.mean(sig[Ind1:Ind2]).magnitude
+    offset = np.mean(sig.GetSignal(TWind))
     print sig.name, offset
-    st_corrected = st-offset
+    st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
 
 
