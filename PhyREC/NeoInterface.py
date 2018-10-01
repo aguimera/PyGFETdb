@@ -157,6 +157,8 @@ class NeoSegment():
         return sig
 
     def Signals(self):
+        for s in self.Seg.analogsignals:
+            s.__class__ = NeoSignal
         return self.Seg.analogsignals
 
     def AddEvent(self, Times, Name):
