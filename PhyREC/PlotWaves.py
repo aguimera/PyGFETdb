@@ -265,6 +265,7 @@ class PlotSlots():
             self.CAxs = []
             for sl in self.Slots:
                 self.Axs.append(sl.Ax)
+                sl.Ax.set_facecolor('#FFFFFF00')
             self.SortSlotsAx()
             return
 
@@ -424,12 +425,13 @@ class PlotSlots():
                 self.Texts.append(txt)
             return
 
+        EventLines = []
         for ax in self.Axs:
             ylim = ax.get_ylim()
-            ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
-        
+            lines = ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
+            EventLines.append(lines[0])
 
-
+        return EventLines
 
 
 
