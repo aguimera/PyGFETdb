@@ -429,7 +429,7 @@ class PlotSlots():
         for ax in self.Axs:
             ylim = ax.get_ylim()
             lines = ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
-            EventLines.append(lines[0])
+#            EventLines.append(lines[0])
 
         return EventLines
 

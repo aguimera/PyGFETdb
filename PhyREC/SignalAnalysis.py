@@ -73,7 +73,7 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
 
 
 def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
-            scaling='density', Units=None):
+            scaling='density', Units=None, Label=None):
 
     if Ax is None:
         Fig, Ax = plt.subplots()
@@ -116,6 +116,8 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
             label = sl.DispName
         else:
             label = sl.name
+        if Label is not None:
+            label = Label
 
         Ax.loglog(ff, psd,
                   Line,
