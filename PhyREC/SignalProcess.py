@@ -69,3 +69,12 @@ def Filter(sig, Type, Order, Freqs):
     st = signal.filtfilt(b, a, st, axis=0)
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
+
+def RTP(sig,timewidth,step):
+    window_size = int(timewidth*sig.sampling_rate.item())
+    stride = int(step*sig.sampling_rate.item())
+    
+    window_std = [ np.std(sig[i:i+window_size]) for i in range(0, len(sig), stride)
+                   if i+window_size <= len(sig) ]
+ 
+    return window_std,stride
