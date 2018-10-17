@@ -102,18 +102,18 @@ class SpecSlot():
 
         self.Signal = Signal
 
-        self.Units = Units
+        self.units = Units
         self.Position = Position
         if DispName is None:
             if Signal is not None:
-                self.DispName = self.Signal.Name
+                self.DispName = self.Signal.name
         else:
             self.DispName = DispName
 
     def PlotSignal(self, Time, Units=None):
         if Units is not None:
-            self.Units = Units
-        sig = self.Signal.GetSignal(Time, Units=self.Units)
+            self.units = units
+        sig = self.Signal.GetSignal(Time, Units=self.units)
 
         nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/self.Fres))+1))
         Ts = sig.sampling_period.magnitude
@@ -197,6 +197,7 @@ class WaveSlot():
         self.clip_on = clip_on
 
         self.Name = self.Signal.name
+        self.name = self.Signal.name
 
         self.UnitsInLabel = UnitsInLabel
 
@@ -317,7 +318,8 @@ class PlotSlots():
                 Ax.spines['top'].set_visible(False)
                 Ax.spines['right'].set_visible(False)
                 Ax.spines['bottom'].set_visible(False)
-                Ax.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
+                if Ax.yaxis.get_scale() == 'linear':
+                    Ax.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
         elif self.ShowAxis is None:        
             for Ax in self.Axs:
                 Ax.get_yaxis().set_visible(False)

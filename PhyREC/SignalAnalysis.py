@@ -95,7 +95,11 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         elif scaling == 'spectrum':
             units = sig.units**2
 
-        slN = sl.name
+        if hasattr(sl, 'name'):
+            slN = sl.name
+        else:
+            slN = sl.Name
+
         PSD[slN] = {}
         PSD[slN]['psd'] = psd * units
         PSD[slN]['ff'] = ff
