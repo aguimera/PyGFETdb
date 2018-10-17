@@ -69,3 +69,16 @@ def Filter(sig, Type, Order, Freqs):
     st = signal.filtfilt(b, a, st, axis=0)
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
+
+def sliding_window(sig,func,timewidth,step):
+    #func can be average/std or others to be added
+    window_size = int(timewidth*sig.sampling_rate.item())
+    stride = int(step*sig.sampling_rate.item())
+    if func=='std':
+        window_res = [ np.std(sig[i:i+window_size]) for i in range(0, len(sig), stride)
+                       if i+window_size <= len(sig) ]
+    elif func=='avg':    
+         window_res = [ np.mean(sig[i:i+window_size]) for i in range(0, len(sig), stride)
+                       if i+window_size <= len(sig) ]
+         
+    return window_res,stride
