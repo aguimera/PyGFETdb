@@ -13,6 +13,7 @@ from scipy import signal
 import matplotlib.colors as colors
 from collections import OrderedDict
 from scipy.interpolate import interp2d
+from matplotlib.widgets import Slider, Button
 
 
 def DrawBarScale(Ax, Location='Bottom Left',
@@ -110,10 +111,17 @@ class SpecSlot():
         else:
             self.DispName = DispName
 
+    def GetSignal(self, Time, Units=None):
+        if Units is None:
+            _Units = self.units
+        else:
+            _Units = Units
+        sig = self.Signal.GetSignal(Time, _Units)
+        self.units = sig.units
+        return sig
+
     def PlotSignal(self, Time, Units=None):
-        if Units is not None:
-            self.units = units
-        sig = self.Signal.GetSignal(Time, Units=self.units)
+        sig = self.GetSignal(Time, Units)
 
         nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/self.Fres))+1))
         Ts = sig.sampling_period.magnitude
@@ -235,6 +243,38 @@ class WaveSlot():
             self.Ax.set_ylim(self.Ylim)
 
 
+class ControlFigure():
+
+    def __init__(self, pltSL, figsize=(20*0.394, 5*0.394)):
+
+        self.pltSL = pltSL
+        
+        TMax = np.max([sl.Signal.t_stop for sl in pltSL.Slots])
+        TMin = np.min([sl.Signal.t_start for sl in pltSL.Slots])
+        
+        self.Fig, ax = plt.subplots(2, 1, figsize=figsize)
+        self.sTstart = Slider(ax[0],
+                              label='TStart [s]',
+                              valmax=TMax,
+                              valmin=TMin,
+                              valinit=TMin)
+
+        self.sTshow = Slider(ax[1],
+                             label='TShow [s]',
+                             valmax=TMax-TMin,
+                             valmin=0,
+                             valinit=(TMax-TMin)/10)
+
+        self.sTshow.on_changed(self.Update)
+        self.sTstart.on_changed(self.Update)
+
+    def Update(self, val):
+        twind = (self.sTstart.val * pq.s,
+                 self.sTstart.val * pq.s + self.sTshow.val * pq.s)
+        self.pltSL.PlotChannels(twind)
+        self.pltSL.Fig.canvas.draw()
+
+
 class PlotSlots():
     LegNlabCol = 4  # Number of labels per col in legend
     LegFontSize = 'xx-small'
@@ -253,12 +293,19 @@ class PlotSlots():
 
     def __init__(self, Slots, ShowNameOn='Axis', figsize=None,
                  ShowAxis='All', AutoScale=True, Fig=None,
-                 ScaleBarAx=None):
+                 ScaleBarAx=None, LiveControl=False):
+
         self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
         self.Slots = Slots
         self.ShowAxis = ShowAxis      # 'All', int, None
         self.AutoScale = AutoScale
         self.ScaleBarAx = ScaleBarAx
+
+        if LiveControl:
+            self.CtrFig = ControlFigure(self)
+            for sl in self.Slots:
+                sig = sl.Signal
+                sl.Signal = sig.GetSignal(None)
 
         if Fig is not None:
             self.Fig = Fig
@@ -434,6 +481,10 @@ class PlotSlots():
 #            EventLines.append(lines[0])
 
         return EventLines
+
+
+
+
 
 
 

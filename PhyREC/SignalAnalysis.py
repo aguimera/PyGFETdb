@@ -174,7 +174,7 @@ def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
             Axs.set_xlabel('Time [s]')
             Axs.set_ylabel('Frequency [Hz]')
             
-        Ts = sl.signal.sampling_period
+        Ts = sl.Signal.sampling_period
         nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
         t = np.arange(nSamps)*Ts + TimeAvg[0]
 
