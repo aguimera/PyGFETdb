@@ -230,6 +230,9 @@ class WaveSlot():
         else:
             label = self.DispName
 
+        self._PlotSignal(sig, label)
+
+    def _PlotSignal(self, sig, label):
         self.Ax.plot(sig.times,
                      sig,
                      self.Line,
@@ -242,6 +245,33 @@ class WaveSlot():
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)
 
+    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
+                    PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
+        avsig = self.GetSignal(None, Units)
+        avg = np.array([])
+
+        Ts = avsig.sampling_period
+        nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
+        t = np.arange(nSamps)*Ts + TimeAvg[0]
+
+        for et in TimesEvent:
+            start = et+TimeAvg[0]
+            stop = et+TimeAvg[1]
+
+            st = avsig.GetSignal((start, stop))[:nSamps]
+            try:
+                avg = np.hstack([avg, st]) if avg.size else st
+                if PlotTrials:
+                    self.Ax.plot(t, st, TrialsColor, alpha=TrialsAlpha)
+            except:
+                print 'Error', nSamps, et, avg.shape, st.shape
+
+        MeanT = np.mean(avg, axis=1)
+
+        MeanTsig = avsig.duplicate_with_new_array(signal=MeanT*avsig.units)
+        MeanTsig.t_start = TimeAvg[0]
+        MeanTsig.name = MeanTsig.name + ' Avg'
+        self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
 
 class ControlFigure():
 
@@ -482,11 +512,18 @@ class PlotSlots():
 
         return EventLines
 
+    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None,
+                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
 
+        self.ClearAxes()
+        for sl in self.Slots:
+            sl.CalcAvarage(TimeAvg, TimesEvent,
+                           Units=Units,
+                           PlotTrials=PlotTrials,
+                           TrialsColor=TrialsColor,
+                           TrialsAlpha=TrialsAlpha)
 
-
-
-
-
-
-
+        sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
+        sl.Ax.set_xlim(right=TimeAvg[1].magnitude)
+        
+        self.FormatFigure()
