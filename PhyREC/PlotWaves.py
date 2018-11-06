@@ -262,7 +262,10 @@ class WaveSlot():
             try:
                 avg = np.hstack([avg, st]) if avg.size else st
                 if PlotTrials:
-                    self.Ax.plot(t, st, TrialsColor, alpha=TrialsAlpha)
+                    self.Ax.plot(t, st,
+                                 TrialsColor,
+                                 alpha=TrialsAlpha,
+                                 clip_on=self.clip_on)
             except:
                 print 'Error', nSamps, et, avg.shape, st.shape
 
@@ -272,6 +275,9 @@ class WaveSlot():
         MeanTsig.t_start = TimeAvg[0]
         MeanTsig.name = MeanTsig.name + ' Avg'
         self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
+
+        ylim = self.Ax.get_ylim()
+        self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
 
 class ControlFigure():
 
@@ -331,11 +337,12 @@ class PlotSlots():
         self.AutoScale = AutoScale
         self.ScaleBarAx = ScaleBarAx
 
+        for sl in self.Slots:
+            sig = sl.Signal
+            sl.Signal = sig.GetSignal(None)
+
         if LiveControl:
             self.CtrFig = ControlFigure(self)
-            for sl in self.Slots:
-                sig = sl.Signal
-                sl.Signal = sig.GetSignal(None)
 
         if Fig is not None:
             self.Fig = Fig
@@ -513,10 +520,15 @@ class PlotSlots():
         return EventLines
 
     def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None,
-                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
+                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
+                         ClearAxes=True, AvgColor=None):
 
-        self.ClearAxes()
+        if ClearAxes:
+            self.ClearAxes()
+
         for sl in self.Slots:
+            if AvgColor is not None:
+                sl.Color = AvgColor
             sl.CalcAvarage(TimeAvg, TimesEvent,
                            Units=Units,
                            PlotTrials=PlotTrials,

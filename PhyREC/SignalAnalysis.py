@@ -73,7 +73,7 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
 
 
 def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
-            scaling='density', Units=None, Label=None):
+            scaling='density', Units=None, Label=None, Color=None):
 
     if Ax is None:
         Fig, Ax = plt.subplots()
@@ -111,7 +111,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         if hasattr(sl, 'Color'):
             Color = sl.Color
         else:
-            Color = None
+            Color = Color
         if hasattr(sl, 'Alpha'):
             Alpha = sl.Alpha
         else:
