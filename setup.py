@@ -26,7 +26,7 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.1.3'
+_version = '0.1.4'
 
 long_description = """
                    Library for electrphysiological analysis based on neo                   
