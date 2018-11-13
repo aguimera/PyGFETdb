@@ -245,8 +245,8 @@ class WaveSlot():
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)
 
-    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
-                    PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
+    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False, 
+                    StdAlpha=0.2, PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
         avsig = self.GetSignal(None, Units)
         avg = np.array([])
 
@@ -258,12 +258,12 @@ class WaveSlot():
             start = et+TimeAvg[0]
             stop = et+TimeAvg[1]
 
-            st = avsig.GetSignal((start, stop))[:nSamps]
+            st = np.array(avsig.GetSignal((start, stop))[:nSamps])
             try:
                 avg = np.hstack([avg, st]) if avg.size else st
                 if PlotTrials:
                     self.Ax.plot(t, st,
-                                 TrialsColor,
+                                 color=TrialsColor,
                                  alpha=TrialsAlpha,
                                  clip_on=self.clip_on)
             except:
@@ -275,6 +275,14 @@ class WaveSlot():
         MeanTsig.t_start = TimeAvg[0]
         MeanTsig.name = MeanTsig.name + ' Avg'
         self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
+
+        if PltStd:
+            StdT = np.std(avg, axis=1)
+            self.Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
+                                 alpha=StdAlpha,
+                                 facecolor=self.Color,
+                                 edgecolor=None,
+                                 clip_on=self.clip_on)
 
         ylim = self.Ax.get_ylim()
         self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
@@ -519,7 +527,8 @@ class PlotSlots():
 
         return EventLines
 
-    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None,
+    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False, 
+                         StdAlpha=0.2,
                          PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
                          ClearAxes=True, AvgColor=None):
 
@@ -533,7 +542,9 @@ class PlotSlots():
                            Units=Units,
                            PlotTrials=PlotTrials,
                            TrialsColor=TrialsColor,
-                           TrialsAlpha=TrialsAlpha)
+                           TrialsAlpha=TrialsAlpha,
+                           PltStd=PltStd,
+                           StdAlpha=StdAlpha)
 
         sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
         sl.Ax.set_xlim(right=TimeAvg[1].magnitude)
