@@ -67,7 +67,7 @@ class NeoSegment():
         self.EventNames = {}
         if RecordFile is None:
             if Seg is None:
-                self.Seg = neo.Segment('New Seg')
+                self.Seg = neo.Segment()
             else:
                 self.Seg = Seg
                 self.UpdateEventDict()

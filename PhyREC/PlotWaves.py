@@ -386,7 +386,7 @@ class PlotSlots():
             sl.Ax = self.Axs[sl.Position]
             sl.Fig = self.Fig
             sl.Ax.set_facecolor('#FFFFFF00')
-
+# Chech if ax is empty here
         self.SortSlotsAx()
 
     def SortSlotsAx(self):
@@ -454,6 +454,9 @@ class PlotSlots():
                                      wspace=0.0)
 
     def AddLegend(self, Ax):
+        if len(self.SlotsInAxs[Ax]) == 0:
+            print 'empty Ax'
+            return
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
             self.SlotsInAxs[Ax][0].Ax.set_ylabel('Freq. [Hz]',
                                                  fontsize=self.LegFontSize)
@@ -482,7 +485,7 @@ class PlotSlots():
                       ncol=ncol,
                       fontsize=self.LegFontSize)
 
-    def PlotChannels(self, Time, Units=None):
+    def PlotChannels(self, Time, Units=None, FormatFigure=True):
         self.ClearAxes()
         for sl in self.Slots:
             sl.PlotSignal(Time, Units=Units)
@@ -497,7 +500,8 @@ class PlotSlots():
             if self.AutoScale:
                 Ax.autoscale(enable=True, axis='y')
 
-        self.FormatFigure()
+        if FormatFigure:
+            self.FormatFigure()
 
     def PlotEvents(self, Times, color='r', alpha=0.5,
                    Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
