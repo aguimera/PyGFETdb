@@ -28,9 +28,7 @@ from setuptools import setup, find_packages
 
 _version = '0.1.41'
 
-long_description = """
-                   Library for electrphysiological analysis based on neo                   
-                   """
+long_description = "Library for electrphysiological analysis based on neo"
 
 install_requires = ['numpy',
                     'matplotlib',
@@ -64,9 +62,9 @@ setup(name="PhyREC",
       version=_version,
       description="Library for electrphysiological analysis based on neo",
       long_description=long_description,
-      author="Anton Guimerà-Brunet",
+      author="Anton Guimera-Brunet",
       author_email="anton.guimera@csic.es",
-      maintainer="Anton Guimerà-Brunet",
+      maintainer="Anton Guimera-Brunet",
       maintainer_email="anton.guimera@csic.es",
       url="https://github.com/aguimera/PhyREC",
       download_url="https://github.com/aguimera/PhyREC",

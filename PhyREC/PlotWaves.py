@@ -245,8 +245,9 @@ class WaveSlot():
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)
 
-    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False, 
-                    StdAlpha=0.2, PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
+    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
+                    PltStd=False, StdAlpha=0.2,
+                    PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
         avsig = self.GetSignal(None, Units)
         avg = np.array([])
 
@@ -273,7 +274,8 @@ class WaveSlot():
 
         MeanTsig = avsig.duplicate_with_new_array(signal=MeanT*avsig.units)
         MeanTsig.t_start = TimeAvg[0]
-        MeanTsig.name = MeanTsig.name + ' Avg'
+        MeanTsig.name = MeanTsig.name
+        MeanTsig.annotate(Process='LED averaging')
         self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
 
         if PltStd:
@@ -286,16 +288,18 @@ class WaveSlot():
 
         ylim = self.Ax.get_ylim()
         self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
+        return MeanTsig
+
 
 class ControlFigure():
 
     def __init__(self, pltSL, figsize=(20*0.394, 5*0.394)):
 
         self.pltSL = pltSL
-        
+
         TMax = np.max([sl.Signal.t_stop for sl in pltSL.Slots])
         TMin = np.min([sl.Signal.t_start for sl in pltSL.Slots])
-        
+
         self.Fig, ax = plt.subplots(2, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
                               label='TStart [s]',
@@ -526,12 +530,14 @@ class PlotSlots():
         EventLines = []
         for ax in self.Axs:
             ylim = ax.get_ylim()
-            lines = ax.vlines(Times, ylim[0], ylim[1], color=color, alpha=alpha)
+            lines = ax.vlines(Times, ylim[0], ylim[1],
+                              color=color,
+                              alpha=alpha)
 #            EventLines.append(lines[0])
 
         return EventLines
 
-    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False, 
+    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False,
                          StdAlpha=0.2,
                          PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
                          ClearAxes=True, AvgColor=None):
@@ -539,18 +545,21 @@ class PlotSlots():
         if ClearAxes:
             self.ClearAxes()
 
+        MeanSigs = []
         for sl in self.Slots:
             if AvgColor is not None:
                 sl.Color = AvgColor
-            sl.CalcAvarage(TimeAvg, TimesEvent,
-                           Units=Units,
-                           PlotTrials=PlotTrials,
-                           TrialsColor=TrialsColor,
-                           TrialsAlpha=TrialsAlpha,
-                           PltStd=PltStd,
-                           StdAlpha=StdAlpha)
+            MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent,
+                                     Units=Units,
+                                     PlotTrials=PlotTrials,
+                                     TrialsColor=TrialsColor,
+                                     TrialsAlpha=TrialsAlpha,
+                                     PltStd=PltStd,
+                                     StdAlpha=StdAlpha)
+            MeanSigs.append(MeanSig)
 
         sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
         sl.Ax.set_xlim(right=TimeAvg[1].magnitude)
-        
+
         self.FormatFigure()
+        return MeanSigs
