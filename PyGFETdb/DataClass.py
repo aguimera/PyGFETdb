@@ -258,41 +258,7 @@ class DataCharDC(object):
         
     def GetGMMax(self, **kwargs):
         return np.max(np.abs(self.GetGM(**kwargs)))
-
-
-#    def GetGMMax(self, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
-#        iVds = self.GetVdsIndexes(Vds)
-#        if len(iVds) == 0:
-#            return None
-#
-#        vgs = np.linspace(self.Vgs[0], self.Vgs[-1], len(self.Vgs)*1000)
-#
-#        if 'GMPoly' not in self.__dict__:
-#            self.CalcGMPoly()
-#
-#        GMmax = np.array([])
-#        VgsGMax = np.array([])
-#        for ivd in iVds:
-#            gm = np.polyval(self.GMPoly[:, ivd], vgs)
-#            gm = np.abs(gm)
-#            if Normalize:
-#                gm = gm/self.Vds[ivd]
-#            vgmax = vgs[np.argmax(gm)]
-#            gmmax = np.polyval(self.GMPoly[:, ivd], vgmax)
-#            if Normalize:
-#                gmmax = gmmax/self.Vds[ivd]
-#            GMmax = np.vstack((GMmax, gmmax)) if GMmax.size else gmmax
-#            if Ud0Norm:
-#                vgmax = vgmax - self.Ud0[ivd]
-#            VgsGMax = np.vstack((VgsGMax, vgmax)) if VgsGMax.size else vgmax
-#
-#        if not hasattr(GMmax, '__iter__'):
-#            return GMmax[None, None], VgsGMax[None, None]
-#        s = GMmax.shape
-#        if len(s) == 1:
-#            return GMmax[:, None], VgsGMax[:, None]
-#        return GMmax.transpose(), VgsGMax.transpose()
-     
+    
     def GetRds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 

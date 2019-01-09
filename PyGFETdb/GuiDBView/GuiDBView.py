@@ -610,7 +610,7 @@ class AppDataExp(QtWidgets.QMainWindow):
 #        Vgs=[]
         for TrtN, Trt in sorted(self.Data.items()):
             self.LstTrt.addItem(TrtN)
-            for cy in Trt.itervalues():
+            for cy in list(Trt.values()):
                 for vd in cy['Vds']:
                     Vds.append(vd)
 #                for vg in cy['Vgs']:Vgs.append(vg)

@@ -169,7 +169,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     Data = {}
     for Trtn, Cys in DataD.items():
         Chars = []
-        for Cyn, Dat in Cys.items():
+        for Cyn, Dat in sorted(Cys.items()):
             Char = DataCharAC(Dat)
             Chars.append(Char)
         Data[Trtn] = Chars
