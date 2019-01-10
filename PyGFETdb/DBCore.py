@@ -9,7 +9,7 @@ import datetime
 import pymysql
 import pickle
 from PyGFETdb.DB import *
-
+import sys
 
 class PyFETdb():
     PrintQuery = True
@@ -51,17 +51,20 @@ class PyFETdb():
         return ret
 
     def _DecodeData(self, DataF):
-        bDict = pickle.loads(DataF, encoding='bytes')
-        Dict = {}
-        for k, v in bDict.items():
-            if isinstance(v, dict):
-                dv = {}
-                for kv, vv in v.items():
-                    dv[kv.decode('utf-8')] = vv
-            else:
-                dv = v
-            Dict[k.decode('utf-8')] = dv
-        return Dict
+        if sys.version_info[0] == 2:
+            return pickle.loads(DataF)
+        else:
+            bDict = pickle.loads(DataF, encoding='bytes')
+            Dict = {}
+            for k, v in bDict.items():
+                if isinstance(v, dict):
+                    dv = {}
+                    for kv, vv in v.items():
+                        dv[kv.decode('utf-8')] = vv
+                else:
+                    dv = v
+                Dict[k.decode('utf-8')] = dv
+            return Dict
 
     def GetId(self, Table, Value, Field='Name', NewVals=None):
 

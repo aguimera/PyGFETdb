@@ -56,7 +56,7 @@ classifiers = ['Development Status :: 3 - Alpha',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: User Interfaces']
 
-setup(name="PyGFET",
+setup(name="PyGFETdb",
       version=_version,
       description="GFET Analysis tools",
       long_description=long_description,

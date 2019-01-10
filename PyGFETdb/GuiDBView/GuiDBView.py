@@ -338,8 +338,8 @@ class DBViewApp(QtWidgets.QMainWindow):
         for r in self.Trts:
             Vals.append(r[Field])
         Lst.clear()
-#        for d in sorted(set(Vals)):
-        for d in set(Vals):
+        for d in sorted(set(Vals)):
+#        for d in set(Vals):
             Lst.addItem(str(d))
 
     def LstDevicesChange(self):
@@ -782,7 +782,7 @@ def main():
     import pkg_resources
 
     # Add version option
-    __version__ = pkg_resources.require("PyGFET")[0].version
+    __version__ = pkg_resources.require("PyGFETdb")[0].version
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(
