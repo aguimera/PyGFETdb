@@ -11,7 +11,7 @@ from fractions import Fraction
 
 
 def DownSampling(sig, Fact, zero_phase=True):
-    print sig.sampling_rate, sig.sampling_rate/Fact
+    print (sig.sampling_rate, sig.sampling_rate/Fact)
     rs = signal.decimate(np.array(sig),
                          q=Fact,
                          zero_phase=zero_phase,
@@ -30,7 +30,7 @@ def RemoveDC(sig, Type='constant'):
 def SetZero(sig, TWind):
     st = np.array(sig)
     offset = np.mean(sig.GetSignal(TWind))
-    print sig.name, offset
+    print (sig.name, offset)
     st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
 
@@ -52,7 +52,7 @@ def Resample(sig, Fs=None, MaxPoints=None):
             uprate = 1
 
     if dowrate > 0:
-        print sig.sampling_rate*f, f, uprate, dowrate
+        print (sig.sampling_rate*f, f, uprate, dowrate)
         rs = signal.resample_poly(np.array(sig), uprate, dowrate)
         sig = sig.duplicate_with_new_array(signal=rs*sig.units)
         sig.sampling_rate = sig.sampling_rate*f

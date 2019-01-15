@@ -268,7 +268,7 @@ class WaveSlot():
                                  alpha=TrialsAlpha,
                                  clip_on=self.clip_on)
             except:
-                print 'Error', nSamps, et, avg.shape, st.shape
+                print ('Error', nSamps, et, avg.shape, st.shape)
 
         MeanT = np.mean(avg, axis=1)
 
@@ -459,7 +459,7 @@ class PlotSlots():
 
     def AddLegend(self, Ax):
         if len(self.SlotsInAxs[Ax]) == 0:
-            print 'empty Ax'
+            print ('empty Ax')
             return
         if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
             self.SlotsInAxs[Ax][0].Ax.set_ylabel('Freq. [Hz]',

@@ -92,7 +92,7 @@ class NeoSegment():
             if OverWrite:
                 os.remove(FileName)
             else:
-                print 'Warning File Exsist'
+                print ('Warning File Exsist')
 
         if FileName.endswith('.h5'):
             out_f = neo.io.NixIO(filename=FileName)
@@ -128,7 +128,7 @@ class NeoSegment():
                 try:
                     name = eve.annotations['title']
                 except:
-                    print 'Event found no name ', i
+                    print ('Event found no name ', i)
                     name = str(i)
                 self.EventNames.update({name: i})
             else:
@@ -199,9 +199,9 @@ def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
             continue
 
         for Chn, Chinfo in AnaStr.channel_infos.iteritems():
-            print 'Analog Stream ', Chinfo.label, Chinfo.sampling_frequency
+            print ('Analog Stream ', Chinfo.label, Chinfo.sampling_frequency)
             ChName = str(SigNamePrefix + Chinfo.label)
-            print ChName
+            print (ChName)
 
             Fs = Chinfo.sampling_frequency
             Var, Unit = AnaStr.get_channel_in_range(Chn, 0, NSamps)

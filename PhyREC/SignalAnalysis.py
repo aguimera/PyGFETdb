@@ -188,7 +188,7 @@ def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
                 if OverLap:
                     Ax.plot(t, st, 'k-', alpha=0.1)
             except:
-                print 'Error', nSamps, et, avg.shape, st.shape
+                print ('Error', nSamps, et, avg.shape, st.shape)
 
         MeanT = np.mean(avg, axis=1)
 
