@@ -182,9 +182,8 @@ class SpecSlot():
 
 class WaveSlot():
 
-    def __init__(self, Signal, Units=None, Position=None, DispName=None,
-                 Color='k', Line='-', Alpha=1, Ylim=None, LineWidth=0.5,
-                 Ax=None, Fig=None, UnitsInLabel=True, clip_on=True):
+    def __init__(self, Signal, Units=None, Position=None, DispName=None,                 
+                 Ax=None, Fig=None, UnitsInLabel=True, Ylim=None, **Kwargs):       
         self.Signal = Signal
 
         self.units = Units
@@ -197,12 +196,8 @@ class WaveSlot():
         self.Ax = Ax
         self.Fig = Fig
 
-        self.Color = Color
-        self.Line = Line
-        self.Alpha = Alpha
         self.Ylim = Ylim
-        self.LineWidth = LineWidth
-        self.clip_on = clip_on
+        self.LineKwargs = Kwargs
 
         self.Name = self.Signal.name
         self.name = self.Signal.name
@@ -235,12 +230,9 @@ class WaveSlot():
     def _PlotSignal(self, sig, label):
         self.Ax.plot(sig.times,
                      sig,
-                     self.Line,
-                     linewidth=self.LineWidth,
-                     color=self.Color,
                      label=label,
-                     alpha=self.Alpha,
-                     clip_on=self.clip_on)
+                     **self.LineKwargs
+                     )
 
         if self.Ylim is not None:
             self.Ax.set_ylim(self.Ylim)

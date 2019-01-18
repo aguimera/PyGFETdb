@@ -26,7 +26,7 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.1.42'
+_version = '0.2.0'
 
 long_description = "Library for electrphysiological analysis based on neo"
 
@@ -37,7 +37,7 @@ install_requires = ['numpy',
                     'neo>=0.5.2',
                     'nixio']
 
-console_scripts = ['PhyRecExplorer = PhyREC.GuiRecordView.GuiRecordExplorer:main',
+console_scripts = ['PhyRecExplorer3 = PhyREC.GuiRecordView.GuiRecordExplorer:main',
                    ]
 
 entry_points = {'console_scripts': console_scripts, }
