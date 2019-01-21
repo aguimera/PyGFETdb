@@ -182,6 +182,13 @@ class SpecSlot():
 
 class WaveSlot():
 
+    LineKwargs = {'color': 'k',
+                  'linestyle': '-',
+                  'alpha': 1,
+                  'lineWidth': 0.5,
+                  'clip_on': True,
+                  }
+    
     def __init__(self, Signal, Units=None, Position=None, DispName=None,                 
                  Ax=None, Fig=None, UnitsInLabel=True, Ylim=None, **Kwargs):       
         self.Signal = Signal
@@ -197,7 +204,7 @@ class WaveSlot():
         self.Fig = Fig
 
         self.Ylim = Ylim
-        self.LineKwargs = Kwargs
+        self.LineKwargs.update(Kwargs)
 
         self.Name = self.Signal.name
         self.name = self.Signal.name
