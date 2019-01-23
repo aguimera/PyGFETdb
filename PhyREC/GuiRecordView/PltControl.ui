@@ -17,11 +17,14 @@
    <widget class="QTreeWidget" name="TreeCtr">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>50</y>
-      <width>311</width>
-      <height>481</height>
+      <x>30</x>
+      <y>20</y>
+      <width>721</width>
+      <height>521</height>
      </rect>
+    </property>
+    <property name="sortingEnabled">
+     <bool>true</bool>
     </property>
     <column>
      <property name="text">
