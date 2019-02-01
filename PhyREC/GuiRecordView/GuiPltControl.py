@@ -20,6 +20,7 @@ import PhyREC.SignalAnalysis as Ran
 import matplotlib.pyplot as plt
 import quantities as pq
 
+from matplotlib.artist import ArtistInspector
 
 AxesProp = ('ylim',
             'ylabel',
@@ -41,6 +42,8 @@ class GuiPltControl(QtWidgets.QMainWindow):
 
         self.setWindowTitle('Plot Control')
         self.TreeCtr.setColumnCount(3)
+
+        self.PlotSlot = PlotSlot
 
 #            parent.setFlags(parent.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
         for iax, ax in enumerate(PlotSlot.Axs):
@@ -64,8 +67,6 @@ class GuiPltControl(QtWidgets.QMainWindow):
             self.AddAxProp(ParentItem=AxXParent,
                            PropsToAdd=AxisProp,
                            Properties=ax.get_yaxis().properties())
-
-
             
             for isl, sl in enumerate(PlotSlot.SlotsInAxs[ax]):
                 WvChild = QTreeWidgetItem(AxParent)
@@ -102,7 +103,41 @@ class GuiPltControl(QtWidgets.QMainWindow):
         Item.setData(1, Qt.EditRole, D)
 
     def ItemChanged(self, item, column):
-        print(item.text(0), item.data(1, Qt.EditRole))
+        Parent = item.parent()
+        ParentText = Parent.text(0)
+        if ParentText == 'Axes':            
+            Axi = Parent.data(2, Qt.EditRole)
+            prop = item.text(0)
+            propv = item.data(1, Qt.EditRole)
+            self.PlotSlot.Axs[Axi].set(**{prop: propv})
+            print(prop, propv, Axi)
+        elif ParentText == 'ylim':            
+            vals = []
+            for i in range(Parent.childCount()):
+                ch = Parent.child(i)
+                vals.append(ch.data(1, Qt.EditRole))
+            
+            AxParent = Parent.parent()
+            Axi = AxParent.data(2, Qt.EditRole)
+#            print ('ylim', vals, Axi, self.PlotSlot.Axs[Axi])
+            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
+        elif ParentText == 'XAxis':
+            AxParent = Parent.parent()
+            Axi = AxParent.data(2, Qt.EditRole)
+            prop = item.text(0)
+            propv = item.data(1, Qt.EditRole)
+            xax = self.PlotSlot.Axs[Axi].get_xaxis()
+            xax.set(**{prop: propv})
+        elif ParentText == 'YAxis':
+            AxParent = Parent.parent()
+            Axi = AxParent.data(2, Qt.EditRole)
+            prop = item.text(0)
+            propv = item.data(1, Qt.EditRole)
+            xax = self.PlotSlot.Axs[Axi].get_yaxis()
+            xax.set(**{prop: propv})
+        elif ParentText.startswith('WaveSlot'):
+            print(ParentText)
+            
         
 
 def main(PlotSlot):
@@ -165,28 +200,44 @@ if __name__ == "__main__":
             
     Rec = NeoSegment(FileIn)
 
-    fig, axs = plt.subplots(len(aiChannels), len(doColumns),
-                            sharex=True)
 
+
+    AxesProp = {
+                'ylim': Range,
+                'facecolor': '#FFFFFF00',
+                'autoscaley_on': False,
+                'xaxis': {'visible': False,
+                         },
+                'yaxis': {'visible': False,
+                         },
+                }
+
+    FigProp = {'tight_layout': True,
+               'size_inches': (10,5),
+#               'facecolor': '#FFFFFF00',
+               }
+
+#    fig, axs = plt.subplots(len(aiChannels), len(doColumns),
+#                            sharex=True)
     Slots = []
-    for sig in Rec.Signals():
+    isig = 0
+    for sig in Rec.Signals()[0:10]:
         if not sig.name.endswith('AC'):
-            continue
+            continue        
         chname = sig.name.split('_')[0]
         sig.ProcessChain = SigCond
         Slots.append(Rplt.WaveSlot(sig,
                                    Units='nA',
-                                   Ax=axs[Chorder[chname]],
-                                   Fig=fig,
-                                   Ylim=Range,
-                                   color='r'))
-
+                                   Position=isig,
+#                                   Ax=axs[Chorder[chname]],
+#                                   AxKwargs=AxesProp,
+                                   color='r',
+                                   alpha=0.5))
+        isig += 1
 
     splt = Rplt.PlotSlots(Slots,
-                          Fig=fig,
-                          ShowAxis=None,
-   #                      ShowNameOn='Legend',
-                          AutoScale=False)
+                          AxKwargs=AxesProp,
+                          FigKwargs=FigProp)
 
     splt.PlotChannels(Time=Twind)
     
@@ -196,7 +247,18 @@ if __name__ == "__main__":
     xax = a.get_xaxis()
 
 
-    main(splt)
+
+
+    
+
+#
+#
+#    ains = ArtistInspector(fig)
+#    validprop = ains.get_setters()
+#    
+
+
+#    main(splt)
 
 
 

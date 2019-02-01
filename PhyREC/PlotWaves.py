@@ -14,6 +14,7 @@ import matplotlib.colors as colors
 from collections import OrderedDict
 from scipy.interpolate import interp2d
 from matplotlib.widgets import Slider, Button
+from matplotlib.artist import ArtistInspector
 
 
 def DrawBarScale(Ax, Location='Bottom Left',
@@ -180,6 +181,17 @@ class SpecSlot():
             self.Ax.set_yscale('log')
 
 
+def UpdateTreeDictProp(obj, prop):
+    ains = ArtistInspector(obj)
+    validp = ains.get_setters()
+    for p in prop.keys():
+        if p in validp:
+            obj.set(**{p: prop[p]})
+        else:
+            obj2 = getattr(obj, 'get_' + p)()
+            UpdateTreeDictProp(obj2, prop[p])
+
+
 class WaveSlot():
 
     LineKwargs = {'color': 'k',
@@ -188,28 +200,32 @@ class WaveSlot():
                   'lineWidth': 0.5,
                   'clip_on': True,
                   }
-    
-    def __init__(self, Signal, Units=None, Position=None, DispName=None,                 
-                 Ax=None, Fig=None, UnitsInLabel=True, Ylim=None, **Kwargs):       
+    AxKwargs = {}
+
+    def __init__(self, Signal, Units=None, UnitsInLabel=False,
+                 Position=None, Ax=None, AxKwargs=None,
+                 **LineKwargs):
+
         self.Signal = Signal
-
-        self.units = Units
-        self.Position = Position
-        if DispName is None:
-            self.DispName = self.Signal.name
-        else:
-            self.DispName = DispName
-
-        self.Ax = Ax
-        self.Fig = Fig
-
-        self.Ylim = Ylim
-        self.LineKwargs.update(Kwargs)
-
-        self.Name = self.Signal.name
         self.name = self.Signal.name
 
+        self.units = Units
+
+        self.Position = Position
         self.UnitsInLabel = UnitsInLabel
+
+        self.Ax = Ax
+        if AxKwargs is not None:
+            self.AxKwargs.update(AxKwargs)
+
+        if self.Ax is not None:
+            UpdateTreeDictProp(self.Ax, self.AxKwargs)
+
+        self.LineKwargs.update(LineKwargs)
+        if 'label' not in self.LineKwargs:
+            self.LineKwargs.update({'label': Signal.name})
+        else:
+            self.name = self.LineKwargs['label']
 
     def GetSignal(self, Time, Units=None):
         if Units is None:
@@ -228,21 +244,16 @@ class WaveSlot():
 
         if self.UnitsInLabel is True:
             su = str(sig.units).split(' ')[-1]
-            label = "{} [{}]".format(self.DispName, su)
-        else:
-            label = self.DispName
+            label = "{} [{}]".format(self.name, su)
+            self.LineKwargs.update({'label': label})
 
-        self._PlotSignal(sig, label)
+        self._PlotSignal(sig)
 
-    def _PlotSignal(self, sig, label):
-        self.Ax.plot(sig.times,
-                     sig,
-                     label=label,
-                     **self.LineKwargs
-                     )
-
-        if self.Ylim is not None:
-            self.Ax.set_ylim(self.Ylim)
+    def _PlotSignal(self, sig):
+        self.Lines = self.Ax.plot(sig.times,
+                                  sig,
+                                  **self.LineKwargs
+                                  )
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
                     PltStd=False, StdAlpha=0.2,
@@ -338,32 +349,21 @@ class PlotSlots():
                       'Color': 'k',
                       'FontSize': None}
 
-    def __init__(self, Slots, ShowNameOn='Axis', figsize=None,
-                 ShowAxis='All', AutoScale=True, Fig=None,
-                 ScaleBarAx=None, LiveControl=False):
+    RcGeneralParams = {'axes.spines.left': False,
+                       'axes.spines.bottom': False,
+                       'axes.spines.top': False,
+                       'axes.spines.right': False,
+                       }
 
-        self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
-        self.Slots = Slots
-        self.ShowAxis = ShowAxis      # 'All', int, None
-        self.AutoScale = AutoScale
-        self.ScaleBarAx = ScaleBarAx
+    FigKwargs = {}
 
-        for sl in self.Slots:
-            sig = sl.Signal
-            sl.Signal = sig.GetSignal(None)
+    gridspec_Kwargs = {'width_ratios': (15, 1)}
+    
+    TimeAxisProp = {'xaxis': {'visible': True,},
+                     'xlabel': 'Time [s]'  
+                    }
 
-        if LiveControl:
-            self.CtrFig = ControlFigure(self)
-
-        if Fig is not None:
-            self.Fig = Fig
-            self.Axs = []
-            self.CAxs = []
-            for sl in self.Slots:
-                self.Axs.append(sl.Ax)
-                sl.Ax.set_facecolor('#FFFFFF00')
-            self.SortSlotsAx()
-            return
+    def _GenerateFigure(self):
 
         Pos = []
         for isl, sl in enumerate(self.Slots):
@@ -373,8 +373,9 @@ class PlotSlots():
 
         self.Fig, A = plt.subplots(max(Pos) + 1, 2,
                                    sharex=True,
-                                   figsize=figsize,
-                                   gridspec_kw={'width_ratios': (10, 1)})
+                                   gridspec_kw=self.gridspec_Kwargs,
+                                   )
+
         if len(A.shape) == 1:
             A = A[:, None].transpose()
         self.Axs = [a[0] for a in A]
@@ -388,8 +389,53 @@ class PlotSlots():
                 sl.CAx = self.CAxs[sl.Position]
             sl.Ax = self.Axs[sl.Position]
             sl.Fig = self.Fig
-            sl.Ax.set_facecolor('#FFFFFF00')
-# Chech if ax is empty here
+
+    def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
+                 AxKwargs=None, TimeAxis=-1,
+                 ScaleBarAx=None, LiveControl=False):
+
+        if RcGeneralParams is not None:
+            self.RcGeneralParams.update(RcGeneralParams)
+        plt.rcParams.update(self.RcGeneralParams)
+
+        if FigKwargs is not None:
+            self.FigKwargs.update(FigKwargs)
+
+        self.Slots = Slots
+        for sl in self.Slots:
+            sig = sl.Signal
+            sl.Signal = sig.GetSignal(None)
+
+
+#        self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
+        self.ScaleBarAx = ScaleBarAx
+
+        if LiveControl:
+            self.CtrFig = ControlFigure(self)
+
+        if Fig is None:
+            self._GenerateFigure()
+
+        if Fig is not None:
+            self.Fig = Fig
+            self.Axs = []
+            self.CAxs = []
+            for sl in self.Slots:
+                self.Axs.append(sl.Ax)
+
+        for sl in self.Slots:
+            if AxKwargs is not None:
+                sl.AxKwargs.update(AxKwargs)
+                UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
+
+        self.TimeAxis = TimeAxis
+        if TimeAxis is not None:
+            sl = self.Slots[TimeAxis]
+            sl.AxKwargs.update(self.TimeAxisProp)
+            UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
+
+
+        UpdateTreeDictProp(self.Fig, self.FigKwargs)
         self.SortSlotsAx()
 
     def SortSlotsAx(self):
@@ -498,13 +544,13 @@ class PlotSlots():
             if Time[1] is not None:
                 sl.Ax.set_xlim(right=Time[1].magnitude)
 
-        for Ax in self.Axs:
-            self.AddLegend(Ax)
-            if self.AutoScale:
-                Ax.autoscale(enable=True, axis='y')
+#        for Ax in self.Axs:
+#            self.AddLegend(Ax)
+#            if self.AutoScale:
+#                Ax.autoscale(enable=True, axis='y')
 
-        if FormatFigure:
-            self.FormatFigure()
+#        if FormatFigure:
+#            self.FormatFigure()
 
     def PlotEvents(self, Times, color='r', alpha=0.5,
                    Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
