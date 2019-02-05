@@ -194,17 +194,19 @@ def UpdateTreeDictProp(obj, prop):
 
 class WaveSlot():
 
-    LineKwargs = {'color': 'k',
-                  'linestyle': '-',
-                  'alpha': 1,
-                  'lineWidth': 0.5,
-                  'clip_on': True,
-                  }
-    AxKwargs = {}
+    DefLineKwargs = {'color': 'k',
+                     'linestyle': '-',
+                     'alpha': 1,
+                     'linewidth': 0.5,
+                     'clip_on': True,
+                     }
+    DefAxKwargs = {}
 
     def __init__(self, Signal, Units=None, UnitsInLabel=False,
                  Position=None, Ax=None, AxKwargs=None,
                  **LineKwargs):
+        self.LineKwargs = self.DefLineKwargs.copy()
+        self.AxKwargs = self.DefAxKwargs.copy()
 
         self.Signal = Signal
         self.name = self.Signal.name
@@ -223,7 +225,7 @@ class WaveSlot():
 
         self.LineKwargs.update(LineKwargs)
         if 'label' not in self.LineKwargs:
-            self.LineKwargs.update({'label': Signal.name})
+            self.LineKwargs.update({'label': self.name})
         else:
             self.name = self.LineKwargs['label']
 
@@ -254,6 +256,7 @@ class WaveSlot():
                                   sig,
                                   **self.LineKwargs
                                   )
+        self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
                     PltStd=False, StdAlpha=0.2,
@@ -334,8 +337,6 @@ class ControlFigure():
 
 
 class PlotSlots():
-    LegNlabCol = 4  # Number of labels per col in legend
-    LegFontSize = 'xx-small'
     ScaleBarKwargs = {'Location': 'Bottom Left',
                       'xsize': None,
                       'ysize': None,
@@ -358,10 +359,15 @@ class PlotSlots():
     FigKwargs = {}
 
     gridspec_Kwargs = {'width_ratios': (15, 1)}
-    
-    TimeAxisProp = {'xaxis': {'visible': True,},
-                     'xlabel': 'Time [s]'  
+
+    TimeAxisProp = {'xaxis': {'visible': True, },
+                    'xlabel': 'Time [s]',
                     }
+
+    LegendKwargs = {'fontsize': 'xx-small',
+                    'ncol': 5,
+                    'loc': 'upper right',
+                    'frameon': False}
 
     def _GenerateFigure(self):
 
@@ -391,7 +397,7 @@ class PlotSlots():
             sl.Fig = self.Fig
 
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
-                 AxKwargs=None, TimeAxis=-1,
+                 AxKwargs=None, TimeAxis=-1, 
                  ScaleBarAx=None, LiveControl=False):
 
         if RcGeneralParams is not None:
@@ -406,8 +412,6 @@ class PlotSlots():
             sig = sl.Signal
             sl.Signal = sig.GetSignal(None)
 
-
-#        self.ShowNameOn = ShowNameOn  # 'Axis', 'Legend', None
         self.ScaleBarAx = ScaleBarAx
 
         if LiveControl:
@@ -415,8 +419,7 @@ class PlotSlots():
 
         if Fig is None:
             self._GenerateFigure()
-
-        if Fig is not None:
+        else:
             self.Fig = Fig
             self.Axs = []
             self.CAxs = []
@@ -429,11 +432,10 @@ class PlotSlots():
                 UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
 
         self.TimeAxis = TimeAxis
-        if TimeAxis is not None:
+        if self.TimeAxis is not None:
             sl = self.Slots[TimeAxis]
             sl.AxKwargs.update(self.TimeAxisProp)
             UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
-
 
         UpdateTreeDictProp(self.Fig, self.FigKwargs)
         self.SortSlotsAx()
@@ -453,37 +455,6 @@ class PlotSlots():
                 sl.Ax.lines[0].remove()
 
     def FormatFigure(self):
-        if self.ShowAxis == 'All':
-            for Ax in self.Axs:
-                Ax.get_xaxis().set_visible(False)
-                Ax.spines['top'].set_visible(False)
-                Ax.spines['right'].set_visible(False)
-                Ax.spines['bottom'].set_visible(False)
-                if Ax.yaxis.get_scale() == 'linear':
-                    Ax.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
-        elif self.ShowAxis is None:        
-            for Ax in self.Axs:
-                Ax.get_yaxis().set_visible(False)
-                Ax.get_xaxis().set_visible(False)
-                Ax.spines['top'].set_visible(False)
-                Ax.spines['right'].set_visible(False)
-                Ax.spines['left'].set_visible(False)
-                Ax.spines['bottom'].set_visible(False)
-        else:
-            for nAx, Ax in enumerate(self.Axs):
-                Ax.spines['top'].set_visible(False)
-                Ax.spines['bottom'].set_visible(False)
-                Ax.spines['right'].set_visible(False)
-                if nAx == self.ShowAxis:
-                    continue
-                Ax.get_yaxis().set_visible(False)
-                Ax.get_xaxis().set_visible(False)
-                Ax.spines['left'].set_visible(False)
-
-        if self.ShowAxis is not None:
-            TimeAx = self.Axs[-1]
-            TimeAx.set_xlabel('Time [s]', fontsize=self.LegFontSize)
-            TimeAx.get_xaxis().set_visible(True)
 
         if self.ScaleBarAx is not None:
             if self.ScaleBarKwargs['yunit'] is None:
@@ -492,47 +463,10 @@ class PlotSlots():
                 self.ScaleBarKwargs['yunit'] = su
             DrawBarScale(self.Axs[self.ScaleBarAx], **self.ScaleBarKwargs)
 
-        if len(self.CAxs) == 0:
-            self.Fig.tight_layout()
-        else:
-            self.Fig.subplots_adjust(top=0.975,
-                                     bottom=0.095,
-                                     left=0.1,
-                                     right=0.95,
-                                     hspace=0.0,
-                                     wspace=0.0)
-
-    def AddLegend(self, Ax):
-        if len(self.SlotsInAxs[Ax]) == 0:
-            print ('empty Ax')
-            return
-        if isinstance(self.SlotsInAxs[Ax][0], SpecSlot):
-            self.SlotsInAxs[Ax][0].Ax.set_ylabel('Freq. [Hz]',
-                                                 fontsize=self.LegFontSize)
-        elif self.ShowNameOn is None:
-            return
-        elif self.ShowNameOn == 'Axis':
-            lbls = []
-            for sl in self.SlotsInAxs[Ax]:
-                su = str(sl.units).split(' ')[-1]
-                lbls.append("{} [{}]".format(sl.DispName, su))
-            sl.Ax.set_ylabel('\n'.join(set(lbls)),
-                             fontsize=self.LegFontSize,
-#                             rotation='horizontal',
-                             )
-        elif self.ShowNameOn == 'Legend':
-            handles, labels = Ax.get_legend_handles_labels()
-            by_label = OrderedDict(zip(labels, handles))
-
-            nLines = len(by_label)
-            nlc = self.LegNlabCol
-            if nLines > nlc:
-                ncol = (nLines / nlc) + ((nLines % nlc) > 0)
-            else:
-                ncol = 1
-            Ax.legend(by_label.values(), by_label.keys(),
-                      ncol=ncol,
-                      fontsize=self.LegFontSize)
+    def AddLegend(self, **LegendKwargs):
+        self.LegendKwargs.update(LegendKwargs)
+        for Ax in self.Axs:
+            Ax.legend(**self.LegendKwargs)
 
     def PlotChannels(self, Time, Units=None, FormatFigure=True):
         self.ClearAxes()
@@ -543,14 +477,6 @@ class PlotSlots():
                 sl.Ax.set_xlim(left=Time[0].magnitude)
             if Time[1] is not None:
                 sl.Ax.set_xlim(right=Time[1].magnitude)
-
-#        for Ax in self.Axs:
-#            self.AddLegend(Ax)
-#            if self.AutoScale:
-#                Ax.autoscale(enable=True, axis='y')
-
-#        if FormatFigure:
-#            self.FormatFigure()
 
     def PlotEvents(self, Times, color='r', alpha=0.5,
                    Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):

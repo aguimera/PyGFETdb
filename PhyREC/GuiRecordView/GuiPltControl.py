@@ -30,7 +30,7 @@ AxesProp = ('ylim',
 
 AxisProp = ('visible',
             'scale',
-           )
+            )
 
 
 class GuiPltControl(QtWidgets.QMainWindow):
@@ -42,102 +42,101 @@ class GuiPltControl(QtWidgets.QMainWindow):
 
         self.setWindowTitle('Plot Control')
         self.TreeCtr.setColumnCount(3)
+        self.TreeCtr.itemChanged.connect(self.ItemChanged)
 
         self.PlotSlot = PlotSlot
 
-#            parent.setFlags(parent.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
-        for iax, ax in enumerate(PlotSlot.Axs):
-            AxParent = QTreeWidgetItem(self.TreeCtr)
-            AxParent.setText(0, "Axes")
-            AxParent.setText(1, PlotSlot.SlotsInAxs[ax][0].name)
-            AxParent.setData(2, Qt.EditRole, iax)
-            
-            self.AddAxProp(ParentItem=AxParent,
-                           PropsToAdd=AxesProp,
-                           Properties=ax.properties())
+        ItemP = QTreeWidgetItem(self.TreeCtr)
+        ItemP.setText(0, 'Figure')
+        for k, v in self.PlotSlot.FigKwargs.items():
+            ItemCh = QTreeWidgetItem(ItemP)
+            ItemCh.setFlags(ItemCh.flags() | Qt.ItemIsEditable)
+            self.AddItemData(ItemCh, k, v)
 
-            AxYParent = QTreeWidgetItem(AxParent)
-            AxYParent.setText(0, "YAxis")
-            self.AddAxProp(ParentItem=AxYParent,
-                           PropsToAdd=AxisProp,
-                           Properties=ax.get_yaxis().properties())
-            
-            AxXParent = QTreeWidgetItem(AxParent)
-            AxXParent.setText(0, "XAxis")
-            self.AddAxProp(ParentItem=AxXParent,
-                           PropsToAdd=AxisProp,
-                           Properties=ax.get_yaxis().properties())
-            
-            for isl, sl in enumerate(PlotSlot.SlotsInAxs[ax]):
-                WvChild = QTreeWidgetItem(AxParent)
-                WvChild.setText(0, str(type(sl)).split('.')[-1])
-                WvChild.setText(1, sl.name)
-                WvChild.setData(2, Qt.EditRole, isl)
-                for sp, sv in sl.LineKwargs.items():
-                    WvPChild = QTreeWidgetItem(WvChild)
-                    WvPChild.setFlags(WvPChild.flags() | Qt.ItemIsEditable)
-                    self.AddItemData(WvPChild, sp, sv)
+        for Ax, Slots in self.PlotSlot.SlotsInAxs.items():
+            ItemP = QTreeWidgetItem(self.TreeCtr)
+            ItemP.setText(0, 'Axes')
+            Values = Slots[0].AxKwargs
+            self.FillDictValues(ItemParent=ItemP,
+                                PltObj=Ax,
+                                Kwargs=Values)
+            for sl in Slots:
+                ItemP = QTreeWidgetItem(ItemP)
+                ItemP.setText(0, 'Wave')
+                Values = sl.LineKwargs
+                self.FillDictValues(ItemParent=ItemP,
+                                    PltObj=sl.Line,
+                                    Kwargs=Values)
 
-        self.TreeCtr.itemChanged.connect(self.ItemChanged)
-
-    def AddAxProp(self, ParentItem, PropsToAdd, Properties):
-        for p in PropsToAdd:
-            AxChild = QTreeWidgetItem(ParentItem)
-            AxChild.setFlags(AxChild.flags() | Qt.ItemIsEditable)
-            self.AddItemData(AxChild, p, Properties[p])
+    def FillDictValues(self, ItemParent, PltObj, Kwargs):
+        ains = ArtistInspector(PltObj)
+        validp = ains.get_setters()
+        for p in Kwargs.keys():
+            v = getattr(PltObj, 'get_' + p)()
+            if p in validp:
+                ItemV = QTreeWidgetItem(ItemParent)
+                ItemV.setFlags(ItemV.flags() | Qt.ItemIsEditable)
+                self.AddItemData(ItemV, p, v)
+            else:
+                ItemV = QTreeWidgetItem(ItemParent)
+                ItemV.setText(0, p)
+                self.FillDictValues(ItemParent=ItemV,
+                                    PltObj=v,
+                                    Kwargs=Kwargs[p])
 
     def AddItemData(self, Item, DataName, DataValue):
         Item.setText(0, DataName)
-        if type(DataValue)==tuple:
+        if type(DataValue) == tuple:
             for iv, val in enumerate(DataValue):
                 Child = QTreeWidgetItem(Item)
                 Child.setFlags(Child.flags() | Qt.ItemIsEditable)
                 self.AddItemData(Child, str(iv), val)
             return
-        elif type(DataValue)==str:
+        elif type(DataValue) == str:
             D = DataValue
-        elif type(DataValue)==bool:
+        elif type(DataValue) == bool:
             D = DataValue
         else:
             D = float(DataValue)
         Item.setData(1, Qt.EditRole, D)
 
     def ItemChanged(self, item, column):
-        Parent = item.parent()
-        ParentText = Parent.text(0)
-        if ParentText == 'Axes':            
-            Axi = Parent.data(2, Qt.EditRole)
-            prop = item.text(0)
-            propv = item.data(1, Qt.EditRole)
-            self.PlotSlot.Axs[Axi].set(**{prop: propv})
-            print(prop, propv, Axi)
-        elif ParentText == 'ylim':            
-            vals = []
-            for i in range(Parent.childCount()):
-                ch = Parent.child(i)
-                vals.append(ch.data(1, Qt.EditRole))
-            
-            AxParent = Parent.parent()
-            Axi = AxParent.data(2, Qt.EditRole)
-#            print ('ylim', vals, Axi, self.PlotSlot.Axs[Axi])
-            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
-        elif ParentText == 'XAxis':
-            AxParent = Parent.parent()
-            Axi = AxParent.data(2, Qt.EditRole)
-            prop = item.text(0)
-            propv = item.data(1, Qt.EditRole)
-            xax = self.PlotSlot.Axs[Axi].get_xaxis()
-            xax.set(**{prop: propv})
-        elif ParentText == 'YAxis':
-            AxParent = Parent.parent()
-            Axi = AxParent.data(2, Qt.EditRole)
-            prop = item.text(0)
-            propv = item.data(1, Qt.EditRole)
-            xax = self.PlotSlot.Axs[Axi].get_yaxis()
-            xax.set(**{prop: propv})
-        elif ParentText.startswith('WaveSlot'):
-            print(ParentText)
-            
+        pass
+#        Parent = item.parent()
+#        ParentText = Parent.text(0)
+#        if ParentText == 'Axes':            
+#            Axi = Parent.data(2, Qt.EditRole)
+#            prop = item.text(0)
+#            propv = item.data(1, Qt.EditRole)
+#            self.PlotSlot.Axs[Axi].set(**{prop: propv})
+#            print(prop, propv, Axi)
+#        elif ParentText == 'ylim':            
+#            vals = []
+#            for i in range(Parent.childCount()):
+#                ch = Parent.child(i)
+#                vals.append(ch.data(1, Qt.EditRole))
+#            
+#            AxParent = Parent.parent()
+#            Axi = AxParent.data(2, Qt.EditRole)
+##            print ('ylim', vals, Axi, self.PlotSlot.Axs[Axi])
+#            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
+#        elif ParentText == 'XAxis':
+#            AxParent = Parent.parent()
+#            Axi = AxParent.data(2, Qt.EditRole)
+#            prop = item.text(0)
+#            propv = item.data(1, Qt.EditRole)
+#            xax = self.PlotSlot.Axs[Axi].get_xaxis()
+#            xax.set(**{prop: propv})
+#        elif ParentText == 'YAxis':
+#            AxParent = Parent.parent()
+#            Axi = AxParent.data(2, Qt.EditRole)
+#            prop = item.text(0)
+#            propv = item.data(1, Qt.EditRole)
+#            xax = self.PlotSlot.Axs[Axi].get_yaxis()
+#            xax.set(**{prop: propv})
+#        elif ParentText.startswith('WaveSlot'):
+#            print(ParentText)
+#            
         
 
 def main(PlotSlot):
@@ -200,16 +199,14 @@ if __name__ == "__main__":
             
     Rec = NeoSegment(FileIn)
 
-
-
     AxesProp = {
                 'ylim': Range,
                 'facecolor': '#FFFFFF00',
                 'autoscaley_on': False,
                 'xaxis': {'visible': False,
-                         },
+                          },
                 'yaxis': {'visible': False,
-                         },
+                          },
                 }
 
     FigProp = {'tight_layout': True,
@@ -240,25 +237,25 @@ if __name__ == "__main__":
                           FigKwargs=FigProp)
 
     splt.PlotChannels(Time=Twind)
-    
-    
-    a = splt.Axs[0]
-    prop = a.properties()
-    xax = a.get_xaxis()
 
-
-
-
-    
+    splt.AddLegend()
 
 #
+#test = Rplt.WaveSlot(sig,
+#                                   Units='nA',
+#                                   Position=isig,
+##                                   Ax=axs[Chorder[chname]],
+##                                   AxKwargs=AxesProp,
+#                                   color='r',
+#                                   alpha=0.5)
+##
+##
+##    ains = ArtistInspector(fig)
+##    validprop = ains.get_setters()
+##    
 #
-#    ains = ArtistInspector(fig)
-#    validprop = ains.get_setters()
-#    
-
-
-#    main(splt)
+#
+    main(splt)
 
 
 
