@@ -42,7 +42,6 @@ class GuiPltControl(QtWidgets.QMainWindow):
 
         self.setWindowTitle('Plot Control')
         self.TreeCtr.setColumnCount(3)
-        self.TreeCtr.itemChanged.connect(self.ItemChanged)
 
         self.PlotSlot = PlotSlot
 
@@ -53,20 +52,27 @@ class GuiPltControl(QtWidgets.QMainWindow):
             ItemCh.setFlags(ItemCh.flags() | Qt.ItemIsEditable)
             self.AddItemData(ItemCh, k, v)
 
-        for Ax, Slots in self.PlotSlot.SlotsInAxs.items():
+        for Axi, Ax in enumerate(self.PlotSlot.Axs):
+            Slots = PlotSlot.SlotsInAxs[Ax]
+
             ItemP = QTreeWidgetItem(self.TreeCtr)
             ItemP.setText(0, 'Axes')
             Values = Slots[0].AxKwargs
+            ItemP.setData(2, Qt.EditRole, Axi)
             self.FillDictValues(ItemParent=ItemP,
                                 PltObj=Ax,
                                 Kwargs=Values)
-            for sl in Slots:
+
+            for isl, sl in enumerate(Slots):
                 ItemP = QTreeWidgetItem(ItemP)
                 ItemP.setText(0, 'Wave')
+                ItemP.setData(2, Qt.EditRole, isl)
                 Values = sl.LineKwargs
                 self.FillDictValues(ItemParent=ItemP,
                                     PltObj=sl.Line,
                                     Kwargs=Values)
+
+        self.TreeCtr.itemChanged.connect(self.ItemChanged)
 
     def FillDictValues(self, ItemParent, PltObj, Kwargs):
         ains = ArtistInspector(PltObj)
@@ -87,6 +93,7 @@ class GuiPltControl(QtWidgets.QMainWindow):
     def AddItemData(self, Item, DataName, DataValue):
         Item.setText(0, DataName)
         if type(DataValue) == tuple:
+            Item.setText(2, type(DataValue).__name__)
             for iv, val in enumerate(DataValue):
                 Child = QTreeWidgetItem(Item)
                 Child.setFlags(Child.flags() | Qt.ItemIsEditable)
@@ -101,32 +108,86 @@ class GuiPltControl(QtWidgets.QMainWindow):
         Item.setData(1, Qt.EditRole, D)
 
     def ItemChanged(self, item, column):
-        pass
+        Parent = item.parent()
+        Parents = []
+        while Parent is not None:
+            Parents.append((Parent.text(0), Parent))
+            Parent = Parent.parent()
+        print(Parents, Parents[-1][0])
+
+        firstp = Parents[0][1]
+        if firstp.text(2) == 'tuple':
+            data = []
+            firstp.sortChildren(0, Qt.AscendingOrder)
+            for ic in range(firstp.childCount()):
+                data.append(firstp.child(ic).data(1, Qt.EditRole))
+            PropName = Parents[0][0]
+            Parents.pop(0)
+        else:
+            data = item.data(1, Qt.EditRole)
+            PropName = item.text(0)
+
+        DataDict = {PropName: data}
+        for p in Parents[:-1]:
+            DataDict = {p[0]: DataDict}
+        print(DataDict)
+
+        kwtype = Parents[-1][0]
+        iAx = Parents[-1][1].data(2, Qt.EditRole)
+        if kwtype == 'Axes':
+            Ax = self.PlotSlot.Axs[iAx]
+            if Parents[0][0] == 'Wave':
+                iSl = Parents[0][1].data(2, Qt.EditRole)
+                Sl = self.PlotSlot.SlotsInAxs[Ax][iSl]
+                Sl.UpdateLineKwargs(DataDict['Wave'])
+            else:
+                Slots = self.PlotSlot.SlotsInAxs[Ax]
+                for Sl in Slots:
+                    Sl.UpdateAxKwargs(DataDict)
+        elif kwtype == 'Figure':
+            self.PlotSlot.UpdateFigKwargs(DataDict)
+
+        self.PlotSlot.Fig.canvas.draw()
+        
+#            Rplt.UpdateTreeDictProp(obj=self.PlotSlot.Fig,
+#                                    prop=DataDict)
+
+            
 #        Parent = item.parent()
 #        ParentText = Parent.text(0)
-#        if ParentText == 'Axes':            
+#        TuppleVal = False
+#        if IsNumber(ParentText):
+#            ParentItem = Parent.copy()
+#            Parent = Parent.parent()
+#            ParentText = Parent.text(0)
+#            TuppleVal = True
+#            
+#        if ParentText == 'Figure':
+#            prop = item.text(0)
+#            propv = item.data(1, Qt.EditRole)
+##            self.PlotSlot.Axs[Axi].set(**{prop: propv})
+#            print(prop, propv, 'Figure')
+#        elif ParentText == 'Axes':
 #            Axi = Parent.data(2, Qt.EditRole)
 #            prop = item.text(0)
 #            propv = item.data(1, Qt.EditRole)
-#            self.PlotSlot.Axs[Axi].set(**{prop: propv})
-#            print(prop, propv, Axi)
-#        elif ParentText == 'ylim':            
-#            vals = []
-#            for i in range(Parent.childCount()):
-#                ch = Parent.child(i)
-#                vals.append(ch.data(1, Qt.EditRole))
-#            
-#            AxParent = Parent.parent()
-#            Axi = AxParent.data(2, Qt.EditRole)
+#            print(prop, propv, Axi, 'Axes')
+#
+##            vals = []
+##            for i in range(Parent.childCount()):
+##                ch = Parent.child(i)
+##                vals.append(ch.data(1, Qt.EditRole))
+##            
+##            AxParent = Parent.parent()
+##            Axi = AxParent.data(2, Qt.EditRole)
 ##            print ('ylim', vals, Axi, self.PlotSlot.Axs[Axi])
-#            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
-#        elif ParentText == 'XAxis':
-#            AxParent = Parent.parent()
-#            Axi = AxParent.data(2, Qt.EditRole)
+##            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
+#        elif ParentText == 'Wave':
+#            isl = Parent.data(2, Qt.EditRole)
 #            prop = item.text(0)
 #            propv = item.data(1, Qt.EditRole)
-#            xax = self.PlotSlot.Axs[Axi].get_xaxis()
-#            xax.set(**{prop: propv})
+#            print(prop, propv, isl, 'Wave')
+
 #        elif ParentText == 'YAxis':
 #            AxParent = Parent.parent()
 #            Axi = AxParent.data(2, Qt.EditRole)
@@ -136,8 +197,15 @@ class GuiPltControl(QtWidgets.QMainWindow):
 #            xax.set(**{prop: propv})
 #        elif ParentText.startswith('WaveSlot'):
 #            print(ParentText)
-#            
-        
+#
+
+def IsNumber(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 
 def main(PlotSlot):
     import argparse
@@ -207,6 +275,8 @@ if __name__ == "__main__":
                           },
                 'yaxis': {'visible': False,
                           },
+                'ylabel':'sdjkfj',
+                'title':None,
                 }
 
     FigProp = {'tight_layout': True,

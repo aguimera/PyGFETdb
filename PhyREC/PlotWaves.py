@@ -202,6 +202,14 @@ class WaveSlot():
                      }
     DefAxKwargs = {}
 
+    def UpdateLineKwargs(self, LineKwargs):
+        self.LineKwargs.update(LineKwargs)
+        UpdateTreeDictProp(self.Line, self.LineKwargs)
+
+    def UpdateAxKwargs(self, AxKwargs):
+        self.AxKwargs.update(AxKwargs)
+        UpdateTreeDictProp(self.Ax, self.AxKwargs)
+
     def __init__(self, Signal, Units=None, UnitsInLabel=False,
                  Position=None, Ax=None, AxKwargs=None,
                  **LineKwargs):
@@ -369,6 +377,10 @@ class PlotSlots():
                     'loc': 'upper right',
                     'frameon': False}
 
+    def UpdateFigKwargs(self, FigKwargs):
+        self.FigKwargs.update(FigKwargs)
+        UpdateTreeDictProp(self.Fig, self.FigKwargs)
+
     def _GenerateFigure(self):
 
         Pos = []
@@ -428,14 +440,12 @@ class PlotSlots():
 
         for sl in self.Slots:
             if AxKwargs is not None:
-                sl.AxKwargs.update(AxKwargs)
-                UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
+                sl.UpdateAxKwargs(AxKwargs)
 
         self.TimeAxis = TimeAxis
         if self.TimeAxis is not None:
             sl = self.Slots[TimeAxis]
-            sl.AxKwargs.update(self.TimeAxisProp)
-            UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
+            sl.UpdateAxKwargs(self.TimeAxisProp)
 
         UpdateTreeDictProp(self.Fig, self.FigKwargs)
         self.SortSlotsAx()
