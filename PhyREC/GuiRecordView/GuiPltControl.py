@@ -339,6 +339,7 @@ if __name__ == "__main__":
 
     splt.AddLegend()
 
+    Ran.PlotPSD(Slots)
 #
 #test = Rplt.WaveSlot(sig,
 #                                   Units='nA',
@@ -354,7 +355,7 @@ if __name__ == "__main__":
 ##    
 #
 
-    main(splt)
+#    main(splt)
 
 
 

@@ -73,7 +73,7 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
 
 
 def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
-            scaling='density', Units=None, Label=None, Color=None):
+            scaling='density', Units=None, **LineKwargs):
 
     if Ax is None:
         Fig, Ax = plt.subplots()
@@ -83,6 +83,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         if not hasattr(sl, 'GetSignal'):
             continue
         sig = sl.GetSignal(Time, Units=Units)
+
         if FMin is not None:
             nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
 
@@ -90,44 +91,24 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
                                window='hanning',
                                nperseg=nFFT,
                                scaling=scaling)
+
         if scaling == 'density':
             units = sig.units**2/pq.Hz
         elif scaling == 'spectrum':
             units = sig.units**2
 
-        if hasattr(sl, 'name'):
-            slN = sl.name
-        else:
-            slN = sl.Name
-
+        slN = sl.name
         PSD[slN] = {}
         PSD[slN]['psd'] = psd * units
         PSD[slN]['ff'] = ff
 
-        if hasattr(sl, 'Line'):
-            Line = sl.Line
+        if hasattr(sl, 'LineKwargs'):
+            lkwargs = sl.LineKwargs.copy()
+            lkwargs.update(LineKwargs)
         else:
-            Line = '-'
-        if hasattr(sl, 'Color'):
-            Color = sl.Color
-        else:
-            Color = Color
-        if hasattr(sl, 'Alpha'):
-            Alpha = sl.Alpha
-        else:
-            Alpha = 1
-        if hasattr(sl, 'DispName'):
-            label = sl.DispName
-        else:
-            label = sl.name
-        if Label is not None:
-            label = Label
+            lkwargs = LineKwargs
 
-        Ax.loglog(ff, psd,)
-#                  Line,
-#                  color=Color,
-#                  label=label,
-#                  alpha=Alpha)
+        Ax.loglog(ff, psd, **lkwargs)
 
     Ax.set_xlabel('Frequency [Hz]')
     Ax.set_ylabel('[' + str(units).split(' ')[-1] + ']')
