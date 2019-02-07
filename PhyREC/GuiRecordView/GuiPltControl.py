@@ -34,6 +34,7 @@ AxisProp = ('visible',
 
 
 class GuiPltControl(QtWidgets.QMainWindow):
+
     def __init__(self, PlotSlot):
         QtWidgets.QMainWindow.__init__(self)
         uipath = os.path.join(os.path.dirname(__file__),
@@ -41,22 +42,83 @@ class GuiPltControl(QtWidgets.QMainWindow):
         uic.loadUi(uipath, self)
 
         self.setWindowTitle('Plot Control')
+        
         self.TreeCtr.setColumnCount(3)
+        self.TreeCtr.setColumnWidth(0, 150)
+        self.TreeCtr.setColumnHidden(2, True)
 
         self.PlotSlot = PlotSlot
 
+        self.FillTreeView()
+        self.InitTimeControl()
+
+        self.TreeCtr.itemChanged.connect(self.ItemChanged)
+
+        self.SlideTStart.valueChanged.connect(self.SlideTStartChange)
+        self.SlideTStop.valueChanged.connect(self.SlideTStopChange)
+
+    def SlideTStartChange(self):
+        ts = self.SlideTStart.value()
+        Tshow = self.PlotSlot.current_time[1] - self.PlotSlot.current_time[0]
+        self.SlideTStop.setValue(ts+Tshow)
+#        self.PlotSlot.PlotChannels((ts*pq.s, (ts+Tshow)*pq.s))
+#        self.PlotSlot.Fig.canvas.draw()
+
+    def SlideTStopChange(self):
+        tst = self.SlideTStop.value()
+        ts = self.SlideTStart.value()
+        if ts > tst:
+            self.SlideTStop.setValue(ts+1)
+            return
+        self.PlotSlot.PlotChannels((ts*pq.s, tst*pq.s))
+        self.PlotSlot.Fig.canvas.draw()
+        
+
+    def InitTimeControl(self):
+        tstarts = [sl.Signal.t_start for sl in self.PlotSlot.Slots]
+        tstops = [sl.Signal.t_stop for sl in self.PlotSlot.Slots]
+        self.SlideTStart.setMinimum(min(tstarts))
+        self.SlideTStart.setMaximum(max(tstops))
+        self.SlideTStop.setMinimum(min(tstarts))
+        self.SlideTStop.setMaximum(max(tstops))
+
+        self.SlideTStart.setValue(self.PlotSlot.current_time[0])
+        self.SlideTStop.setValue(self.PlotSlot.current_time[1])
+
+    def FillTreeView(self):
         ItemP = QTreeWidgetItem(self.TreeCtr)
         ItemP.setText(0, 'Figure')
+        font = ItemP.font(0)
+        font.setBold(True)
+        font.setItalic(True)
+        ItemP.setFont(0, font)
         for k, v in self.PlotSlot.FigKwargs.items():
             ItemCh = QTreeWidgetItem(ItemP)
             ItemCh.setFlags(ItemCh.flags() | Qt.ItemIsEditable)
             self.AddItemData(ItemCh, k, v)
 
+        ItemP = QTreeWidgetItem(self.TreeCtr)
+        ItemP.setText(0, 'Legend')
+        font = ItemP.font(0)
+        font.setBold(True)
+        font.setItalic(True)
+        ItemP.setFont(0, font)
+        ItemP.setFlags(ItemP.flags() | Qt.ItemIsEditable)
+        ItemP.setData(1, Qt.EditRole, True)
+        for k, v in self.PlotSlot.LegendKwargs.items():
+            ItemCh = QTreeWidgetItem(ItemP)
+            ItemCh.setFlags(ItemCh.flags() | Qt.ItemIsEditable)
+            self.AddItemData(ItemCh, k, v)
+
         for Axi, Ax in enumerate(self.PlotSlot.Axs):
-            Slots = PlotSlot.SlotsInAxs[Ax]
+            Slots = self.PlotSlot.SlotsInAxs[Ax]
 
             ItemP = QTreeWidgetItem(self.TreeCtr)
             ItemP.setText(0, 'Axes')
+            font = ItemP.font(0)
+            font.setBold(True)
+            font.setItalic(True)
+            ItemP.setFont(0, font)
             Values = Slots[0].AxKwargs
             ItemP.setData(2, Qt.EditRole, Axi)
             self.FillDictValues(ItemParent=ItemP,
@@ -66,17 +128,23 @@ class GuiPltControl(QtWidgets.QMainWindow):
             for isl, sl in enumerate(Slots):
                 ItemP = QTreeWidgetItem(ItemP)
                 ItemP.setText(0, 'Wave')
+                font = ItemP.font(0)
+                font.setBold(True)
+                font.setItalic(True)
+                ItemP.setFont(0, font)                
                 ItemP.setData(2, Qt.EditRole, isl)
                 Values = sl.LineKwargs
                 self.FillDictValues(ItemParent=ItemP,
                                     PltObj=sl.Line,
                                     Kwargs=Values)
 
-        self.TreeCtr.itemChanged.connect(self.ItemChanged)
-
     def FillDictValues(self, ItemParent, PltObj, Kwargs):
-        ains = ArtistInspector(PltObj)
-        validp = ains.get_setters()
+        if PltObj is not None:
+            ains = ArtistInspector(PltObj)
+            validp = ains.get_setters()
+        else:
+            validp = list(Kwargs.keys())
+
         for p in Kwargs.keys():
             v = getattr(PltObj, 'get_' + p)()
             if p in validp:
@@ -113,7 +181,14 @@ class GuiPltControl(QtWidgets.QMainWindow):
         while Parent is not None:
             Parents.append((Parent.text(0), Parent))
             Parent = Parent.parent()
-        print(Parents, Parents[-1][0])
+
+        if len(Parents) == 0:
+            if item.text(0) == 'Legend':
+                if item.data(1, Qt.EditRole) is False:
+                    for ax in self.PlotSlot.Axs:
+                        ax.get_legend().remove()
+                    self.PlotSlot.Fig.canvas.draw()
+            return
 
         firstp = Parents[0][1]
         if firstp.text(2) == 'tuple':
@@ -130,7 +205,7 @@ class GuiPltControl(QtWidgets.QMainWindow):
         DataDict = {PropName: data}
         for p in Parents[:-1]:
             DataDict = {p[0]: DataDict}
-        print(DataDict)
+#        print(DataDict)
 
         kwtype = Parents[-1][0]
         iAx = Parents[-1][1].data(2, Qt.EditRole)
@@ -146,65 +221,19 @@ class GuiPltControl(QtWidgets.QMainWindow):
                     Sl.UpdateAxKwargs(DataDict)
         elif kwtype == 'Figure':
             self.PlotSlot.UpdateFigKwargs(DataDict)
+        elif kwtype == 'Legend':
+            if Parents[-1][1].data(1, Qt.EditRole):
+                self.PlotSlot.AddLegend(**DataDict)
 
         self.PlotSlot.Fig.canvas.draw()
-        
-#            Rplt.UpdateTreeDictProp(obj=self.PlotSlot.Fig,
-#                                    prop=DataDict)
 
-            
-#        Parent = item.parent()
-#        ParentText = Parent.text(0)
-#        TuppleVal = False
-#        if IsNumber(ParentText):
-#            ParentItem = Parent.copy()
-#            Parent = Parent.parent()
-#            ParentText = Parent.text(0)
-#            TuppleVal = True
-#            
-#        if ParentText == 'Figure':
-#            prop = item.text(0)
-#            propv = item.data(1, Qt.EditRole)
-##            self.PlotSlot.Axs[Axi].set(**{prop: propv})
-#            print(prop, propv, 'Figure')
-#        elif ParentText == 'Axes':
-#            Axi = Parent.data(2, Qt.EditRole)
-#            prop = item.text(0)
-#            propv = item.data(1, Qt.EditRole)
-#            print(prop, propv, Axi, 'Axes')
-#
-##            vals = []
-##            for i in range(Parent.childCount()):
-##                ch = Parent.child(i)
-##                vals.append(ch.data(1, Qt.EditRole))
-##            
-##            AxParent = Parent.parent()
-##            Axi = AxParent.data(2, Qt.EditRole)
-##            print ('ylim', vals, Axi, self.PlotSlot.Axs[Axi])
-##            self.PlotSlot.Axs[Axi].set(**{'ylim': vals})
-#        elif ParentText == 'Wave':
-#            isl = Parent.data(2, Qt.EditRole)
-#            prop = item.text(0)
-#            propv = item.data(1, Qt.EditRole)
-#            print(prop, propv, isl, 'Wave')
 
-#        elif ParentText == 'YAxis':
-#            AxParent = Parent.parent()
-#            Axi = AxParent.data(2, Qt.EditRole)
-#            prop = item.text(0)
-#            propv = item.data(1, Qt.EditRole)
-#            xax = self.PlotSlot.Axs[Axi].get_yaxis()
-#            xax.set(**{prop: propv})
-#        elif ParentText.startswith('WaveSlot'):
-#            print(ParentText)
-#
-
-def IsNumber(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+#def IsNumber(s):
+#    try:
+#        int(s)
+#        return True
+#    except ValueError:
+#        return False
 
 
 def main(PlotSlot):
@@ -275,7 +304,7 @@ if __name__ == "__main__":
                           },
                 'yaxis': {'visible': False,
                           },
-                'ylabel':'sdjkfj',
+                'ylabel':'',
                 'title':None,
                 }
 
@@ -324,7 +353,7 @@ if __name__ == "__main__":
 ##    validprop = ains.get_setters()
 ##    
 #
-#
+
     main(splt)
 
 

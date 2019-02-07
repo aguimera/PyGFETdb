@@ -123,11 +123,11 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         if Label is not None:
             label = Label
 
-        Ax.loglog(ff, psd,
-                  Line,
-                  color=Color,
-                  label=label,
-                  alpha=Alpha)
+        Ax.loglog(ff, psd,)
+#                  Line,
+#                  color=Color,
+#                  label=label,
+#                  alpha=Alpha)
 
     Ax.set_xlabel('Frequency [Hz]')
     Ax.set_ylabel('[' + str(units).split(' ')[-1] + ']')

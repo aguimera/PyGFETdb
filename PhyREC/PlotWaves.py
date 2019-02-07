@@ -488,6 +488,8 @@ class PlotSlots():
             if Time[1] is not None:
                 sl.Ax.set_xlim(right=Time[1].magnitude)
 
+        self.current_time = sl.Ax.get_xlim()
+
     def PlotEvents(self, Times, color='r', alpha=0.5,
                    Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
 
