@@ -54,11 +54,11 @@ class NeoSignal(neo.AnalogSignal):
                 sl = sl.rescale(Units)
             return sl
 
-    def AppendSignal(self, Vect):
-        v_old = np.array(self.Signal)
-        v_new = np.vstack((v_old, Vect))*self.Signal.units
-
-        self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
+#    def AppendSignal(self, Vect):
+#        v_old = np.array(self.Signal)
+#        v_new = np.vstack((v_old, Vect))*self.Signal.units
+#
+#        self.Signal = self.Signal.duplicate_with_new_array(signal=v_new)
 
 
 class NeoSegment():
@@ -184,31 +184,31 @@ class NeoSegment():
         self.SetSignal(ChName, sig_new)
 
 
-def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
-    import McsPy.McsData as McsData
-
-    Dat = McsData.RawData(McsFile)
-    Rec = Dat.recordings[0]
-    NSamps = Rec.duration
-
-    if OutSeg is None:
-        OutSeg = NeoSegment()
-
-    for AnaStrn, AnaStr in Rec.analog_streams.iteritems():
-        if len(AnaStr.channel_infos) == 1:
-            continue
-
-        for Chn, Chinfo in AnaStr.channel_infos.iteritems():
-            print ('Analog Stream ', Chinfo.label, Chinfo.sampling_frequency)
-            ChName = str(SigNamePrefix + Chinfo.label)
-            print (ChName)
-
-            Fs = Chinfo.sampling_frequency
-            Var, Unit = AnaStr.get_channel_in_range(Chn, 0, NSamps)
-            sig = neo.AnalogSignal(pq.Quantity(Var, Chinfo.info['Unit']),
-                                   t_start=0*pq.s,
-                                   sampling_rate=Fs.magnitude*pq.Hz,
-                                   name=ChName)
-
-            OutSeg.AddSignal(sig)
-    return OutSeg
+#def ReadMCSFile(McsFile, OutSeg=None, SigNamePrefix=''):
+#    import McsPy.McsData as McsData
+#
+#    Dat = McsData.RawData(McsFile)
+#    Rec = Dat.recordings[0]
+#    NSamps = Rec.duration
+#
+#    if OutSeg is None:
+#        OutSeg = NeoSegment()
+#
+#    for AnaStrn, AnaStr in Rec.analog_streams.iteritems():
+#        if len(AnaStr.channel_infos) == 1:
+#            continue
+#
+#        for Chn, Chinfo in AnaStr.channel_infos.iteritems():
+#            print ('Analog Stream ', Chinfo.label, Chinfo.sampling_frequency)
+#            ChName = str(SigNamePrefix + Chinfo.label)
+#            print (ChName)
+#
+#            Fs = Chinfo.sampling_frequency
+#            Var, Unit = AnaStr.get_channel_in_range(Chn, 0, NSamps)
+#            sig = neo.AnalogSignal(pq.Quantity(Var, Chinfo.info['Unit']),
+#                                   t_start=0*pq.s,
+#                                   sampling_rate=Fs.magnitude*pq.Hz,
+#                                   name=ChName)
+#
+#            OutSeg.AddSignal(sig)
+#    return OutSeg
