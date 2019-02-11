@@ -409,7 +409,7 @@ class PlotSlots():
             sl.Fig = self.Fig
 
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
-                 AxKwargs=None, TimeAxis=-1, 
+                 AxKwargs=None, TimeAxis=-1, CalcSignal=True, 
                  ScaleBarAx=None, LiveControl=False):
 
         if RcGeneralParams is not None:
@@ -420,9 +420,10 @@ class PlotSlots():
             self.FigKwargs.update(FigKwargs)
 
         self.Slots = Slots
-        for sl in self.Slots:
-            sig = sl.Signal
-            sl.Signal = sig.GetSignal(None)
+        if CalcSignal:
+            for sl in self.Slots:            
+                sig = sl.Signal
+                sl.Signal = sig.GetSignal(None)
 
         self.ScaleBarAx = ScaleBarAx
 
