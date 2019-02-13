@@ -84,9 +84,9 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="ButStartSim">
           <property name="text">
-           <string>PushButton</string>
+           <string>Start Sim</string>
           </property>
          </widget>
         </item>

@@ -10,7 +10,7 @@ import sys
 import os
 
 from qtpy import QtWidgets, uic
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer, QThread
 from qtpy.QtWidgets import QTreeWidgetItem
 
 from PhyREC.NeoInterface import NeoSegment, NeoSignal
@@ -19,6 +19,11 @@ import PhyREC.SignalProcess as Rpro
 import PhyREC.SignalAnalysis as Ran
 import matplotlib.pyplot as plt
 import quantities as pq
+import h5py
+import numpy as np
+
+from itertools import  cycle
+import time
 
 from matplotlib.artist import ArtistInspector
 
@@ -33,29 +38,197 @@ AxisProp = ('visible',
             )
 
 
+class FileBuffer():
+    def __init__(self, FileName, BufferSize, nChannels, Fs):
+        os.remove(FileName)
+        self.FileName = FileName
+        self.h5File = h5py.File(FileName, 'w')
+        self.Dset = self.h5File.create_dataset('data',
+                                               shape=(0, nChannels),
+                                               maxshape=(None, nChannels),
+                                               compression="gzip")
+
+        self.Buffer = np.ndarray((BufferSize, nChannels))
+        self.BufferSize = BufferSize
+        self.nChannels = nChannels
+        self.Ind = 0
+        self.Sigs = []
+        self.Ts = 1/float(Fs)
+        self.Fs = float(Fs)
+
+        for i in range(nChannels):
+            self.Sigs.append(NeoSignal(signal=self.Buffer[:, i],
+                                       units='V',
+                                       sampling_rate=Fs*pq.Hz,
+                                       t_start=0*pq.s,
+                                       copy=False,
+                                       name='ch{}'.format(i)))
+
+    def AddSample(self, Sample):
+        self.Buffer[self.Ind, :] = Sample
+        self.Ind += 1
+        if self.Ind == self.BufferSize:
+            self.Ind = 0
+
+            FileInd = self.Dset.shape[0]
+            self.Dset.resize((FileInd + self.BufferSize, self.nChannels))
+            self.Dset[FileInd:, :] = self.Buffer
+            self.h5File.flush()
+
+            for sig in self.Sigs:
+                sig.t_start = (FileInd * self.Ts)*pq.s
+            return True
+        return False
+
+
+class ThreadSavePlot(QThread):
+    def __init__(self, ReBufferSize, Fs, nChannels):
+        super(ThreadSavePlot, self).__init__()
+        self.running = False
+
+        self.InBuffer = FileBuffer(FileName='test.h5',
+                                   BufferSize=ReBufferSize,
+                                   Fs=Fs,
+                                   nChannels=nChannels)
+
+        AxesProp = {
+#                    'ylim': Range,
+                    'facecolor': '#FFFFFF00',
+                    'autoscaley_on': True,
+                    'xaxis': {'visible': False,
+                              },
+                    'yaxis': {'visible': False,
+                              },
+                    'ylabel':'',
+                    'title':None,
+                    }
+
+        FigProp = {'tight_layout': True,
+                   'size_inches': (10,5),}
+
+        Slots = []
+        for sig in self.InBuffer.Sigs:
+            Slots.append(Rplt.WaveSlot(sig))
+        
+        self.PlotSlot = Rplt.PlotSlots(Slots,
+                                       AxKwargs=AxesProp,
+                                       FigKwargs=FigProp,
+                                       CalcSignal=False)
+        self.PlotSlot.PlotChannels(None)
+
+        self.sample = None
+        self.running = False
+
+    def run(self):
+        while self.running:
+            if self.sample is not None:
+#                print(self.sample.shape)
+                for samp in self.sample:
+#                    print(samp.shape)
+#                self.sample = None
+                    if self.InBuffer.AddSample(samp):
+                        self.PlotSlot.PlotChannels(None)
+                        self.PlotSlot.Fig.canvas.draw()
+                self.sample = None
+            
+
 class GuiPltControl(QtWidgets.QMainWindow):
 
-    def __init__(self, PlotSlot):
+    def __init__(self, PlotSlot=None):
         QtWidgets.QMainWindow.__init__(self)
         uipath = os.path.join(os.path.dirname(__file__),
                               'PltControl.ui')
         uic.loadUi(uipath, self)
 
         self.setWindowTitle('Plot Control')
+
+        self.Timer = QTimer(self)
+        self.Timer.timeout.connect(self.SimStep)
         
         self.TreeCtr.setColumnCount(3)
         self.TreeCtr.setColumnWidth(0, 150)
         self.TreeCtr.setColumnHidden(2, True)
 
-        self.PlotSlot = PlotSlot
-
-        self.FillTreeView()
-        self.InitTimeControl()
+        if PlotSlot is not None:
+            self.PlotSlot = PlotSlot
+            self.FillTreeView()
+            self.InitTimeControl()
+        else:
+            self.InitSimulation()
 
         self.TreeCtr.itemChanged.connect(self.ItemChanged)
 
         self.SlideTStart.valueChanged.connect(self.SlideTStartChange)
         self.SlideTStop.valueChanged.connect(self.SlideTStopChange)
+        self.ButStartSim.clicked.connect(self.StartSim)
+        
+
+    def InitSimulation(self):
+        Fs = float(2e3)
+        Ts = 1/Fs
+        Fsig = 10
+        ReBufferSize = 4000
+
+        nChannels = 8
+    
+        Pcycle = int(np.round(Fs/Fsig))
+        Fsig = Fs/Pcycle
+    
+        tstop = Ts*(Pcycle)
+        t = np.arange(0, tstop, Ts)
+    
+        samples = np.sin(2*np.pi*Fsig*t)
+        #        cycle(samples)
+        chFacts = np.linspace(0, nChannels/10, nChannels)
+        
+        InSamples = np.ndarray((Pcycle, nChannels))
+        for ich, chfact in enumerate(chFacts):
+            InSamples[:, ich] = samples * chfact
+            
+        self.InSamples = InSamples
+    
+        self.Thread = ThreadSavePlot(ReBufferSize, Fs, nChannels)       
+
+        self.PlotSlot = self.Thread.PlotSlot
+
+        
+        
+        self.Timer.setInterval(tstop/1000)   
+        
+        self.FillTreeView()
+        self.Ts = Ts
+        self.int = False
+        
+    def StartSim(self):
+        if self.Thread.running:
+            self.Timer.stop()
+            self.Thread.running = False
+        else:                
+            self.Timer.start()
+            self.Thread.running = True
+            self.Thread.start()
+            
+
+    def SimStep(self):
+        if self.Thread.sample is None:
+            self.Thread.sample = self.InSamples
+        else:
+            print('data lost')
+#        if self.int:
+#            print('error')
+#        self.int = True
+#        Tstart = time.time()
+#        if self.InBuffer.AddSample(self.chFacts*next(self.InSamples)):
+#            self.PlotSlot.PlotChannels(None)
+#            self.PlotSlot.Fig.canvas.draw()
+#            Tend = time.time()
+#        
+#            ProcTime = Tend-Tstart            
+#            print('RefreshTime --> ', ProcTime)
+#            print('MaxSampling --> ', 1/ProcTime)
+#        
+#        self.int = False
+#    
 
     def SlideTStartChange(self):
         ts = self.SlideTStart.value()
@@ -253,8 +426,7 @@ def main(PlotSlot):
     sys.exit(app.exec_())
 
 
-if __name__ == "__main__":
-
+def TestSignal():
     FileIn = 'TestSig.h5'
     Twind = (1*pq.s, None)
     Range = (-50, 50)
@@ -279,7 +451,6 @@ if __name__ == "__main__":
                  'Col7',
                  'Col8',
                  )  
-
 
     SigCond = ({'function': Rpro.Filter, 'args': {'Type':'bandstop',
                                                   'Order':2,
@@ -339,23 +510,15 @@ if __name__ == "__main__":
 
     splt.AddLegend()
 
-    Ran.PlotPSD(Slots)
-#
-#test = Rplt.WaveSlot(sig,
-#                                   Units='nA',
-#                                   Position=isig,
-##                                   Ax=axs[Chorder[chname]],
-##                                   AxKwargs=AxesProp,
-#                                   color='r',
-#                                   alpha=0.5)
-##
-##
-##    ains = ArtistInspector(fig)
-##    validprop = ains.get_setters()
-##    
-#
+    main(splt)
 
-#    main(splt)
+
+if __name__ == "__main__":
+
+    main(None)
+#    TestSignal()
+    
+    
 
 
 

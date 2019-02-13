@@ -264,6 +264,8 @@ class WaveSlot():
                                   sig,
                                   **self.LineKwargs
                                   )
+        self.Ax.set_xlim(left=sig.t_start.magnitude,
+                         right=sig.t_stop.magnitude)
         self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
@@ -483,11 +485,11 @@ class PlotSlots():
         self.ClearAxes()
         for sl in self.Slots:
             sl.PlotSignal(Time, Units=Units)
-        if Time is not None:
-            if Time[0] is not None:
-                sl.Ax.set_xlim(left=Time[0].magnitude)
-            if Time[1] is not None:
-                sl.Ax.set_xlim(right=Time[1].magnitude)
+#        if Time is not None:
+#            if Time[0] is not None:
+#                sl.Ax.set_xlim(left=Time[0].magnitude)
+#            if Time[1] is not None:
+#                sl.Ax.set_xlim(right=Time[1].magnitude)
 
         self.current_time = sl.Ax.get_xlim()
 

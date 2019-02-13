@@ -15,6 +15,7 @@ def DownSampling(sig, Fact, zero_phase=True):
     rs = signal.decimate(np.array(sig),
                          q=Fact,
                          zero_phase=zero_phase,
+                         ftype='fir',
                          axis=0)
     sig = sig.duplicate_with_new_array(signal=rs*sig.units)
     sig.sampling_rate = sig.sampling_rate/Fact

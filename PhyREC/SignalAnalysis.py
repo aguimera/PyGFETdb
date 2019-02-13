@@ -116,15 +116,15 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
     handles, labels = Ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
 
-    nLines = len(by_label)
-    nlc = 4
-    if nLines > nlc:
-        ncol = (nLines / nlc) + ((nLines % nlc) > 0)
-    else:
-        ncol = 1
+#    nLines = len(by_label)
+#    nlc = 4
+#    if nLines > nlc:
+#        ncol = (nLines / nlc) + ((nLines % nlc) > 0)
+#    else:
+#        ncol = 1
     Ax.legend(by_label.values(), by_label.keys(),
               loc='best',
-              ncol=ncol,
+#              ncol=1,
               fontsize='x-small')
 
     return PSD
