@@ -65,8 +65,9 @@ class FileBuffer():
                                        name='ch{}'.format(i)))
 
     def AddSample(self, Sample):
-        self.Buffer[self.Ind, :] = Sample
-        self.Ind += 1
+        Samps = Sample.shape[0]        
+        self.Buffer[self.Ind:(self.Ind+Samps), :] = Sample
+        self.Ind += Samps
         if self.Ind == self.BufferSize:
             self.Ind = 0
 

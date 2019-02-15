@@ -94,29 +94,30 @@ class PlottingThread(Qt.QThread):
     def __init__(self):
         super().__init__()
         self.NewData = None
-#        self.win = pg.GraphicsWindow()
-#        self.Plots = []
-#        self.Curves = []
-#        for i in range(64):
-#            p = self.win.addPlot()
-#            self.Plots.append(p)
-#            self.Curves.append(p.plot())
-        self.Fig, self.Ax = plt.subplots()
+        self.win = pg.GraphicsWindow()
+        self.Plots = []
+        self.Curves = []
+        for i in range(64):
+            p = self.win.addPlot()
+            self.Plots.append(p)
+            self.Curves.append(p.plot())
+            
+#        self.Fig, self.Ax = plt.subplots()
 
     def run(self, *args, **kwargs):        
         while True:                              
-            if self.NewData is not None:
-                self.Ax.clear()
-#                for i in range(64):
-#                    self.Curves[i].setData(self.NewData[:,i])
-                self.Ax.plot(self.NewData)
-                self.Fig.canvas.draw()
+            if self.NewData is not None:                
+                for i in range(64):
+                    self.Curves[i].setData(self.NewData[:,i])
+#                self.Ax.clear()
+#                self.Ax.plot(self.NewData)
+#                self.Fig.canvas.draw()
                 self.NewData = None
                 print('Plot')
             else:
                 Qt.QThread.msleep(100)
 
-    def AddData(self, NewData):          
+    def AddData(self, NewData):
         self.NewData = NewData
 
 
