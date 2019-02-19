@@ -9,6 +9,8 @@ Created on Mon Feb 18 11:27:48 2019
 
 import os
 from PyQt5 import Qt
+from PyQt5.QtWidgets import QFileDialog
+
 import numpy as np
 import time
 
@@ -26,17 +28,7 @@ import pyqtgraph as pg
 import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from itertools import  cycle
-
-
-channelparams = [
-                 {'name': 'ChName',
-                  'type': 'str',
-                  'value': 'Chxx' },
-                 {'name': 'Color',
-                  'type': 'color',
-                  'value': "000" },
-                ]
-
+import copy
 
 params = [
             {'name': 'Sampling Simulation',
@@ -95,7 +87,6 @@ GenNChannelsPar = {'name': 'nChannels',
                    'value': 16,
                    'limits': (1, 128),
                    'step': 1}
-
 
 
 class DataGeneratorParameters(pTypes.GroupParameter):
@@ -171,7 +162,6 @@ class DataSamplingThread(Qt.QThread):
         self.InSamples = cycle(samples)
         self.chFacts = np.linspace(0, nChannels/10, nChannels)
 
-
     def run(self, *args, **kwargs):        
         self.Timer.start()
         loop = Qt.QEventLoop()
@@ -183,10 +173,11 @@ class DataSamplingThread(Qt.QThread):
 #            self.NewSample.emit()
 #    
     def GenData(self):
-        for isamp in range(self.nSamples):
-            samps = self.chFacts * next(self.InSamples)
-            self.OutData[isamp, :] = samps
-        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
+#        for isamp in range(self.nSamples):
+#            samps = self.chFacts * next(self.InSamples)
+#            self.OutData[isamp, :] = samps
+#        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
+        self.OutData = np.random.sample(self.OutData.shape)
         self.NewSample.emit()
         
 
@@ -197,15 +188,17 @@ class PlottingThread(Qt.QThread):
         self.win = pg.GraphicsWindow(title="Real Time Plot")
         self.nChannels = nChannels
         self.Plots = []
-        self.Curves = []
+        self.Curves = []        
         for i in range(nChannels):
             self.win.nextRow()
             p = self.win.addPlot()
-            p.hideAxis('bottom')
+            p.hideAxis('bottom')            
             self.Plots.append(p)
             self.Curves.append(p.plot())
         
         self.Plots[-1].showAxis('bottom')
+        for p in self.Plots[0:-1]:
+            p.setXLink(self.Plots[-1])
         
 #        self.Fig, self.Ax = plt.subplots()
 
@@ -226,6 +219,80 @@ class PlottingThread(Qt.QThread):
         if self.NewData is not None:
             print('Error plotting!!!!')
         self.NewData = NewData
+
+
+class FileBuffer():
+    def __init__(self, FileName, nChannels):
+        self.FileName = FileName
+        self.nChannels = nChannels
+        self.h5File = h5py.File(FileName, 'w')
+        self.Dset = self.h5File.create_dataset('data',
+                                               shape=(0, nChannels),
+                                               maxshape=(None, nChannels),
+                                               compression="gzip")
+
+        self.Sigs = []
+        for i in range(nChannels):
+            self.Sigs.append(NeoSignal(signal=self.Dset[:, i],
+                                       units='V',
+                                       sampling_rate=10e3*pq.Hz,
+                                       t_start=0*pq.s,
+                                       copy=False,
+                                       name='ch{}'.format(i)))
+
+    def AddSample(self, Sample):
+        nSamples = Sample.shape[0]
+        FileInd = self.Dset.shape[0]
+        self.Dset.resize((FileInd + nSamples, self.nChannels))
+        self.Dset[FileInd:, :] = Sample
+        self.h5File.flush()
+
+
+class DataSavingThread(Qt.QThread):
+    def __init__(self, FileName, nChannels, MaxSize=None):
+        super().__init__()
+        self.NewData = None
+        self.FileBuff = FileBuffer(FileName,
+                                   nChannels)
+
+    def run(self, *args, **kwargs):
+        while True:
+            if self.NewData is not None:
+                self.FileBuff.AddSample(self.NewData)
+                self.NewData = None
+            else:
+                Qt.QThread.msleep(10)
+
+    def AddData(self, NewData):
+        if self.NewData is not None:
+            print('Error Saving !!!!')
+        self.NewData = NewData
+
+
+ChPars = {'name': 'Ch01',
+          'type': 'group',
+          'children': [{'name': 'Name',
+                        'type': 'str',
+                        'value': 'Ch10'},
+                       {'name': 'color',
+                        'type': 'color',
+                        'value': "FFF",
+                        'tip': 'his is a c button'}
+                       ]}
+
+SaveFilePars = [{'name': 'Save File',
+                 'type': 'action'},
+                {'name': 'File Path',
+                 'type': 'str',
+                 'value': ''},
+                {'name': 'MaxSize',
+                 'type': 'int',
+                 'siPrefix': True,
+                 'suffix': 'B',
+                 'limits': (1e6, 1e9),
+                 'step': 1e6,
+                 'value': 50e6}
+                ]
 
 
 class MainWindow(Qt.QWidget):
@@ -251,36 +318,75 @@ class MainWindow(Qt.QWidget):
 
         layout.addWidget(self.treepar)
 
-        self.setGeometry(550, 65, 300, 200)
+        self.setGeometry(550, 10, 300, 700)
         self.setWindowTitle('MainWindow')
 
         self.btnGen.clicked.connect(self.on_btnGen)
         self.threadGen = None
 
+        self.FileParams = Parameter.create(name='File Params',
+                                           type='group',
+                                           children=SaveFilePars)
+        self.pars.addChild(self.FileParams)
+        self.FileParams.param('Save File').sigActivated.connect(self.FileDialog)
+
+        self.GenChannelsViewParams(nChannels=self.DataGenConf.NChannels.value())
+
+    def FileDialog(self):
+        RecordFile, _ = QFileDialog.getSaveFileName(self,
+                                                    "Recording File",
+                                                    "",
+                                                    )
+        if RecordFile:
+            if not RecordFile.endswith('.h5'):
+                RecordFile = RecordFile + '.h5'
+            self.FileParams.param('File Path').setValue(RecordFile)
+            
     def on_pars_changed(self, param, changes):
-#        print("tree changes:")
-#        for param, change, data in changes:
-#            path = self.pars.childPath(param)
-#            if path is not None:
-#                childName = '.'.join(path)
-#            else:
-#                childName = param.name()
-#        print('  parameter: %s'% childName)
-#        print('  change:    %s'% change)
-#        print('  data:      %s'% str(data))
-#        print('  ----------')
+        print("tree changes:")
+        for param, change, data in changes:
+            path = self.pars.childPath(param)
+            if path is not None:
+                childName = '.'.join(path)
+            else:
+                childName = param.name()
+        print('  parameter: %s'% childName)
+        print('  change:    %s'% change)
+        print('  data:      %s'% str(data))
+        print('  ----------')
+       
+        if childName == 'Data Generator.nChannels':
+            self.pars.removeChild(self.Parch)
+            self.GenChannelsViewParams(nChannels=data)            
+#        print(param, changes)
+#        if changes[0].name() == 'nChannels':
+#            print('New nCh', changes[1].name())
 #        
-        print('Fs         --> ', self.DataGenConf.Fs.value())
-        print('IntTime    --> ', self.DataGenConf.IntTime.value())
-        print('IntSamples --> ', self.DataGenConf.IntSamples.value())
-        print('NChannels  --> ', self.DataGenConf.NChannels.value())
+#        print('Fs         --> ', self.DataGenConf.Fs.value())
+#        print('IntTime    --> ', self.DataGenConf.IntTime.value())
+#        print('IntSamples --> ', self.DataGenConf.IntSamples.value())
+#        print('NChannels  --> ', self.DataGenConf.NChannels.value())
+
+    def GenChannelsViewParams(self, nChannels):
+        ChParams = []
+        for i in range(nChannels):
+            Ch = copy.deepcopy(ChPars)
+            chn = 'Ch{0:02}'.format(i)
+            Ch['name'] = chn
+            Ch['children'][0]['value'] = chn
+            ChParams.append(Ch)
+        
+        self.Parch = Parameter.create(name='Channels View',
+                                     type='group',
+                                     children=ChParams)        
+        self.pars.addChild(self.Parch)
 
     def on_btnGen(self):
         GenKwargs = {}
         for p in self.pars.child('Data Generator').children():
             GenKwargs[p.name()] = p.value()
         print(GenKwargs)
-              
+
         if self.threadGen is None:
 
             self.threadGen = DataSamplingThread(**GenKwargs)
@@ -293,6 +399,15 @@ class MainWindow(Qt.QWidget):
 
             self.threadPlot = PlottingThread(GenKwargs['nChannels'])
             self.threadPlot.start()
+
+            FileName = self.FileParams.param('File Path').value()
+            if os.path.isfile(FileName):
+                print('Remove File')
+                os.remove(FileName)
+            self.threadSave = DataSavingThread(FileName=FileName,
+                                               nChannels=self.threadGen.nChannels)
+            self.threadSave.start()
+
         else:
             self.threadPlot.terminate()
             self.threadPlot = None
@@ -301,13 +416,13 @@ class MainWindow(Qt.QWidget):
             self.threadGen = None
             self.btnGen.setText("Start Gen")
 
-        
     def on_NewSample(self):
         ''' Visualization of streaming data-WorkThread. '''
         Ts = time.time() - self.OldTime
         self.OldTime = time.time()
         print('Sample time', Ts)
-        self.threadPlot.AddData(self.threadGen.OutData)
+#        self.threadPlot.AddData(self.threadGen.OutData)
+        self.threadSave.AddData(self.threadGen.OutData)
 
 
 #        if self.threadSave.NewData is not None:
