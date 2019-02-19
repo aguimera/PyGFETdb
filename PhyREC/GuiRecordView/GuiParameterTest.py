@@ -25,15 +25,13 @@ import pyqtgraph as pg
 
 import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
+from itertools import  cycle
 
 
 channelparams = [
                  {'name': 'ChName',
                   'type': 'str',
                   'value': 'Chxx' },
-                 {'name': 'Color',
-                  'type': 'color',
-                  'value': "000" },
                  {'name': 'Color',
                   'type': 'color',
                   'value': "000" },
@@ -69,30 +67,35 @@ params = [
          ]
 
 
-GenFsPar = {'name': 'Sampling Rate',
+GenFsPar = {'name': 'Fs',
+            'tip': 'Sampling Rate',
             'type': 'float',
             'value': 1e4,
             'step': 100,
             'siPrefix': True,
             'suffix': 'Hz'}
 
-GenIntTimePar = {'name': 'Interval time',
+GenIntTimePar = {'name': 'IntervalTime',
+                 'tip': 'Interval time',
                  'type': 'float',
                  'value': 1,
                  'step': 0.1,
                  'siPrefix': True,
                  'suffix': 's'}
 
-GenIntSamplesPar = {'name': 'Interval samples',
+GenIntSamplesPar = {'name':'nSamples',
+                    'tip': 'Interval samples',
                     'type': 'int',
                     'value': 1e4,
                     }
 
-GenNChannelsPar = {'name': 'Channels Number',
+GenNChannelsPar = {'name': 'nChannels',
+                   'tip': 'Channels Number',
                    'type': 'int',
                    'value': 16,
                    'limits': (1, 128),
                    'step': 1}
+
 
 
 class DataGeneratorParameters(pTypes.GroupParameter):
@@ -145,18 +148,84 @@ class DataSamplingThread(Qt.QThread):
 
     def __init__(self, Fs, nChannels, nSamples, IntervalTime):
         super().__init__()
+        
+        self.Timer = Qt.QTimer()
+        self.Timer.moveToThread(self)
+        self.Timer.timeout.connect(self.GenData)
+
         self.Fs = float(Fs)
         self.nChannels = int(nChannels)
         self.nSamples = int(nSamples)
         self.OutData = np.ndarray((self.nSamples, self.nChannels))
-        self.IntervalTime = IntervalTime
+        self.IntervalTime = IntervalTime*1000
+        self.Timer.setInterval(self.IntervalTime)
+        
+        Pcycle = np.round(self.Fs/100)
+        Fsig = Fs/Pcycle
 
-    def run(self, *args, **kwargs):
-        while True:
-            Qt.QThread.msleep(self.IntervalTime)
-            self.OutData = np.random.sample(self.OutData.shape)
-            self.NewSample.emit()
+        Ts =  1/self.Fs
+        tstop = Ts*(Pcycle)
+        t = np.arange(0, tstop, Ts)
 
+        samples = np.sin(2*np.pi*Fsig*t)
+        self.InSamples = cycle(samples)
+        self.chFacts = np.linspace(0, nChannels/10, nChannels)
+
+
+    def run(self, *args, **kwargs):        
+        self.Timer.start()
+        loop = Qt.QEventLoop()
+        loop.exec()
+        
+#        while True:
+#            Qt.QThread.msleep(self.IntervalTime)
+#            self.OutData = np.random.sample(self.OutData.shape)
+#            self.NewSample.emit()
+#    
+    def GenData(self):
+        for isamp in range(self.nSamples):
+            samps = self.chFacts * next(self.InSamples)
+            self.OutData[isamp, :] = samps
+        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
+        self.NewSample.emit()
+        
+
+class PlottingThread(Qt.QThread):
+    def __init__(self, nChannels):
+        super().__init__()
+        self.NewData = None
+        self.win = pg.GraphicsWindow(title="Real Time Plot")
+        self.nChannels = nChannels
+        self.Plots = []
+        self.Curves = []
+        for i in range(nChannels):
+            self.win.nextRow()
+            p = self.win.addPlot()
+            p.hideAxis('bottom')
+            self.Plots.append(p)
+            self.Curves.append(p.plot())
+        
+        self.Plots[-1].showAxis('bottom')
+        
+#        self.Fig, self.Ax = plt.subplots()
+
+    def run(self, *args, **kwargs):        
+        while True:                              
+            if self.NewData is not None:                
+                for i in range(self.nChannels):
+                    self.Curves[i].setData(self.NewData[:,i])
+#                self.Ax.clear()
+#                self.Ax.plot(self.NewData)
+#                self.Fig.canvas.draw()
+                self.NewData = None
+#                print('Plot')
+            else:
+                Qt.QThread.msleep(10)
+
+    def AddData(self, NewData):
+        if self.NewData is not None:
+            print('Error plotting!!!!')
+        self.NewData = NewData
 
 
 class MainWindow(Qt.QWidget):
@@ -207,36 +276,40 @@ class MainWindow(Qt.QWidget):
         print('NChannels  --> ', self.DataGenConf.NChannels.value())
 
     def on_btnGen(self):
+        GenKwargs = {}
+        for p in self.pars.child('Data Generator').children():
+            GenKwargs[p.name()] = p.value()
+        print(GenKwargs)
+              
         if self.threadGen is None:
-            Fs = self.DataGenConf.Fs.value()
-            IntTime = self.DataGenConf.IntTime.value()
-            nSamples = self.DataGenConf.IntSamples.value()
-            nChannels = self.DataGenConf.NChannels.value()           
-            
-            self.threadGen = DataSamplingThread(Fs=Fs,
-                                                nChannels=nChannels,
-                                                nSamples=nSamples,
-                                                IntervalTime=IntTime)
+
+            self.threadGen = DataSamplingThread(**GenKwargs)
 
             self.threadGen.NewSample.connect(self.on_NewSample)
             self.threadGen.start()
 
             self.btnGen.setText("Stop Gen")
             self.OldTime = time.time()
+
+            self.threadPlot = PlottingThread(GenKwargs['nChannels'])
+            self.threadPlot.start()
         else:
+            self.threadPlot.terminate()
+            self.threadPlot = None
+
             self.threadGen.terminate()
             self.threadGen = None
             self.btnGen.setText("Start Gen")
-#    
-#        self.pars2 = Parameter.create(name='params',
-#                                     type='group',
-#                                     children=params)
-#        self.treepar.addParameters(self.pars2, showTop=False)
+
         
     def on_NewSample(self):
         ''' Visualization of streaming data-WorkThread. '''
         Ts = time.time() - self.OldTime
-        print('Sample time', Ts, 1/Ts, (1/(Ts/self.threadGen.nSamples)), self.threadGen.OutData.shape)
+        self.OldTime = time.time()
+        print('Sample time', Ts)
+        self.threadPlot.AddData(self.threadGen.OutData)
+
+
 #        if self.threadSave.NewData is not None:
 #            print('Error New data not clear')
 
