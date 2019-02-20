@@ -6,6 +6,8 @@ Created on Mon Feb 18 11:27:48 2019
 @author: aguimera
 """
 
+from __future__ import print_function
+
 
 import os
 from PyQt5 import Qt
@@ -138,7 +140,7 @@ class DataSamplingThread(Qt.QThread):
     NewSample = Qt.pyqtSignal()
 
     def __init__(self, Fs, nChannels, nSamples, IntervalTime):
-        super().__init__()
+        super(DataSamplingThread, self).__init__()
         
         self.Timer = Qt.QTimer()
         self.Timer.moveToThread(self)
@@ -165,7 +167,7 @@ class DataSamplingThread(Qt.QThread):
     def run(self, *args, **kwargs):        
         self.Timer.start()
         loop = Qt.QEventLoop()
-        loop.exec()
+        loop.exec_()
         
 #        while True:
 #            Qt.QThread.msleep(self.IntervalTime)
@@ -173,17 +175,17 @@ class DataSamplingThread(Qt.QThread):
 #            self.NewSample.emit()
 #    
     def GenData(self):
-#        for isamp in range(self.nSamples):
-#            samps = self.chFacts * next(self.InSamples)
-#            self.OutData[isamp, :] = samps
-#        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
-        self.OutData = np.random.sample(self.OutData.shape)
+        for isamp in range(self.nSamples):
+            samps = self.chFacts * next(self.InSamples)
+            self.OutData[isamp, :] = samps
+        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
+#        self.OutData = np.random.sample(self.OutData.shape)
         self.NewSample.emit()
         
 
 class PlottingThread(Qt.QThread):
     def __init__(self, nChannels):
-        super().__init__()
+        super(PlottingThread, self).__init__()
         self.NewData = None
         self.win = pg.GraphicsWindow(title="Real Time Plot")
         self.nChannels = nChannels
@@ -250,7 +252,7 @@ class FileBuffer():
 
 class DataSavingThread(Qt.QThread):
     def __init__(self, FileName, nChannels, MaxSize=None):
-        super().__init__()
+        super(DataSavingThread, self).__init__()
         self.NewData = None
         self.FileBuff = FileBuffer(FileName,
                                    nChannels)
@@ -299,7 +301,7 @@ class MainWindow(Qt.QWidget):
     ''' Main Window '''
 
     def __init__(self):
-        super().__init__()
+        super(MainWindow, self).__init__()
 
         layout = Qt.QVBoxLayout(self) 
 
@@ -318,7 +320,7 @@ class MainWindow(Qt.QWidget):
 
         layout.addWidget(self.treepar)
 
-        self.setGeometry(550, 10, 300, 700)
+#        self.setGeometry(550, 10, 300, 700)
         self.setWindowTitle('MainWindow')
 
         self.btnGen.clicked.connect(self.on_btnGen)
@@ -421,7 +423,7 @@ class MainWindow(Qt.QWidget):
         Ts = time.time() - self.OldTime
         self.OldTime = time.time()
         print('Sample time', Ts)
-#        self.threadPlot.AddData(self.threadGen.OutData)
+        self.threadPlot.AddData(self.threadGen.OutData)
         self.threadSave.AddData(self.threadGen.OutData)
 
 
@@ -434,4 +436,4 @@ if __name__ == '__main__':
     app = Qt.QApplication([])
     mw  = MainWindow()
     mw.show()
-    app.exec() 
+    app.exec_() 
