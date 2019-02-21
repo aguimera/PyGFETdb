@@ -12,6 +12,7 @@ from __future__ import print_function
 import os
 from PyQt5 import Qt
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtGui import QPen
 
 import numpy as np
 import time
@@ -31,6 +32,7 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from itertools import  cycle
 import copy
+
 
 params = [
             {'name': 'Sampling Simulation',
@@ -181,39 +183,55 @@ class DataSamplingThread(Qt.QThread):
         self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
 #        self.OutData = np.random.sample(self.OutData.shape)
         self.NewSample.emit()
-        
+
+
+labelStyle = {'color': '#FFF',
+              'font-size': '7pt',
+              'bold': True}
+
 
 class PlottingThread(Qt.QThread):
-    def __init__(self, nChannels):
-        super(PlottingThread, self).__init__()
-        self.NewData = None
-        self.win = pg.GraphicsWindow(title="Real Time Plot")
-        self.nChannels = nChannels
-        self.Plots = []
-        self.Curves = []        
-        for i in range(nChannels):
-            self.win.nextRow()
-            p = self.win.addPlot()
-            p.hideAxis('bottom')            
-            self.Plots.append(p)
-            self.Curves.append(p.plot())
-        
-        self.Plots[-1].showAxis('bottom')
-        for p in self.Plots[0:-1]:
-            p.setXLink(self.Plots[-1])
-        
-#        self.Fig, self.Ax = plt.subplots()
 
-    def run(self, *args, **kwargs):        
-        while True:                              
-            if self.NewData is not None:                
+    def __init__(self, nChannels, ChannelConf):
+        super(PlottingThread, self).__init__()
+
+        self.NewData = None
+
+        self.winds = [] 
+        self.nChannels = nChannels
+        self.Plots = [None]*nChannels
+        self.Curves = [None]*nChannels
+
+        for wind, chs in ChannelConf.items():
+            wind = pg.GraphicsWindow(title="Real Time Plot")
+            self.winds.append(wind)
+            xlink = None
+            for ch in chs:
+                wind.nextRow()
+                p = wind.addPlot()
+                p.hideAxis('bottom')
+                p.setLabel('left',
+                           ch['Name'],
+                           units='A',
+                           **labelStyle)
+                c = p.plot(pen=pg.mkPen(ch['color'], 
+                                        width=ch['width']))
+#                c = p.plot()
+                self.Plots[ch['Input index']] = p
+                self.Curves[ch['Input index']] = c
+                
+                if xlink is not None:
+                    p.setXLink(xlink)
+                xlink = p
+            p.showAxis('bottom')
+            p.setLabel('bottom', 'Time', units='s', **labelStyle)
+
+    def run(self, *args, **kwargs):
+        while True:
+            if self.NewData is not None:
                 for i in range(self.nChannels):
-                    self.Curves[i].setData(self.NewData[:,i])
-#                self.Ax.clear()
-#                self.Ax.plot(self.NewData)
-#                self.Fig.canvas.draw()
+                    self.Curves[i].setData(self.NewData[:, i])
                 self.NewData = None
-#                print('Plot')
             else:
                 Qt.QThread.msleep(10)
 
@@ -278,9 +296,20 @@ ChPars = {'name': 'Ch01',
                         'value': 'Ch10'},
                        {'name': 'color',
                         'type': 'color',
-                        'value': "FFF",
-                        'tip': 'his is a c button'}
+                        'value': "FFF"},
+                       {'name': 'width',
+                        'type': 'float',
+                        'value': 0.5},
+                       {'name': 'Plot Window',
+                        'type': 'int',
+                        'value': 1,},
+                       {'name': 'Input index',
+                        'type': 'int',
+                        'readonly': True,
+                        'value': 1,}
                        ]}
+
+
 
 SaveFilePars = [{'name': 'Save File',
                  'type': 'action'},
@@ -332,7 +361,8 @@ class MainWindow(Qt.QWidget):
         self.pars.addChild(self.FileParams)
         self.FileParams.param('Save File').sigActivated.connect(self.FileDialog)
 
-        self.GenChannelsViewParams(nChannels=self.DataGenConf.NChannels.value())
+        self.GenChannelsViewParams(nChannels=self.DataGenConf.NChannels.value(),
+                                   nWindows=1)
 
     def FileDialog(self):
         RecordFile, _ = QFileDialog.getSaveFileName(self,
@@ -359,8 +389,15 @@ class MainWindow(Qt.QWidget):
        
         if childName == 'Data Generator.nChannels':
             self.pars.removeChild(self.Parch)
-            self.GenChannelsViewParams(nChannels=data)            
-#        print(param, changes)
+            self.GenChannelsViewParams(nChannels=data,
+                                       nWindows=2)
+        
+        if childName == 'Channels View.Plot Windows':
+            self.pars.removeChild(self.Parch)
+            self.GenChannelsViewParams(nChannels=self.DataGenConf.NChannels.value(),
+                                       nWindows=data)
+            
+            #        print(param, changes)
 #        if changes[0].name() == 'nChannels':
 #            print('New nCh', changes[1].name())
 #        
@@ -369,13 +406,21 @@ class MainWindow(Qt.QWidget):
 #        print('IntSamples --> ', self.DataGenConf.IntSamples.value())
 #        print('NChannels  --> ', self.DataGenConf.NChannels.value())
 
-    def GenChannelsViewParams(self, nChannels):
-        ChParams = []
+    def GenChannelsViewParams(self, nChannels, nWindows):
+        ChParams = [{'name': 'Plot Windows',
+                     'type': 'int',
+                     'value': nWindows},]
+
+        chPWind = int(nChannels/nWindows)                
         for i in range(nChannels):
             Ch = copy.deepcopy(ChPars)
+            pen = pg.mkPen((i,1.3*nChannels))
             chn = 'Ch{0:02}'.format(i)
             Ch['name'] = chn
             Ch['children'][0]['value'] = chn
+            Ch['children'][1]['value'] = pen.color()
+            Ch['children'][3]['value'] = int(i/chPWind)
+            Ch['children'][4]['value'] = i
             ChParams.append(Ch)
         
         self.Parch = Parameter.create(name='Channels View',
@@ -383,11 +428,28 @@ class MainWindow(Qt.QWidget):
                                      children=ChParams)        
         self.pars.addChild(self.Parch)
 
+    
+    def GetChannelsPars(self):
+        channelspars = {}
+        for i in range(self.Parch.param('Plot Windows').value()):
+            channelspars[i] = []
+        
+        for p in self.pars.child('Channels View').children():
+            if not p.hasChildren():
+                continue
+            chp = {}
+            for pp in p.children():
+                chp[pp.name()] = pp.value()
+            channelspars[chp['Plot Window']].append(chp.copy())
+        return channelspars
+
     def on_btnGen(self):
+        self.GetChannelsPars()
+        
         GenKwargs = {}
         for p in self.pars.child('Data Generator').children():
             GenKwargs[p.name()] = p.value()
-        print(GenKwargs)
+        print(GenKwargs)    
 
         if self.threadGen is None:
 
@@ -399,7 +461,8 @@ class MainWindow(Qt.QWidget):
             self.btnGen.setText("Stop Gen")
             self.OldTime = time.time()
 
-            self.threadPlot = PlottingThread(GenKwargs['nChannels'])
+            self.threadPlot = PlottingThread(GenKwargs['nChannels'],
+                                             self.GetChannelsPars())
             self.threadPlot.start()
 
             FileName = self.FileParams.param('File Path').value()
