@@ -12,7 +12,7 @@ from PyGFETdb.DB import *
 import sys
 
 class PyFETdb():
-    PrintQuery = True
+    PrintQuery = False
 
     def __init__(self, host=None, user=None, passwd=None, db=None, Update=True):
 

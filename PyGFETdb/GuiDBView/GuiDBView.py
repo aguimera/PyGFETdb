@@ -338,9 +338,12 @@ class DBViewApp(QtWidgets.QMainWindow):
         for r in self.Trts:
             Vals.append(r[Field])
         Lst.clear()
-        for d in sorted(set(Vals)):
-#        for d in set(Vals):
-            Lst.addItem(str(d))
+        try:
+            for d in sorted(set(Vals)):
+                Lst.addItem(str(d))
+        except:
+            for d in set(Vals):
+                Lst.addItem(str(d))
 
     def LstDevicesChange(self):
         sel = self.LstDevices.selectedItems()

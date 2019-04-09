@@ -1,2 +1,3 @@
 /PyGFETdb.egg-info/
 *.pyc
+/dist/
