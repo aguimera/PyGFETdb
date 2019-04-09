@@ -10,11 +10,24 @@ import numpy as np
 from scipy.interpolate import interp1d
 import scipy.optimize as optim
 from scipy.integrate import simps
+import quantities as pq
 
 from PyGFETdb import PlotDataClass
 import sys
 
 DebugPrint = True
+
+DefaultUnits = {'Vds': pq.V,
+                'Ud0': pq.V,
+#                'PSD': pq.A**2/pq.Hz,
+#                'Fgm': pq.S,
+#                'gm': pq.S,
+                'Vgs': pq.V,
+#                'Fpsd': pq.Hz,
+#                'Ig': pq.A,
+                'Irms': pq.V,
+                'Ids': pq.A,
+                }
 
 
 class DataCharDC(object):
@@ -36,11 +49,28 @@ class DataCharDC(object):
                         print ('NaN in gate values')
                 else:
                     self.__setattr__('Ig', v['Ig'])
+            if k in DefaultUnits:
+#                print(k, v, DefaultUnits[k])
+                v = v * DefaultUnits[k]
             self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
+           
+    def _FormatOutput(self, Par, **kwargs):
+        if 'Units' in kwargs:
+            Par.rescale(kwargs['Units'])
 
+        if not hasattr(Par, '__iter__'):
+            return Par[None, None]
+        s = Par.shape
+        if len(s) == 0:
+            return Par[None, None]
+        if len(s) == 1:
+            return Par[:, None]
+
+        return Par.transpose()
+     
     def UpdateData(self, Data):
         for k, v in Data.items():
             self.__setattr__(k, v)
@@ -137,12 +167,7 @@ class DataCharDC(object):
                 ud0 = ud0-(self.Vds[ivd]/2)
             Ud0 = np.vstack((Ud0, ud0)) if Ud0.size else ud0
 
-        if not hasattr(Ud0, '__iter__'):
-            return Ud0[None, None]
-        s = Ud0.shape
-        if len(s) == 1:
-            return Ud0[:, None]
-        return Ud0.transpose()
+        return self._FormatOutput(Ud0, **kwargs)
 
     def GetDateTime(self, **kwargs):
         return self.DateTime
@@ -151,7 +176,7 @@ class DataCharDC(object):
         return np.datetime64(self.DateTime)[None, None].transpose()
 
     def GetVds(self, **kwargs):
-        return self.Vds
+        return self._FormatOutput(self.Vds, **kwargs)
 
     def GetVgs(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if not Ud0Norm:
@@ -169,10 +194,7 @@ class DataCharDC(object):
             vgs = self.Vgs - self.Ud0[ivd]
             Vgs = np.vstack((Vgs, vgs)) if Vgs.size else vgs
 
-        s = Vgs.shape
-        if len(s) == 1:
-            return Vgs[:, None]
-        return Vgs.transpose()
+        return self._FormatOutput(Vgs, **kwargs)
 
     def GetVdsIndexes(self, Vds):
         if Vds:
@@ -211,12 +233,8 @@ class DataCharDC(object):
             ids = np.polyval(self.IdsPoly[:, ivd], vg)
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
-        if not hasattr(Ids, '__iter__'):
-            return Ids[None, None]
-        s = Ids.shape
-        if len(s) == 1:
-            return Ids[:, None]
-        return Ids.transpose()
+        Ids = Ids * DefaultUnits['Ids']
+        return self._FormatOutput(Ids, **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
         iVds = self.GetVdsIndexes(Vds)
@@ -242,12 +260,7 @@ class DataCharDC(object):
                 gm = gm/self.Vds[ivd] #*(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
 
-        if not hasattr(GM, '__iter__'):
-            return GM[None, None]
-        s = GM.shape
-        if len(s) == 1:
-            return GM[:, None]
-        return GM.transpose()
+        return self._FormatOutput(GM, **kwargs)
 
     def GetGMV(self, AbsVal=True, **kwargs):
         kwargs.update({'Normalize': True})
@@ -272,12 +285,7 @@ class DataCharDC(object):
             rds = self.Vds[ivd]/Ids[:, iid]
             Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
-        if not hasattr(Rds, '__iter__'):
-            return Rds[None, None]
-        s = Rds.shape
-        if len(s) == 1:
-            return Rds[:, None]
-        return Rds.transpose()
+        return self._FormatOutput(Rds, **kwargs)
 
     def GetFEMn(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMn' not in self.__dict__:
@@ -347,15 +355,9 @@ class DataCharDC(object):
             if Normalize:
                 par = par/self.Vds[ivd]
             PAR = np.vstack((PAR, par)) if PAR.size else par
-
-        if not hasattr(PAR, '__iter__'):
-            return PAR[None, None]
-        s = PAR.shape
-        if len(s) == 0:
-            return PAR[None, None]
-        if len(s) == 1:
-            return PAR[:, None]
-        return PAR.transpose()
+        
+        return self._FormatOutput(PAR, **kwargs)
+    
 
     def GetName(self, **kwargs):
         return self.Name
