@@ -32,6 +32,7 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from itertools import  cycle
 import copy
+from scipy.signal import welch
 
 
 params = [
@@ -64,7 +65,7 @@ params = [
 
 
 GenFsPar = {'name': 'Fs',
-            'tip': 'Sampling Rate',
+            'tip': 'FsKw.Fs',
             'type': 'float',
             'value': 1e4,
             'step': 100,
@@ -72,7 +73,7 @@ GenFsPar = {'name': 'Fs',
             'suffix': 'Hz'}
 
 GenIntTimePar = {'name': 'IntervalTime',
-                 'tip': 'Interval time',
+                 'tip': 'FsKw.Fs',
                  'type': 'float',
                  'value': 1,
                  'step': 0.1,
@@ -95,8 +96,8 @@ GenNChannelsPar = {'name': 'nChannels',
 
 class DataGeneratorParameters(pTypes.GroupParameter):
     def __init__(self, **kwargs):
-        kwargs['type'] = 'bool'
-        kwargs['value'] = True
+#        kwargs['type'] = 'bool'
+#        kwargs['value'] = True
         pTypes.GroupParameter.__init__(self, **kwargs)
 
         self.addChild(GenFsPar)
@@ -155,7 +156,7 @@ class DataSamplingThread(Qt.QThread):
         self.IntervalTime = IntervalTime*1000
         self.Timer.setInterval(self.IntervalTime)
         
-        Pcycle = np.round(self.Fs/100)
+        Pcycle = np.round(self.Fs/1)
         Fsig = Fs/Pcycle
 
         Ts =  1/self.Fs
@@ -165,6 +166,10 @@ class DataSamplingThread(Qt.QThread):
         samples = np.sin(2*np.pi*Fsig*t)
         self.InSamples = cycle(samples)
         self.chFacts = np.linspace(0, nChannels/10, nChannels)
+        
+        for isamp in range(self.nSamples):
+            samps = self.chFacts * next(self.InSamples)
+            self.OutData[isamp, :] = samps
 
     def run(self, *args, **kwargs):        
         self.Timer.start()
@@ -177,10 +182,10 @@ class DataSamplingThread(Qt.QThread):
 #            self.NewSample.emit()
 #    
     def GenData(self):
-        for isamp in range(self.nSamples):
-            samps = self.chFacts * next(self.InSamples)
-            self.OutData[isamp, :] = samps
-        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
+#        for isamp in range(self.nSamples):
+#            samps = self.chFacts * next(self.InSamples)
+#            self.OutData[isamp, :] = samps
+#        self.OutData = self.OutData + np.random.sample(self.OutData.shape)            
 #        self.OutData = np.random.sample(self.OutData.shape)
         self.NewSample.emit()
 
@@ -190,6 +195,85 @@ labelStyle = {'color': '#FFF',
               'bold': True}
 
 
+class Buffer2D(np.ndarray):
+    def __new__(subtype, shape, dtype=float, buffer=None, offset=0,
+                strides=None, order=None, info=None):
+        # Create the ndarray instance of our type, given the usual
+        # ndarray input arguments.  This will call the standard
+        # ndarray constructor, but return an object of our type.
+        # It also triggers a call to InfoArray.__array_finalize__
+        obj = super(Buffer2D, subtype).__new__(subtype, shape, dtype,
+                                               buffer, offset, strides,
+                                               order)
+        # set the new 'info' attribute to the value passed
+        obj.bufferind = 0
+        # Finally, we must return the newly created object:
+        return obj
+
+    def __array_finalize__(self, obj):
+        # see InfoArray.__array_finalize__ for comments
+        if obj is None:
+            return
+        self.bufferind = getattr(obj, 'bufferind', None)
+
+    def AddData(self, NewData):
+        newsize = NewData.shape[0]
+        self[0:-newsize, :] = self[newsize:, :]
+        self[-newsize:, :] = NewData
+        self.bufferind += newsize
+
+    def IsFilled(self):
+        return self.bufferind >= self.shape[0]
+
+    def Reset(self):
+        self.bufferind = 0
+
+
+class FFTThread(Qt.QThread):
+    def __init__(self, nChannels, ChannelConf):
+        super(FFTThread, self).__init__()
+
+        self.NewData = None
+
+        self.nFFT = 2**15
+        self.nChannels = nChannels
+        self.Fs = 10e3
+        self.BufferSize = self.nFFT * 5
+        self.Buffer = Buffer2D((self.BufferSize, self.nChannels))
+
+        self.Plots = [None]*nChannels
+        self.Curves = [None]*nChannels
+        for wind, chs in ChannelConf.items():
+            p = wind.addPlot()            
+            for ch in chs:
+                self.Plots[ch['Input index']] = p
+                c = p.plot(pen=pg.mkPen(ch['color'],
+                                        width=ch['width']))
+                self.Curves[ch['Input index']] = c
+
+    def run(self, *args, **kwargs):
+        while True:
+            if self.NewData is not None:
+                self.Buffer.AddData(self.NewData)
+                self.NewData = None
+                if self.Buffer.IsFilled():
+                    ff, psd = welch(self.Buffer,
+                                    fs=self.Fs,
+                                    nperseg=self.nFFT,
+                                    axis=0)
+                    self.Buffer.Reset()
+                    for i in range(self.nChannels):
+                        self.Curves[i].setData(ff, psd[:, i])
+            else:
+                Qt.QThread.msleep(10)
+
+    def AddData(self, NewData):
+        if self.NewData is not None:
+            print('Error FFT !!!!')
+            return
+        self.NewData = NewData
+
+
 class PlottingThread(Qt.QThread):
 
     def __init__(self, nChannels, ChannelConf):
@@ -197,29 +281,37 @@ class PlottingThread(Qt.QThread):
 
         self.NewData = None
 
-        self.winds = [] 
+        self.winds = []
         self.nChannels = nChannels
         self.Plots = [None]*nChannels
         self.Curves = [None]*nChannels
 
-        for wind, chs in ChannelConf.items():
-            wind = pg.GraphicsWindow(title="Real Time Plot")
-            self.winds.append(wind)
+        self.Fs = 10e3
+        self.Ts = 1/float(self.Fs)
+        self.ViewTime = 10
+        self.BufferSize = int(self.ViewTime/self.Ts)
+        self.Buffer = Buffer2D((self.BufferSize, self.nChannels))
+
+        self.Winds = []
+        for win, chs in ChannelConf.items():
+            wind = PlotWindow()
+            self.Winds.append(wind)
             xlink = None
             for ch in chs:
-                wind.nextRow()
-                p = wind.addPlot()
+                wind.plot.nextRow()
+                p = wind.plot.addPlot()
                 p.hideAxis('bottom')
                 p.setLabel('left',
                            ch['Name'],
                            units='A',
                            **labelStyle)
-                c = p.plot(pen=pg.mkPen(ch['color'], 
-                                        width=ch['width']))
+                c = p.plot(pen=pg.mkPen(ch['color'],
+                                        width=ch['width']),
+                           autoDownsample=True)
 #                c = p.plot()
                 self.Plots[ch['Input index']] = p
                 self.Curves[ch['Input index']] = c
-                
+
                 if xlink is not None:
                     p.setXLink(xlink)
                 xlink = p
@@ -229,16 +321,86 @@ class PlottingThread(Qt.QThread):
     def run(self, *args, **kwargs):
         while True:
             if self.NewData is not None:
-                for i in range(self.nChannels):
-                    self.Curves[i].setData(self.NewData[:, i])
+                self.Buffer.AddData(self.NewData)
                 self.NewData = None
+                for i in range(self.nChannels):
+                    self.Curves[i].setData(self.Buffer[:, i])
+                    self.Plots[i].setXRange(self.BufferSize/10,
+                                            self.BufferSize)
             else:
+#                pg.QtGui.QApplication.processEvents()
                 Qt.QThread.msleep(10)
 
     def AddData(self, NewData):
         if self.NewData is not None:
             print('Error plotting!!!!')
         self.NewData = NewData
+
+
+class PlotWindow(Qt.QWidget):
+    ''' Main Window '''
+
+    def __init__(self):
+        super(PlotWindow, self).__init__()
+        
+        layout = Qt.QVBoxLayout(self) 
+
+        self.plot = pg.GraphicsLayoutWidget()
+#        self.LayOut = self.plot
+        
+        layout.addWidget(self.plot)
+        self.show()
+
+
+class Plotting():
+
+    def __init__(self, nChannels, ChannelConf):
+        self.winds = []
+        self.nChannels = nChannels
+        self.Plots = [None]*nChannels
+        self.Curves = [None]*nChannels
+
+        self.Fs = 10e3
+        self.Ts = 1/float(self.Fs)
+        self.ViewTime = 10
+        self.BufferSize = int(self.ViewTime/self.Ts)
+        self.Buffer = Buffer2D((self.BufferSize, self.nChannels))
+
+        self.Winds = []
+        for win, chs in ChannelConf.items():
+#            wind = pg.GraphicsWindow(title="Real Time Plot")
+            wind = PlotWindow()
+            self.Winds.append(wind)
+            xlink = None
+            for ch in chs:
+                wind.plot.nextRow()
+                p = wind.plot.addPlot()
+                p.hideAxis('bottom')
+                p.setLabel('left',
+                           ch['Name'],
+                           units='A',
+                           **labelStyle)
+                p.setDownsampling(mode='peak')
+                p.setClipToView(True)
+                c = p.plot(pen=pg.mkPen(ch['color'],
+                                        width=ch['width']))
+#                c = p.plot()
+                self.Plots[ch['Input index']] = p
+                self.Curves[ch['Input index']] = c
+
+                if xlink is not None:
+                    p.setXLink(xlink)
+                xlink = p
+            p.showAxis('bottom')
+            p.setLabel('bottom', 'Time', units='s', **labelStyle)
+
+    def AddData(self, NewData):
+        self.Buffer.AddData(NewData)        
+        for i in range(self.nChannels):
+            self.Curves[i].setData(self.Buffer[:, i])
+#            self.Curves[i].setData(NewData[:, i])
+            self.Plots[i].setXRange(self.BufferSize/10,
+                                    self.BufferSize)
 
 
 class FileBuffer():
@@ -325,6 +487,7 @@ SaveFilePars = [{'name': 'Save File',
                  'value': 50e6}
                 ]
 
+       
 
 class MainWindow(Qt.QWidget):
     ''' Main Window '''
@@ -460,10 +623,24 @@ class MainWindow(Qt.QWidget):
 
             self.btnGen.setText("Stop Gen")
             self.OldTime = time.time()
+#
+            plotpars = self.GetChannelsPars()
+            self.Plots = Plotting(GenKwargs['nChannels'],
+                                       plotpars)
+#            self.Plots = PlottingThread(GenKwargs['nChannels'],
+#                                       plotpars)
+#            self.Plots.start()
 
-            self.threadPlot = PlottingThread(GenKwargs['nChannels'],
-                                             self.GetChannelsPars())
-            self.threadPlot.start()
+#            self.Plot = PlotWindow()
+#            self.Plot.show()
+#            fftplotopts = {}
+#            for iw, ch in plotpars.items():
+#                wind = pg.GraphicsWindow(title="Real Time Plot")
+#                fftplotopts[wind] = ch            
+#            self.threadPlotFFT = FFTThread(GenKwargs['nChannels'],
+#                                           fftplotopts)
+#            self.threadPlotFFT.start()
+
 
             FileName = self.FileParams.param('File Path').value()
             if os.path.isfile(FileName):
@@ -474,11 +651,15 @@ class MainWindow(Qt.QWidget):
             self.threadSave.start()
 
         else:
-            self.threadPlot.terminate()
-            self.threadPlot = None
-
             self.threadGen.terminate()
             self.threadGen = None
+
+#            self.threadPlot.terminate()
+#            self.threadPlot = None
+
+            self.threadSave.terminate()
+            self.threadSave = None
+
             self.btnGen.setText("Start Gen")
 
     def on_NewSample(self):
@@ -486,9 +667,11 @@ class MainWindow(Qt.QWidget):
         Ts = time.time() - self.OldTime
         self.OldTime = time.time()
         print('Sample time', Ts)
-        self.threadPlot.AddData(self.threadGen.OutData)
         self.threadSave.AddData(self.threadGen.OutData)
-
+        self.Plots.AddData(self.threadGen.OutData)
+#        self.threadPlotFFT.AddData(self.threadGen.OutData)
+        
+        
 
 #        if self.threadSave.NewData is not None:
 #            print('Error New data not clear')

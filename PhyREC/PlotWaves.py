@@ -86,7 +86,7 @@ def DrawBarScale(Ax, Location='Bottom Left',
 
 
 class SpecSlot():
-    def __init__(self, Signal, Units=None, Position=None, DispName=None,):
+    def __init__(self, Signal, Units=None, Position=None, DispName=None):
         self.Fres = 5.0
         self.TimeRes = 0.2
         self.Fmin = 1
@@ -288,8 +288,8 @@ class WaveSlot():
                 if PlotTrials:
                     self.Ax.plot(t, st,
                                  color=TrialsColor,
-                                 alpha=TrialsAlpha,
-                                 clip_on=self.clip_on)
+                                 alpha=TrialsAlpha)
+#                                 clip_on=self.clip_on)
             except:
                 print ('Error', nSamps, et, avg.shape, st.shape)
 
@@ -299,7 +299,9 @@ class WaveSlot():
         MeanTsig.t_start = TimeAvg[0]
         MeanTsig.name = MeanTsig.name
         MeanTsig.annotate(Process='LED averaging')
-        self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
+#        self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
+        self._PlotSignal(MeanTsig)
+
 
         if PltStd:
             StdT = np.std(avg, axis=1)
