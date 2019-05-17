@@ -12,6 +12,33 @@ import quantities as pq
 import os
 
 
+class NeoTrain(neo.SpikeTrain):
+
+    def CheckTime(self, Time):
+        if Time is None:
+            return (self.t_start, self.t_stop)
+
+        if len(Time) == 1:
+            Time = (Time[0], Time[0] + self.sampling_period)
+
+        if Time[0] is None or Time[0] < self.t_start:
+            Tstart = self.t_start
+        else:
+            Tstart = Time[0]
+
+        if Time[1] is None or Time[1] > self.t_stop:
+            Tstop = self.t_stop
+        else:
+            Tstop = Time[1]
+
+        return (Tstart, Tstop)
+
+    def GetSignal(self, Time, Units='s'):
+        time = self.CheckTime(Time)
+        sl = self.time_slice(time[0], time[1])
+        return sl.rescale(Units)
+
+
 class NeoSignal(neo.AnalogSignal):
     ProcessChain = None
     ProcessChainTime = None

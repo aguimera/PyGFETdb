@@ -192,6 +192,64 @@ def UpdateTreeDictProp(obj, prop):
             UpdateTreeDictProp(obj2, prop[p])
 
 
+class SpikeSlot():
+    DefLineKwargs = {'color': 'r',
+                     'linestyle': '-.',
+                     'alpha': 0.5,
+                     'linewidth': 0.5,
+                     }
+    DefAxKwargs = {}
+
+    def UpdateLineKwargs(self, LineKwargs):
+        self.LineKwargs.update(LineKwargs)
+        UpdateTreeDictProp(self.Line, self.LineKwargs)
+
+    def UpdateAxKwargs(self, AxKwargs):
+        self.AxKwargs.update(AxKwargs)
+        UpdateTreeDictProp(self.Ax, self.AxKwargs)
+
+    def __init__(self, Signal, Units='s',
+                 Position=None, Ax=None, AxKwargs=None,
+                 **LineKwargs):
+
+        self.LineKwargs = self.DefLineKwargs.copy()
+        self.AxKwargs = self.DefAxKwargs.copy()
+        self.Signal = Signal
+        self.name = self.Signal.name
+        self.Position = Position
+        self.Ax = Ax
+        self.units = Units
+     
+        if AxKwargs is not None:
+            self.AxKwargs.update(AxKwargs)
+
+        if self.Ax is not None:
+            UpdateTreeDictProp(self.Ax, self.AxKwargs)
+        self.LineKwargs.update(LineKwargs)
+
+    def GetSignal(self, Time, Units=None):
+        if Units is None:
+            _Units = self.units
+        else:
+            _Units = Units
+        sig = self.Signal.GetSignal(Time, _Units)
+        self.units = sig.units
+        return sig
+
+    def PlotSignal(self, Time, Units=None):
+        if self.Ax is None:
+            self.Fig, self.Ax = plt.subplots()
+
+        sig = self.GetSignal(Time, Units)
+
+        xmin, xmax, ymin, ymax = self.Ax.axis()
+
+        self.Lines = self.Ax.vlines(sig,
+                                    ymin, ymax,
+                                    **self.LineKwargs
+                                    )
+
+
 class WaveSlot():
 
     DefLineKwargs = {'color': 'k',
@@ -413,7 +471,7 @@ class PlotSlots():
             sl.Fig = self.Fig
 
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
-                 AxKwargs=None, TimeAxis=-1, CalcSignal=True, 
+                 AxKwargs=None, TimeAxis=-1, CalcSignal=True,
                  ScaleBarAx=None, LiveControl=False):
 
         if RcGeneralParams is not None:
@@ -425,7 +483,7 @@ class PlotSlots():
 
         self.Slots = Slots
         if CalcSignal:
-            for sl in self.Slots:            
+            for sl in self.Slots:
                 sig = sl.Signal
                 sl.Signal = sig.GetSignal(None)
 
