@@ -41,7 +41,7 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
         fig, Ax = plt.subplots()
 
     if PlotOverlap:
-        for Trtn, Datas in Data.iteritems():
+        for Trtn, Datas in Data.items():
             for Dat in Datas:
                 if Dat.IsOK:
                     funcX = Dat.__getattribute__('Get' + Xvar)
@@ -55,7 +55,7 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
     # Search Vgs Vals
     VxMin = []
     VxMax = []
-    for Trtn, Datas in Data.iteritems():
+    for Trtn, Datas in Data.items():
         for Dat in Datas:
             if Dat.IsOK:
                 funcX = Dat.__getattribute__('Get' + Xvar)
@@ -74,13 +74,13 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
     ValX = np.linspace(VxMin, VxMax, PointsInRange)
     ValY = np.array([])
 
-    if 'xlsSheet' in kwargs.keys():
+    if 'xlsSheet' in list(kwargs.keys()):
         xlscol = 0
         kwargs['xlsSheet'].write(0, xlscol, Xvar + ' - ' + Yvar)
         for ivr, vr in enumerate(ValX):
             kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
 
-    for Trtn, Datas in Data.iteritems():
+    for Trtn, Datas in Data.items():
         for Dat in Datas:
             if Dat.IsOK:
                 funcY = Dat.__getattribute__('Get' + Yvar)
@@ -89,7 +89,7 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                 if Valy is not None:
                     ValY = np.hstack((ValY, Valy)) if ValY.size else Valy
 
-                    if 'xlsSheet' in kwargs.keys():
+                    if 'xlsSheet' in list(kwargs.keys()):
                         xlscol = xlscol + 1
                         kwargs['xlsSheet'].write(0, xlscol, Trtn)
                         for ivr, vr in enumerate(Valy):
@@ -107,24 +107,24 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                          linewidth=0.0,
                          alpha=0.3)
 
-    if 'xlsSheet' in kwargs.keys():
+    if 'xlsSheet' in list(kwargs.keys()):
         xlscol = xlscol + 1
         kwargs['xlsSheet'].write(0, xlscol, 'Avg')
         for ivr, vr in enumerate(avg):
             kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
 
-    if 'xlsSheet' in kwargs.keys():
+    if 'xlsSheet' in list(kwargs.keys()):
         xlscol = xlscol + 1
         kwargs['xlsSheet'].write(0, xlscol, 'Std')
         for ivr, vr in enumerate(std):
             kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
 
-    if 'xscale' in kwargs.keys():
+    if 'xscale' in list(kwargs.keys()):
         Ax.set_xscale(kwargs['xscale'])
     else:
         Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
 
-    if 'yscale' in kwargs.keys():
+    if 'yscale' in list(kwargs.keys()):
         Ax.set_yscale(kwargs['yscale'])
     else:
         Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
@@ -144,7 +144,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
     if Ax is None:
         fig, Ax = plt.subplots()
 
-    for Trtn, Datas in Data.iteritems():
+    for Trtn, Datas in Data.items():
         for Dat in Datas:
             if Dat.IsOK:
                 funcX = Dat.__getattribute__('Get' + Xvar)
@@ -157,7 +157,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
                 except:  # catch *all* exceptions
                     print(Dat.Name, sys.exc_info()[0])
 
-    if 'xscale' in kwargs.keys():
+    if 'xscale' in list(kwargs.keys()):
         Ax.set_xscale(kwargs['xscale'])
     elif Xvar != 'DateTime':
         try:
@@ -165,12 +165,12 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
         except:
             print('Formating error')
 
-    if 'yscale' in kwargs.keys():
+    if 'yscale' in list(kwargs.keys()):
         Ax.set_yscale(kwargs['yscale'])
     else:
         Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
 
-    if 'ylim' in kwargs.keys():
+    if 'ylim' in list(kwargs.keys()):
         Ax.set_ylim(kwargs['ylim'])
 
     Ax.set_ylabel(Yvar, fontsize=fontsize)
@@ -180,7 +180,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
 
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     Vals = np.array([])
-    for Trtn, Datas in Data.iteritems():
+    for Trtn, Datas in Data.items():
         for Dat in Datas:
             func = Dat.__getattribute__('Get' + Param)
 
@@ -201,12 +201,12 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
         xLab = []
         xPos = []
 
-    if 'XlsFile' in kwargs.keys():
+    if 'XlsFile' in list(kwargs.keys()):
         xlswbook = xlsw.Workbook(kwargs['XlsFile'])
         xlssheet = xlswbook.add_worksheet('W1')
 
     Vals = {}
-    for iGr, (Grn, Grc) in enumerate(sorted(Groups.iteritems())):
+    for iGr, (Grn, Grc) in enumerate(sorted(Groups.items())):
         print('Getting data for ', Grn)
         Data, Trts = GetFromDB(**Grc)
 
@@ -220,7 +220,7 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
             vals = vals[~np.isnan(vals)]
             Vals[Grn] = vals
 
-            if 'XlsFile' in kwargs.keys():
+            if 'XlsFile' in list(kwargs.keys()):
                 xlssheet.write(0, iGr, Grn)
                 for ivr, vr in enumerate(vals[0]):
                     xlssheet.write(ivr+1, iGr, vr)
@@ -251,12 +251,12 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
             title = 'Vgs {} Vds {}'.format(kwargs['Vgs'], kwargs['Vds'])
             plt.title(title)
         plt.tight_layout()
-        if 'xscale' in kwargs.keys():
+        if 'xscale' in list(kwargs.keys()):
             Ax.set_xscale(kwargs['xscale'])
-        if 'yscale' in kwargs.keys():
+        if 'yscale' in list(kwargs.keys()):
             Ax.set_yscale(kwargs['yscale'])
 
-    if 'XlsFile' in kwargs.keys():
+    if 'XlsFile' in list(kwargs.keys()):
         xlswbook.close()
 
     return Vals
@@ -265,11 +265,11 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
     col = CreateCycleColors(Groups)
 
-    if 'Ax' not in kwargs.keys():
+    if 'Ax' not in list(kwargs.keys()):
         fig, Ax = plt.subplots()
         kwargs['Ax'] = Ax
 
-    if 'XlsFile' in kwargs.keys():
+    if 'XlsFile' in list(kwargs.keys()):
         xlswbook = xlsw.Workbook(kwargs['XlsFile'])
 
     for Grn, Grc in sorted(Groups.items()):
@@ -277,7 +277,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
         Data, Trts = GetFromDB(**Grc)
         if len(Data) > 0:
             try:
-                if 'XlsFile' in kwargs.keys():
+                if 'XlsFile' in list(kwargs.keys()):
                     xlssheet = xlswbook.add_worksheet(str(Grn))
                     kwargs['xlsSheet'] = xlssheet
             except:
@@ -285,7 +285,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
 
             try:
                 Func(Data,
-                     Color=col.next(),
+                     Color=next(col),
                      label=Grn,
                      **kwargs)
             except:
@@ -304,7 +304,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
             ll.append(l)
     Ax.legend(hh, ll)
 
-    if 'XlsFile' in kwargs.keys():
+    if 'XlsFile' in list(kwargs.keys()):
         xlswbook.close()
 
     return plt.gcf(), Ax
@@ -356,7 +356,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
 
     PointsInRange = 100
     DatV = []
-    for Grn, Grc in sorted(Groups.iteritems()):
+    for Grn, Grc in sorted(Groups.items()):
         print('Getting data for ', Grn)
         Data, Trts = GetFromDB(**Grc)
         DatV.append(Data)
@@ -365,7 +365,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
     VxMax = []
     for Data in DatV:
         if len(Data) > 0:
-            for Trtn, Datas in Data.iteritems():
+            for Trtn, Datas in Data.items():
                 for Dat in Datas:
                     funcX = Dat.__getattribute__('GetVgs')
                     Valx = funcX(Vds=Vds, Ud0Norm=True)
@@ -393,7 +393,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
         Y = np.array([])
         for Data in DatV:
             if len(Data) > 0:
-                for Trtn, Datas in Data.iteritems():
+                for Trtn, Datas in Data.items():
                     for Dat in Datas:
                         rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)
                         Y = np.vstack((Y, rds)) if Y.size else rds
@@ -460,7 +460,7 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
 
     PointsInRange = 100
     DatV = []
-    for Grn, Grc in sorted(Groups.iteritems()):
+    for Grn, Grc in sorted(Groups.items()):
         print('Getting data for ', Grn)
         Data, Trts = GetFromDB(**Grc)
         DatV.append(Data)
@@ -470,7 +470,7 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
     VxMax = []
     for Data in DatV:
         if len(Data) > 0:
-            for Trtn, Datas in Data.iteritems():
+            for Trtn, Datas in Data.items():
                 for Dat in Datas:
                     funcX = Dat.__getattribute__('GetVgs')
                     Valx = funcX(Vds=Vds, Ud0Norm=True)
@@ -498,7 +498,7 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
         Y = np.array([])
         for Data in DatV:
             if len(Data) > 0:
-                for Trtn, Datas in Data.iteritems():
+                for Trtn, Datas in Data.items():
                     for Dat in Datas:
                         rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)                        
                         if TrackResistance is not None:
