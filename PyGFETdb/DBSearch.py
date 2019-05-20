@@ -73,7 +73,7 @@ def GenBiosensGroups(CondBase,
 
 
 def CheckConditionsCharTable(Conditions, Table):
-    for k in Conditions.keys():
+    for k in list(Conditions.keys()):
         if k.startswith('CharTable'):
             nk = k.replace('CharTable', Table)
             Conditions.update({nk: Conditions[k]})
