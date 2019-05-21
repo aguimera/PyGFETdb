@@ -16,6 +16,7 @@ from scipy.interpolate import interp2d
 from matplotlib.widgets import Slider, Button
 from matplotlib.artist import ArtistInspector
 
+#from NeoInterface import NeoTrain
 
 def DrawBarScale(Ax, Location='Bottom Left',
                  xsize=None, ysize=None, xoff=0.1, yoff=0.1,
@@ -86,6 +87,17 @@ def DrawBarScale(Ax, Location='Bottom Left',
 
 
 class SpecSlot():
+
+    def UpdateLineKwargs(self, LineKwargs):
+        pass
+#        self.LineKwargs.update(LineKwargs)
+#        UpdateTreeDictProp(self.Line, self.LineKwargs)
+
+    def UpdateAxKwargs(self, AxKwargs):
+        pass
+#        self.AxKwargs.update(AxKwargs)
+#        UpdateTreeDictProp(self.Ax, self.AxKwargs)
+        
     def __init__(self, Signal, Units=None, Position=None, DispName=None):
         self.Fres = 5.0
         self.TimeRes = 0.2
@@ -128,7 +140,8 @@ class SpecSlot():
         Ts = sig.sampling_period.magnitude
         noverlap = int((Ts*nFFT - self.TimeRes)/Ts)
 
-        f, t, Sxx = signal.spectrogram(sig, sig.sampling_rate,
+        f, t, Sxx = signal.spectrogram(sig,
+                                       fs=sig.sampling_rate,
                                        window='hanning',
                                        nperseg=nFFT,
                                        noverlap=noverlap,
@@ -215,11 +228,12 @@ class SpikeSlot():
         self.LineKwargs = self.DefLineKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
         self.Signal = Signal
+#        self.Signal.__class__ = NeoTrain
         self.name = self.Signal.name
         self.Position = Position
         self.Ax = Ax
         self.units = Units
-     
+
         if AxKwargs is not None:
             self.AxKwargs.update(AxKwargs)
 
@@ -318,12 +332,12 @@ class WaveSlot():
         self._PlotSignal(sig)
 
     def _PlotSignal(self, sig):
-        self.Lines = self.Ax.plot(sig.times,
+        self.Lines = self.Ax.plot(sig.times.rescale('s'),
                                   sig,
                                   **self.LineKwargs
                                   )
-        self.Ax.set_xlim(left=sig.t_start.magnitude,
-                         right=sig.t_stop.magnitude)
+        self.Ax.set_xlim(left=sig.t_start.rescale('s').magnitude,
+                         right=sig.t_stop.rescale('s').magnitude)
         self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
@@ -420,10 +434,11 @@ class PlotSlots():
                       'Color': 'k',
                       'FontSize': None}
 
-    RcGeneralParams = {'axes.spines.left': False,
-                       'axes.spines.bottom': False,
-                       'axes.spines.top': False,
-                       'axes.spines.right': False,
+    RcGeneralParams = {
+#                       'axes.spines.left': False,
+#                       'axes.spines.bottom': False,
+#                       'axes.spines.top': False,
+#                       'axes.spines.right': False,
                        }
 
     FigKwargs = {}
