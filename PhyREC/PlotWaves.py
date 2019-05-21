@@ -22,7 +22,7 @@ def DrawBarScale(Ax, Location='Bottom Left',
                  xsize=None, ysize=None, xoff=0.1, yoff=0.1,
                  xlabelpad=-0.04, ylabelpad=-0.04,
                  xunit='sec', yunit='mV', LineWidth=5, Color='k',
-                 FontSize=None):
+                 FontSize=None, ylabel=None, xlabel=None):
 
     # calculate length of the bars
     xmin, xmax, ymin, ymax = Ax.axis()
@@ -62,9 +62,12 @@ def DrawBarScale(Ax, Location='Bottom Left',
               transform=AxTrans,
               clip_on=False)
 
+    if xlabel is None:
+        xlabel = str(xsize) + ' ' + xunit
+
     Ax.text(xoff + xlen/2,
             yoff + xlabelpad,
-            str(xsize) + ' ' + xunit,
+            xlabel,
             horizontalalignment='center',
             verticalalignment='center',
             fontsize=FontSize,
@@ -76,9 +79,12 @@ def DrawBarScale(Ax, Location='Bottom Left',
               transform=AxTrans,
               clip_on=False)
 
+    if ylabel is None:
+        ylabel = str(xsize) + ' ' + xunit
+
     Ax.text(xoff + ylabelpad,
             yoff + ylen/2,
-            str(ysize) + ' ' + yunit,
+            ylabel,
             horizontalalignment='center',
             verticalalignment='center',
             rotation='vertical',
