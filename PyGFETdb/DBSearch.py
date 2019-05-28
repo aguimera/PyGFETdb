@@ -195,10 +195,12 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             Trts[DataSel['Name']] = Data.keys()
             logging.debug('Input Trts %d Output Trts %d', Total, len(Trts))
 
+        Trts['Final'] = Data.keys()
         for DataSel in DataSelectionConfig:
             name = DataSel['Name']
             v = float(len(Trts[name]))
-            print (name, ' Yield -> ', v/Total)
+            if Total>0:
+                print (name, ' Yield -> ', v/Total)
 
     return Data, Trts
 
@@ -298,13 +300,13 @@ def UpdateCharTableField(Conditions, Value,
 
     print (re)
     text = "Do you wan to update {} in {} for {} y/n ?".format(Field, Table, Value)
-    inText = raw_input(text)
+    inText = input(text)
     if inText =='y':
         print ('Updated')
         field = '{}.{}'.format(Table, Field)
         fields = {field: Value}
         for r in re:
-            condition = ('{}.id{}='.format(Table, Table), r.values()[0])
+            condition = ('{}.id{}='.format(Table, Table), list(r.values())[0])
             MyDb.UpdateRow(Table=Table, Fields=fields, Condition=condition)
     else:
         print ('Cancelled')

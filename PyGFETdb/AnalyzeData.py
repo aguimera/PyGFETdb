@@ -50,7 +50,7 @@ def CalcDCparams (DevDC):   #calculates Dirac,MaxGM, Imin, Rmin,..
 ###############################################################################
 def CalcGM (DevDC, DevAC=None, Order=10):
         
-    for cName,DCdat in DevDC.iteritems():
+    for cName,DCdat in DevDC.items():
         if cName=='Gate': continue
     
         if DevAC:

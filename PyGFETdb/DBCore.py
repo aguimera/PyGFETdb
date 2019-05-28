@@ -109,7 +109,7 @@ class PyFETdb():
         query = "UPDATE {} SET {} WHERE {} %s".format(Table,
                                                       colums,
                                                       Condition[0])
-        values = Fields.values()
+        values = list(Fields.values())
         values.insert(len(values), Condition[1])
         self._execute(query, values)
 
