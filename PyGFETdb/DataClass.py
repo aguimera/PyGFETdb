@@ -49,9 +49,9 @@ class DataCharDC(object):
                         print ('NaN in gate values')
                 else:
                     self.__setattr__('Ig', v['Ig'])
-            if k in DefaultUnits:
-#                print(k, v, DefaultUnits[k])
-                v = v * DefaultUnits[k]
+#            if k in DefaultUnits:
+##                print(k, v, DefaultUnits[k])
+#                v = v * DefaultUnits[k]
             self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:

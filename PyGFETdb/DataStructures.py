@@ -163,24 +163,24 @@ def InitACRecord(nVds, nVgs, nFgm, nFpsd, ChNames):
 ###############################################################################
 def LoadDataFromFile (FileName): # TODO check the dictionary order DC, AC
     DataIn = dd.io.load(FileName)
-    
-    if type(DataIn)==dict:
+
+    if type(DataIn) == dict:
         DevDCVals = DataIn
         DevACVals = None
-        
-    if type(DataIn)==tuple:
+
+    if type(DataIn) == tuple:
         DevDCVals = DataIn[0]
         DevACVals = None
-        if len(DataIn)>1:
+        if len(DataIn) > 1:
             DevACVals = DataIn[1]
 
-    if DevDCVals.keys()[0] != 'Gate':            
-        if 'Ids' not in  DevDCVals[DevDCVals.keys()[0]]:
-            print('Waring Data DC AC changed')
-            tmp1 = DevDCVals.copy()          
-            tmp2 = DevACVals.copy()          
-            DevACVals = tmp1         
-            DevDCVals = tmp2
+#    if 'Gate' not in DevDCVals.keys():
+#        if 'Ids' not in  DevDCVals[DevDCVals.keys()[0]]:
+#            print('Waring Data DC AC changed')
+#            tmp1 = DevDCVals.copy()          
+#            tmp2 = DevACVals.copy()          
+#            DevACVals = tmp1         
+#            DevDCVals = tmp2
         
     if DevACVals:
         for ch in DevACVals:
