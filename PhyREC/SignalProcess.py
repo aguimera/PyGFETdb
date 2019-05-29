@@ -61,6 +61,11 @@ def Resample(sig, Fs=None, MaxPoints=None):
     else:
         return sig
 
+def Abs(sig):
+    st = np.array(sig)
+    st = np.abs(st)
+
+    return sig.duplicate_with_new_array(signal=st*sig.units)
 
 def Filter(sig, Type, Order, Freqs):
     st = np.array(sig)
@@ -71,7 +76,7 @@ def Filter(sig, Type, Order, Freqs):
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
-def sliding_window(sig,func,timewidth,step):
+def sliding_window(sig, func, timewidth, step):
     #func can be average/std or others to be added
     window_size = int(timewidth*sig.sampling_rate.item())
     stride = int(step*sig.sampling_rate.item())
