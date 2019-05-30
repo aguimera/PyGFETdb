@@ -8,7 +8,8 @@ Created on Wed Apr 11 10:27:23 2018
 import numpy as np
 from scipy import signal
 from fractions import Fraction
-
+from PhyREC.NeoInterface import NeoSegment, NeoSignal, NeoTrain
+import elephant
 
 def DownSampling(sig, Fact, zero_phase=True):
     print (sig.sampling_rate, sig.sampling_rate/Fact)
@@ -61,11 +62,13 @@ def Resample(sig, Fs=None, MaxPoints=None):
     else:
         return sig
 
+
 def Abs(sig):
     st = np.array(sig)
     st = np.abs(st)
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
+
 
 def Filter(sig, Type, Order, Freqs):
     st = np.array(sig)
@@ -76,15 +79,58 @@ def Filter(sig, Type, Order, Freqs):
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
-def sliding_window(sig, func, timewidth, step):
-    #func can be average/std or others to be added
-    window_size = int(timewidth*sig.sampling_rate.item())
-    stride = int(step*sig.sampling_rate.item())
-    if func=='std':
-        window_res = [ np.std(sig[i:i+window_size]) for i in range(0, len(sig), stride)
-                       if i+window_size <= len(sig) ]
-    elif func=='avg':    
-         window_res = [ np.mean(sig[i:i+window_size]) for i in range(0, len(sig), stride)
-                       if i+window_size <= len(sig) ]
-         
-    return window_res,stride
+
+def rms(x, axis=None):
+    return np.sqrt(np.mean(x**2, axis=axis))
+
+
+def sliding_window(sig, timewidth, func=None, steptime=None):
+
+    if steptime is None:
+        steptime = timewidth/10
+
+    if func is None:
+        func = rms
+
+    window_size = int(timewidth.rescale('s') / sig.sampling_period.rescale('s'))
+    step_size = int(steptime.rescale('s') / sig.sampling_period.rescale('s'))
+
+    axis = 0
+    shape = list(sig.shape)
+    shape[axis] = np.floor(sig.shape[axis] / step_size - window_size / step_size + 1).astype(int)
+    shape.append(window_size)
+
+    strides = list(sig.strides)
+    strides[axis] *= step_size
+    strides.append(sig.strides[axis])
+
+    strided = np.lib.stride_tricks.as_strided(sig, shape=shape, strides=strides)
+
+    st = func(strided, axis=-1)
+ 
+    return NeoSignal(signal=st,
+                     units=sig.units,
+                     t_start=sig.t_start,
+                     name=sig.name,
+                     sampling_rate=1/steptime)
+
+
+def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):
+    SigH = elephant.signal_processing.hilbert(sig)
+    insfreq = np.diff(np.angle(SigH)[:, 0]) / np.diff(SigH.times)
+
+    return NeoSignal(signal=np.clip(insfreq.magnitude, 0, 20),
+                     units='Hz',
+                     name=sig.name,
+                     sampling_rate=SigH.sampling_rate,
+                     t_start=SigH.t_start)
+    
+    
+    
+    
+    
+    
+    
+    
+
+

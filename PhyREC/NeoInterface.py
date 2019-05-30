@@ -62,10 +62,10 @@ class NeoSignal(neo.AnalogSignal):
 
         return (Tstart, Tstop)
 
-    def GetSignal(self, Time, Units=None):
-        time = self.CheckTime(Time)
+    def GetSignal(self, Time, Units=None):        
 
         if self.ProcessChain is None:
+            time = self.CheckTime(Time)
             sl = self.time_slice(time[0], time[1])
             if Units is not None:
                 sl = sl.rescale(Units)
@@ -76,6 +76,7 @@ class NeoSignal(neo.AnalogSignal):
             for Proc in self.ProcessChain:
                 sl = Proc['function'](sl, **Proc['args'])
 
+            time = sl.CheckTime(Time)
             sl = sl.time_slice(time[0], time[1])
             if Units is not None:
                 sl = sl.rescale(Units)
