@@ -76,6 +76,7 @@ class NeoSignal(neo.AnalogSignal):
             for Proc in self.ProcessChain:
                 sl = Proc['function'](sl, **Proc['args'])
 
+            sl.__class__ = NeoSignal
             time = sl.CheckTime(Time)
             sl = sl.time_slice(time[0], time[1])
             if Units is not None:
