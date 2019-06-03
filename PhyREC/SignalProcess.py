@@ -9,6 +9,9 @@ import numpy as np
 from scipy import signal
 from fractions import Fraction
 from PhyREC.NeoInterface import NeoSegment, NeoSignal, NeoTrain
+import PhyREC.SignalAnalysis as Ran
+import quantities as pq
+
 import elephant
 
 def DownSampling(sig, Fact, zero_phase=True):
@@ -115,6 +118,33 @@ def sliding_window(sig, timewidth, func=None, steptime=None):
                      t_start=sig.t_start + timewidth/2,
                      name=sig.name,
                      sampling_rate=1/steptime)
+
+
+def ThresholdTrianGen(sig, RelaxTime=0.4*pq.s, threshold=None):
+
+    if threshold is None:
+        threshold = np.mean(sig) + np.std(sig)
+    inttimes = Ran.threshold_detection(signal=sig,
+                                       threshold=threshold,
+                                       RelaxTime=RelaxTime)
+    inttimes = np.array(inttimes)
+
+    return NeoTrain(times=inttimes,
+                    units='s',
+                    t_start=sig.t_start,
+                    t_stop=sig.t_stop,
+                     )
+
+
+def ThresholdInstantRate(sig, RelaxTime=0.1*pq.s, threshold=None,
+                         OutSampling=0.01*pq.s,):
+
+    
+
+    return elephant.statistics.instantaneous_rate(ThresholdTrianGen(sig,
+                                                                    RelaxTime,
+                                                                    threshold),
+                                                  sampling_period=OutSampling)
 
 
 def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):

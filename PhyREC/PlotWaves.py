@@ -400,8 +400,8 @@ class ControlFigure():
 
         self.pltSL = pltSL
 
-        TMax = np.max([sl.Signal.t_stop for sl in pltSL.Slots])
-        TMin = np.min([sl.Signal.t_start for sl in pltSL.Slots])
+        TMax = np.max([sl.Signal.t_stop.rescale('s') for sl in pltSL.Slots])
+        TMin = np.min([sl.Signal.t_start.rescale('s') for sl in pltSL.Slots])
 
         self.Fig, ax = plt.subplots(2, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
