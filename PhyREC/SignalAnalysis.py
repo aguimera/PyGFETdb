@@ -56,7 +56,7 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
         take = np.where(np.diff(cutout) > 1)[0] + 1
         take = np.append(0, take)
 
-        time = signal.times
+        time = signal.times.rescale('s')
         events = time[cutout][take]
 
     if RelaxTime:

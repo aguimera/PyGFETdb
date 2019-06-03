@@ -93,7 +93,9 @@ def sliding_window(sig, timewidth, func=None, steptime=None):
         func = rms
 
     window_size = int(timewidth.rescale('s') / sig.sampling_period.rescale('s'))
+    timewidth = sig.sampling_period.rescale('s')*window_size
     step_size = int(steptime.rescale('s') / sig.sampling_period.rescale('s'))
+    steptime = sig.sampling_period.rescale('s')*step_size
 
     axis = 0
     shape = list(sig.shape)
@@ -110,7 +112,7 @@ def sliding_window(sig, timewidth, func=None, steptime=None):
  
     return NeoSignal(signal=st,
                      units=sig.units,
-                     t_start=sig.t_start,
+                     t_start=sig.t_start + timewidth/2,
                      name=sig.name,
                      sampling_rate=1/steptime)
 

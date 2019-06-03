@@ -184,7 +184,7 @@ class SpecSlot():
         img = self.Ax.imshow(data,
                              cmap='jet',
                              norm=Norm,
-                             interpolation='quadric',
+                             interpolation='bilinear',
                              origin='lower',
                              aspect='auto',
                              extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
