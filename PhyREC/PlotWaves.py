@@ -80,7 +80,7 @@ def DrawBarScale(Ax, Location='Bottom Left',
               clip_on=False)
 
     if ylabel is None:
-        ylabel = str(xsize) + ' ' + xunit
+        ylabel = str(ysize) + ' ' + yunit
 
     Ax.text(xoff + ylabelpad,
             yoff + ylen/2,
@@ -151,7 +151,7 @@ class SpecSlot():
                                        window='hanning',
                                        nperseg=nFFT,
                                        noverlap=noverlap,
-                                       scaling='spectrum',
+                                       scaling='density',
                                        axis=0)
 
         finds = np.where((self.Fmin < f) & (f < self.Fmax))[0][1:]
@@ -333,7 +333,9 @@ class WaveSlot():
         if self.UnitsInLabel is True:
             su = str(sig.units).split(' ')[-1]
             label = "{} [{}]".format(self.name, su)
-            self.LineKwargs.update({'label': label})
+        else:
+            label = self.name
+        self.LineKwargs.update({'label': label})
 
         self._PlotSignal(sig)
 
@@ -385,9 +387,8 @@ class WaveSlot():
             StdT = np.std(avg, axis=1)
             self.Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
                                  alpha=StdAlpha,
-                                 facecolor=self.Color,
-                                 edgecolor=None,
-                                 clip_on=self.clip_on)
+                                 facecolor=TrialsColor,
+                                 edgecolor=None)
 
         ylim = self.Ax.get_ylim()
         self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)

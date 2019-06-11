@@ -108,6 +108,9 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         else:
             lkwargs = LineKwargs
 
+        if 'label' not in lkwargs:
+            lkwargs['label'] = slN
+        
         Ax.loglog(ff, psd, **lkwargs)
 
     Ax.set_xlabel('Frequency [Hz]')
