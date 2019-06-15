@@ -13,7 +13,7 @@ from scipy import signal
 import matplotlib.colors as colors
 from collections import OrderedDict
 from scipy.interpolate import interp2d
-from matplotlib.widgets import Slider, Button
+from matplotlib.widgets import Slider, Button, TextBox
 from matplotlib.artist import ArtistInspector
 
 #from NeoInterface import NeoTrain
@@ -404,7 +404,7 @@ class ControlFigure():
         TMax = np.max([sl.Signal.t_stop.rescale('s') for sl in pltSL.Slots])
         TMin = np.min([sl.Signal.t_start.rescale('s') for sl in pltSL.Slots])
 
-        self.Fig, ax = plt.subplots(2, 1, figsize=figsize)
+        self.Fig, ax = plt.subplots(4, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
                               label='TStart [s]',
                               valmax=TMax,
@@ -420,11 +420,73 @@ class ControlFigure():
         self.sTshow.on_changed(self.Update)
         self.sTstart.on_changed(self.Update)
 
+        self.TextStart = TextBox(ax[2],
+                                 'Start time [s]',
+                                 initial='0')
+        self.TextStart.on_submit(self.submit_start)
+
+        self.TextStop = TextBox(ax[3],
+                                 'Stop time [s]',
+                                 initial='10')
+        self.TextStop.on_submit(self.submit_stop)
+        
+        self.Refresh = True
+        self.OldStart = 0
+        self.OldStop = 0
+
     def Update(self, val):
         twind = (self.sTstart.val * pq.s,
                  self.sTstart.val * pq.s + self.sTshow.val * pq.s)
+
+        if self.Refresh:
+            self.UpdateGraph(twind)
+
+    def UpdateGraph(self, twind):
         self.pltSL.PlotChannels(twind)
         self.pltSL.Fig.canvas.draw()
+
+    def submit_start(self, text):
+        try:
+            val = float(text)
+        except:
+            print('bad number')
+            return
+
+        if self.OldStart == val:
+            return
+
+        if val > self.OldStop:
+            self.TextStart.set_val(str(self.sTstart.val))
+            return
+    
+        self.OldStart = val
+        self.sTstart.set_val(float(text))
+
+    def submit_stop(self, text):
+        try:
+            val = float(text)
+        except:
+            print('bad number')
+            return
+
+        if self.OldStop == val:
+            return
+        
+        if val < self.sTstart.val:
+            self.TextStop.set_val(str(self.sTstart.val + self.sTshow.val))
+            return
+        
+        self.OldStop = val
+    
+        show = val - self.sTstart.val 
+        self.sTshow.set_val(show)
+
+    def SetTimes(self, twind):
+        self.Refresh = False
+        self.TextStop.set_val(str(twind[1]))
+        self.TextStart.set_val(str(twind[0]))
+        self.TextStop.set_val(str(twind[1]))
+        self.Refresh = True
 
 
 class PlotSlots():
@@ -513,6 +575,8 @@ class PlotSlots():
 
         if LiveControl:
             self.CtrFig = ControlFigure(self)
+        else:
+            self.CtrFig = None
 
         if Fig is None:
             self._GenerateFigure()
@@ -565,6 +629,7 @@ class PlotSlots():
 
     def PlotChannels(self, Time, Units=None, FormatFigure=True):
         self.ClearAxes()
+        print('plot channels')
         for sl in self.Slots:
             sl.PlotSignal(Time, Units=Units)
 #        if Time is not None:
@@ -574,7 +639,10 @@ class PlotSlots():
 #                sl.Ax.set_xlim(right=Time[1].magnitude)
 
         self.current_time = sl.Ax.get_xlim()
-
+        
+        if self.CtrFig is not None:
+            self.CtrFig.SetTimes(self.current_time)
+            
     def PlotEvents(self, Times, color='r', alpha=0.5,
                    Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
 
