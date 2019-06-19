@@ -11,6 +11,22 @@ import numpy as np
 import quantities as pq
 import os
 
+import xml.etree.ElementTree as ET
+        
+        
+def dict_to_xml(tag, d):
+    '''
+    Turn a simple dict of key/value pairs into XML
+    '''
+    elem = ET.Element(tag)
+    for key, val in d.items():
+        child = ET.Element(key)
+        child.text = str(val)
+        child.tail = '\n'
+        elem.append(child)
+    elem.tail = '\n'
+    return elem
+
 
 class NeoTrain(neo.SpikeTrain):
 
@@ -115,6 +131,68 @@ class NeoSegment():
 
         self.UpdateSignalsDict()
         self.UpdateEventDict()
+
+    def ExportNeuroscope(self, FileName, Range, Bits, Units,
+                         ChNames, NeuroScopeMap,
+                         ProcessChain=None):     
+       
+        LSB = (Range / 2)/(2**(Bits-1))
+        
+        ExpDat = np.ndarray((self.GetSignal(ChNames[0]).size,
+                             len(ChNames)),
+                            dtype=np.int16)
+        
+        for ich, chn in ChNames.items():
+            sig = self.GetSignal(chn)
+            if ProcessChain is not None:
+                sig.ProcessChain = ProcessChain
+            dat = sig.GetSignal(None, Units=Units)
+            dexp = np.array(dat)/LSB
+            dexp = np.array(dexp).astype(np.int16)            
+            ExpDat[:, ich] = dexp.flatten()
+        
+        ExpDat.astype(np.int16).tofile(FileName + '.dat')
+
+        Etop = ET.Element('parameters')
+        Etop.set('version', '1.0')
+        
+        Acq = {'nBits' : Bits,
+               'nChannels': ExpDat.shape[1],
+               'samplingRate': str(sig.sampling_rate.magnitude),
+               'voltageRange': Range,
+               'amplification': 1,
+               'offset': 0}
+        
+        Eacq = dict_to_xml('acquisitionSystem', Acq)
+        
+        Etop.append(Eacq)
+        
+        Echg = ET.Element('channelGroups')
+        Echg.tail = '\n'
+        for g in NeuroScopeMap:
+            Eg = ET.Element('group')
+            Eg.tail = '\n'
+            for chn, ich in g.items():
+                Ech = ET.Element('channel',
+                                 attrib={'skip': ''' 0 ''',
+                                         'name': chn})
+                Ech.text = str(ich)
+                Ech.tail = '\n'
+                Eg.append(Ech)
+            Echg.append(Eg)
+        
+        Eanadesc = ET.Element('anatomicalDescription')
+        Eanadesc.tail = '\n'
+        Eanadesc.append(Echg)
+        Etop.append(Eanadesc)
+        
+        TopTree = ET.ElementTree(element=Etop)
+        
+        TopTree.write(FileName + '.xml',
+                       encoding="utf-8", xml_declaration=True)
+
+
+
 
     def SaveRecord(self, FileName, OverWrite=True):
         if os.path.isfile(FileName):
