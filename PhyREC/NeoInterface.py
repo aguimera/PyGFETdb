@@ -160,8 +160,8 @@ class NeoSegment():
                'nChannels': ExpDat.shape[1],
                'samplingRate': str(sig.sampling_rate.magnitude),
                'voltageRange': Range,
-               'amplification': 1,
-               'offset': 0}
+               'amplification': str(1),
+               'offset': str(0)}
         
         Eacq = dict_to_xml('acquisitionSystem', Acq)
         
@@ -172,9 +172,9 @@ class NeoSegment():
         for g in NeuroScopeMap:
             Eg = ET.Element('group')
             Eg.tail = '\n'
-            for chn, ich in g.items():
+            for chn, ich in zip(g[0], g[1]):
                 Ech = ET.Element('channel',
-                                 attrib={'skip': ''' 0 ''',
+                                 attrib={'skip': str(0),
                                          'name': chn})
                 Ech.text = str(ich)
                 Ech.tail = '\n'
@@ -187,7 +187,9 @@ class NeoSegment():
         Etop.append(Eanadesc)
         
         TopTree = ET.ElementTree(element=Etop)
-        
+
+#        print TopTree
+#        print ET.dump(TopTree)
         TopTree.write(FileName + '.xml',
                        encoding="utf-8", xml_declaration=True)
 
