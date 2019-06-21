@@ -155,7 +155,7 @@ class NeoSegment():
 
         Etop = ET.Element('parameters')
         Etop.set('version', '1.0')
-        
+        Etop.set('creator', 'neuroscope-2.0.0')
         Acq = {'nBits' : Bits,
                'nChannels': ExpDat.shape[1],
                'samplingRate': str(sig.sampling_rate.magnitude),
@@ -166,6 +166,11 @@ class NeoSegment():
         Eacq = dict_to_xml('acquisitionSystem', Acq)
         
         Etop.append(Eacq)
+
+        Afp = {'lfpSamplingRate': 1250,}
+        Eafp = dict_to_xml('fieldPotentials',Afp)
+        Etop.append(Eafp)
+        
         
         Echg = ET.Element('channelGroups')
         Echg.tail = '\n'
@@ -185,6 +190,11 @@ class NeoSegment():
         Eanadesc.tail = '\n'
         Eanadesc.append(Echg)
         Etop.append(Eanadesc)
+        
+        Espike = ET.Element('spikeDetection')
+        Espike.tail = '\n'
+        Etop.append(Espike)
+        
         
         TopTree = ET.ElementTree(element=Etop)
 
