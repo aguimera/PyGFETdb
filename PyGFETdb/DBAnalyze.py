@@ -30,6 +30,7 @@ def CreateCycleColors(Vals):
 
 def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                 Color='r', PlotOverlap=False, PlotOverlapMean=False,
+                PlotStd=True,
                 label=None, ScaleFactor=1, **kwargs):
 
     fontsize = 'medium'
@@ -96,16 +97,17 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                             kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
 
                     if PlotOverlapMean:
-                        plt.plot(ValX, Valy, color=Color, alpha=0.2)
+                        Ax.plot(ValX, Valy, color=Color, alpha=0.2)
 
     if ValY.size:
         avg = np.mean(ValY, axis=1)
         std = np.std(ValY, axis=1)
-        plt.plot(ValX, avg, color=Color, label=label)
-        plt.fill_between(ValX, avg+std, avg-std,
-                         color=Color,
-                         linewidth=0.0,
-                         alpha=0.3)
+        Ax.plot(ValX, avg, color=Color, label=label)
+        if PlotStd: 
+            Ax.fill_between(ValX, avg+std, avg-std,
+                             color=Color,
+                             linewidth=0.0,
+                             alpha=0.3)
 
     if 'xlsSheet' in list(kwargs.keys()):
         xlscol = xlscol + 1
@@ -222,7 +224,7 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 
             if 'XlsFile' in list(kwargs.keys()):
                 xlssheet.write(0, iGr, Grn)
-                for ivr, vr in enumerate(vals[0]):
+                for ivr, vr in enumerate(vals):
                     xlssheet.write(ivr+1, iGr, vr)
 
             if Plot:
