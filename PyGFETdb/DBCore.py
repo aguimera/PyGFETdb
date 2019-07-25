@@ -54,17 +54,22 @@ class PyFETdb():
         if sys.version_info[0] == 2:
             return pickle.loads(DataF)
         else:
-            bDict = pickle.loads(DataF, encoding='bytes')
-            Dict = {}
-            for k, v in bDict.items():
-                if isinstance(v, dict):
-                    dv = {}
-                    for kv, vv in v.items():
-                        dv[kv.decode('utf-8')] = vv
-                else:
-                    dv = v
-                Dict[k.decode('utf-8')] = dv
-            return Dict
+            try:
+                bDict = pickle.loads(DataF, encoding='latin')
+                return bDict
+            except:
+                Dict = {}
+                for k, v in bDict.items():
+                    if isinstance(v, dict):
+                        dv = {}
+                        for kv, vv in v.items():
+                            dv[kv.decode('utf-8')] = vv
+                    else:
+                        dv = v
+                    Dict[k.decode('utf-8')] = dv
+                return Dict
+
+
 
     def GetId(self, Table, Value, Field='Name', NewVals=None):
 
@@ -91,7 +96,7 @@ class PyFETdb():
         query = "INSERT INTO {}({}) VALUES ({})".format(Table,
                                                         colums,
                                                         places)
-        return self._execute(query, Fields.values(), LastRowID=True)
+        return self._execute(query, list(Fields.values()), LastRowID=True)
 
     def MultiSelect(self, Table, Conditions, FieldsOut, Order=None):
         Fields = ' , '.join(FieldsOut)
