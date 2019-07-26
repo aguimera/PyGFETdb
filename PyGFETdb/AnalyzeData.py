@@ -138,7 +138,7 @@ def InterpolatePSD (DevACVals, Points=100):
 ###############################################################################
 def FitACNoise(Dev, Fmin=None, Fmax=None, IsOkFilt=True):
 
-    for ChName, ChDat in Dev.iteritems():
+    for ChName, ChDat in Dev.items():
         if ChName=='Gate': continue            
         if IsOkFilt:
             if not ChDat['IsOK']:continue
@@ -183,7 +183,7 @@ def FitACNoise(Dev, Fmin=None, Fmax=None, IsOkFilt=True):
 ###############################################################################
 def CalcNoiseIrms(Dev,Fmin=None,Fmax=None,IsOkFilt=True):
     
-    for ChName, ChDat in Dev.iteritems():
+    for ChName, ChDat in Dev.items():
         if ChName=='Gate': continue            
         CalcNoiseIrmsCh(ChDat,Fmin,Fmax,IsOkFilt)    
     
