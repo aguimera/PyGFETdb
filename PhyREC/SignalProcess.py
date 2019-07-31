@@ -14,6 +14,15 @@ import quantities as pq
 
 import elephant
 
+def Derivative(sig):
+    derivative_sig = NeoSignal(            
+            np.diff(sig.as_quantity(), axis=0) / sig.sampling_period,
+            t_start=sig.t_start+sig.sampling_period/2,
+            sampling_period=sig.sampling_period,
+            name=sig.name)
+
+    return derivative_sig
+
 def DownSampling(sig, Fact, zero_phase=True):
     print (sig.sampling_rate, sig.sampling_rate/Fact)
     rs = signal.decimate(np.array(sig),

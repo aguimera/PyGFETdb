@@ -94,6 +94,13 @@ def DrawBarScale(Ax, Location='Bottom Left',
 
 class SpecSlot():
 
+    AxKwargs = {      
+                    'xaxis': {'visible': False,
+                      },
+                    'yaxis': {'visible': True,
+                      },
+                    'ylabel':'Freq [Hz]',
+                    }
     def UpdateLineKwargs(self, LineKwargs):
         pass
 #        self.LineKwargs.update(LineKwargs)
@@ -553,6 +560,8 @@ class PlotSlots():
                 sl.CAx = self.CAxs[sl.Position]
             sl.Ax = self.Axs[sl.Position]
             sl.Fig = self.Fig
+            UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
+
 
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
                  AxKwargs=None, TimeAxis=-1, CalcSignal=True,

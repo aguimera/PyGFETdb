@@ -167,7 +167,7 @@ class NeoSegment():
         
         Etop.append(Eacq)
 
-        Afp = {'lfpSamplingRate': 1250,}
+        Afp = {'lfpSamplingRate': str(1250),}
         Eafp = dict_to_xml('fieldPotentials',Afp)
         Etop.append(Eafp)
         
