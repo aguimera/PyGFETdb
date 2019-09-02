@@ -81,6 +81,11 @@ def Abs(sig):
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
+def power(sig): # to solve units
+    st = np.array(sig)**2
+#    st = st**2
+
+    return sig.duplicate_with_new_array(signal=st*sig.units)
 
 def Filter(sig, Type, Order, Freqs):
     st = np.array(sig)
@@ -94,6 +99,9 @@ def Filter(sig, Type, Order, Freqs):
 
 def rms(x, axis=None):
     return np.sqrt(np.mean(x**2, axis=axis))
+
+def power_sliding(x, axis=None):
+    return np.mean(x**2, axis=axis)
 
 
 def sliding_window(sig, timewidth, func=None, steptime=None):
