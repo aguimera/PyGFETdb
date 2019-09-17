@@ -14,6 +14,7 @@ import quantities as pq
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import elephant
+import scipy.stats as stats
 
 def Derivative(sig):
     derivative_sig = NeoSignal(            
@@ -215,10 +216,15 @@ def CrossCorr(x1, x2):
     return max_cross_corr
 
 
-
-
-
-
+def PearsonCorr(x1, x2):
+    pearson_corr=[]
+    for row in range(x1.shape[0]):   
+        res=stats.pearsonr(
+                        np.array(x1[row,:,:]).reshape((x1[row,:,:].shape[-1],)),
+                      np.array(x2[row,:,:]).reshape((x2[row,:,:].shape[-1],)))
+        pearson_corr.append(res[0])
+        
+    return pearson_corr
 
 
 def sliding_window_2sigs(sig1, sig2, timewidth, func=None, steptime=None):
