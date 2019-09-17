@@ -11,7 +11,8 @@ from fractions import Fraction
 from PhyREC.NeoInterface import NeoSegment, NeoSignal, NeoTrain
 import PhyREC.SignalAnalysis as Ran
 import quantities as pq
-
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
 import elephant
 
 def Derivative(sig):
@@ -104,7 +105,7 @@ def power_sliding(x, axis=None):
     return np.mean(x**2, axis=axis)
 
 
-def sliding_window(sig, timewidth, func=None, steptime=None):
+def sliding_window(sig, timewidth, func=None, steptime=None,**kwargs):
 
     if steptime is None:
         steptime = timewidth/10
@@ -128,7 +129,7 @@ def sliding_window(sig, timewidth, func=None, steptime=None):
 
     strided = np.lib.stride_tricks.as_strided(sig, shape=shape, strides=strides)
 
-    st = func(strided, axis=-1)
+    st = func(strided, axis=-1,**kwargs)
  
     return NeoSignal(signal=st,
                      units=sig.units,
@@ -175,10 +176,168 @@ def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):
                      t_start=SigH.t_start)
     
     
+def Strid_signal(sig, timewidth, steptime=None):
+    if steptime is None:
+        steptime = timewidth/10
+
+    window_size = int(timewidth.rescale('s') / sig.sampling_period.rescale('s'))
+    timewidth = sig.sampling_period.rescale('s')*window_size
+    step_size = int(steptime.rescale('s') / sig.sampling_period.rescale('s'))
+    steptime = sig.sampling_period.rescale('s')*step_size
+
+    axis = 0
+    shape = list(sig.shape)
+    shape[axis] = np.floor(sig.shape[axis] / step_size - window_size / step_size + 1).astype(int)
+    shape.append(window_size)
+
+    strides = list(sig.strides)
+    strides[axis] *= step_size
+    strides.append(sig.strides[axis])
+
+    strided = np.lib.stride_tricks.as_strided(sig, shape=shape, strides=strides)
+
+    return strided
+
+def CrossCorr(x1, x2):
+    max_cross_corr=[]
+    for row in range(x1.shape[0]):   
+#        print(x1.shape)
+#        print (x1[row,:,:].shape)
+#        print(x2.shape)
+#        print (x2[row,:,:].shape)
+#        print(row)
+        res=xcorr(
+                        np.array(x1[row,:,:]).reshape((x1[row,:,:].shape[-1],)),
+                      np.array(x2[row,:,:]).reshape((x2[row,:,:].shape[-1],)),maxlags=None)
+        cross_correlation=max(res[1])
+        max_cross_corr.append(cross_correlation)
+        
+    return max_cross_corr
+
+
+
+
+
+
+
+
+def sliding_window_2sigs(sig1, sig2, timewidth, func=None, steptime=None):
+
+    if func is None:
+        func = CrossCorr
+
+    strided1 = Strid_signal(sig1, timewidth, steptime)
+    strided2 = Strid_signal(sig2, timewidth, steptime)
+
+    st = func(strided1, strided2)
+
+    return NeoSignal(signal=st,
+                     units=sig1.units,
+                     t_start=sig1.t_start + timewidth/2,
+                     name='CrossCorr'+sig1.name+sig1.name,
+                     sampling_rate=1/steptime)    
     
     
-    
-    
+def xcorr(x, y, normed=True, detrend=mlab.detrend_none,
+              usevlines=True, maxlags=10, **kwargs):
+        r"""
+        Plot the cross correlation between *x* and *y*.
+
+        The correlation with lag k is defined as
+        :math:`\sum_n x[n+k] \cdot y^*[n]`, where :math:`y^*` is the complex
+        conjugate of :math:`y`.
+
+        Parameters
+        ----------
+        x : array-like of length n
+
+        y : array-like of length n
+
+        detrend : callable, optional, default: `mlab.detrend_none`
+            *x* and *y* are detrended by the *detrend* callable. This must be a
+            function ``x = detrend(x)`` accepting and returning an
+            `numpy.array`. Default is no normalization.
+
+        normed : bool, optional, default: True
+            If ``True``, input vectors are normalised to unit length.
+
+        usevlines : bool, optional, default: True
+            Determines the plot style.
+
+            If ``True``, vertical lines are plotted from 0 to the xcorr value
+            using `Axes.vlines`. Additionally, a horizontal line is plotted
+            at y=0 using `Axes.axhline`.
+
+            If ``False``, markers are plotted at the xcorr values using
+            `Axes.plot`.
+
+        maxlags : int, optional, default: 10
+            Number of lags to show. If None, will return all ``2 * len(x) - 1``
+            lags.
+
+        Returns
+        -------
+        lags : array (length ``2*maxlags+1``)
+            The lag vector.
+        c : array  (length ``2*maxlags+1``)
+            The auto correlation vector.
+        line : `.LineCollection` or `.Line2D`
+            `.Artist` added to the axes of the correlation:
+
+            - `.LineCollection` if *usevlines* is True.
+            - `.Line2D` if *usevlines* is False.
+        b : `.Line2D` or None
+            Horizontal line at 0 if *usevlines* is True
+            None *usevlines* is False.
+
+        Other Parameters
+        ----------------
+        linestyle : `.Line2D` property, optional
+            The linestyle for plotting the data points.
+            Only used if *usevlines* is ``False``.
+
+        marker : str, optional, default: 'o'
+            The marker for plotting the data points.
+            Only used if *usevlines* is ``False``.
+
+        Notes
+        -----
+        The cross correlation is performed with :func:`numpy.correlate` with
+        ``mode = "full"``.
+        """
+        Nx = len(x)
+        if Nx != len(y):
+            raise ValueError('x and y must be equal length')
+
+        x = detrend(np.asarray(x))
+        y = detrend(np.asarray(y))
+
+        correls = np.correlate(x, y, mode="full")
+
+        if normed:
+            correls /= np.sqrt(np.dot(x, x) * np.dot(y, y))
+
+        if maxlags is None:
+            maxlags = Nx - 1
+
+        if maxlags >= Nx or maxlags < 1:
+            raise ValueError('maxlags must be None or strictly '
+                             'positive < %d' % Nx)
+
+        lags = np.arange(-maxlags, maxlags + 1)
+        correls = correls[Nx - 1 - maxlags:Nx + maxlags]
+
+#        if usevlines:
+#            a = self.vlines(lags, [0], correls, **kwargs)
+#            # Make label empty so only vertical lines get a legend entry
+#            kwargs.pop('label', '')
+#            b = self.axhline(**kwargs)
+#        else:
+#            kwargs.setdefault('marker', 'o')
+#            kwargs.setdefault('linestyle', 'None')
+#            a, = self.plot(lags, correls, **kwargs)
+#            b = None
+        return lags, correls   
     
     
 
