@@ -357,3 +357,73 @@ def PlotEventAvg(Signals, TimesEvent, TimeAvg, Time=None,
 #        pickle.dump(DevACVals, open('test.pkl', 'wb'))
 #
 #        return DevACVals
+
+
+
+def PlotPSD_SNR(Signals, TimeSig=None, TimeNoise=None, nFFT=2**17, FMin=None, Ax=None,
+            scaling='density', Units=None, **LineKwargs):
+
+    if Ax is None:
+        Fig, Ax = plt.subplots()
+
+    PSD = {}        
+    for sl in Signals:
+        if not hasattr(sl, 'GetSignal'):
+            continue
+        sig = sl.GetSignal(TimeSig, Units=Units)
+        noise = sl.GetSignal(TimeNoise, Units=Units)
+
+        if FMin is not None:
+            nFFTsig = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
+            nFFTnoise = int(2**(np.around(np.log2(noise.sampling_rate.magnitude/FMin))+1))
+
+        ff, psdsig = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
+                               window='hanning',
+                               nperseg=nFFTsig,
+                               scaling=scaling)
+        
+        ff, psdnoise = signal.welch(x=noise, fs=noise.sampling_rate, axis=0,
+                               window='hanning',
+                               nperseg=nFFTnoise,
+                               scaling=scaling)
+        
+        SNR=psdsig/psdnoise
+#        if scaling == 'density':
+#            units = sig.units**2/pq.Hz
+#        elif scaling == 'spectrum':
+#            units = sig.units**2
+
+        slN = sl.name
+        PSD[slN] = {}
+        PSD[slN]['SNR'] = SNR 
+        PSD[slN]['ff'] = ff
+
+        if hasattr(sl, 'LineKwargs'):
+            lkwargs = sl.LineKwargs.copy()
+            lkwargs.update(LineKwargs)
+        else:
+            lkwargs = LineKwargs
+
+        if 'label' not in lkwargs:
+            lkwargs['label'] = slN
+        
+        Ax.loglog(ff, SNR, **lkwargs)
+
+    Ax.set_xlabel('Frequency [Hz]')
+    Ax.set_ylabel('SNR')
+
+    handles, labels = Ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+
+#    nLines = len(by_label)
+#    nlc = 4
+#    if nLines > nlc:
+#        ncol = (nLines / nlc) + ((nLines % nlc) > 0)
+#    else:
+#        ncol = 1
+    Ax.legend(by_label.values(), by_label.keys(),
+              loc='best',
+#              ncol=1,
+              fontsize='x-small')
+
+    return PSD
