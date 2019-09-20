@@ -122,6 +122,7 @@ class SpecSlot():
         self.LogNormalize = True
         self.Cmap = 'jet'
         self.LogScale = False
+        self.Zscore = False
 
         self.Ax = None
         self.CAx = None
@@ -164,6 +165,23 @@ class SpecSlot():
         finds = np.where((self.Fmin < f) & (f < self.Fmax))[0][1:]
         r, g, c = Sxx.shape
         data = Sxx.reshape((r, c))[finds][:]
+        
+        if self.Zscore is True:
+            ##z-score all rec
+#            m = np.mean(data, axis=0)
+#            s = np.std(data, axis=0)    
+#            data_normalized = data - m
+#            data = np.divide(data_normalized, s,
+#                                           out=np.zeros_like(data_normalized),
+#                                           where=s != 0) 
+            ##z-score correct
+            m = np.mean(data, axis=-1)
+            s = np.std(data, axis=-1)    
+            data_normalized = data.transpose() - m
+            data = np.divide(data_normalized, s,
+                                           out=np.zeros_like(data_normalized),
+                                           where=s != 0) 
+            data=data.transpose()
 
         if self.MaxPSD is None:
             MaxPSD = data.max()
@@ -187,7 +205,7 @@ class SpecSlot():
             self.Fig, self.Ax = plt.subplots()
 
         x = t + sig.t_start.magnitude
-        y = f[finds].magnitude
+        y = f[finds].magnitude   
         img = self.Ax.imshow(data,
                              cmap='jet',
                              norm=Norm,
@@ -200,7 +218,10 @@ class SpecSlot():
         cbar.ax.tick_params(length=1, labelsize='xx-small')
 
         su = str(sig.units).split(' ')[-1]
-        label = "[{}^2]".format(su)
+        if self.Zscore is True:
+            label='Z-score'
+        else:    
+            label = "[{}^2]".format(su)
         cbar.set_label(label, fontsize='xx-small')
 
         if self.LogScale:
