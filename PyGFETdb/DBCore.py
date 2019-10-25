@@ -28,7 +28,12 @@ class PyFETdb():
                                       db=db)
 
     def __del__(self):
-        self.db.close()
+        try:
+            self.db.close()
+        except AttributeError:
+            # if we previously could not connect to the DB, the db attributed cannot be accessed
+            # then, exit cleanly.
+            return
 
     def _execute(self, query, values, LastRowID=False):
         cur = self.db.cursor()

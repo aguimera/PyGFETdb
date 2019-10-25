@@ -6,18 +6,19 @@ This is a temporary script file.
 """
 
 import os
+import pickle
 import sys
 
 import matplotlib.pyplot as plt
-import pickle
-
-from qtpy.QtWidgets import QHeaderView, QMessageBox
-from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt, QItemSelectionModel
+from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
+from qtpy.QtWidgets import QHeaderView, QMessageBox
 
-import PyGFETdb.DBCore as PyFETdb
+from pymysql.err import OperationalError
+
 import PyGFETdb.AnalyzeData as PyFETData
+import PyGFETdb.DBCore as PyFETdb
 import PyGFETdb.PlotDataClass as PyFETpl
 
 
@@ -136,7 +137,16 @@ class DBViewApp(QtWidgets.QMainWindow):
 
         self.setWindowTitle('PyFETdb Viewer')
 
-        self.DB = PyFETdb.PyFETdb()
+# TODO: Decide if we show the GUI or not, when a connection error occurs. Simply (un)comment the return line.
+
+        try:
+            self.DB = PyFETdb.PyFETdb()
+        except OperationalError:
+            self.msg=QMessageBox()
+            self.msg.setText("Cannot connect to database.")
+            print("Cannot connect to database.")
+            self.msg.exec_()
+            # return    # we stop the initialization, and the GUI shows cleanly...
 
         self.InitMenu()
         self.ConnectLst()
@@ -793,8 +803,14 @@ def main():
     parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
-    w = DBViewApp()
-    w.show()
+
+    try:
+        w = DBViewApp()
+        w.show()
+    except AttributeError:
+        # if an attribute is accessed without proper initialization...
+        print("Fatal error. Stopping...")
+        sys.exit(-1)
     sys.exit(app.exec_())
 
 
