@@ -6,17 +6,20 @@ Created on Wed Feb  1 10:31:02 2017
 @author: aguimera
 """
 
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-import matplotlib.colors as mpcolors
-import matplotlib.cm as cmx
-#import matplotlib.markers.MarkerStyle.filled_markers as pltMarks
-from itertools import cycle
-import numpy as np
 import math
-import PyGFETdb.NoiseModel as noise
-from scipy.interpolate import interp1d
 import sys
+# import matplotlib.markers.MarkerStyle.filled_markers as pltMarks
+from itertools import cycle
+
+import matplotlib.cm as cmx
+import matplotlib.colors as mpcolors
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import gridspec
+from scipy.interpolate import interp1d
+
+import PyGFETdb.GlobalClass as g
+import PyGFETdb.NoiseModel as noise
 
 
 class MyCycle():
@@ -392,23 +395,23 @@ class PyFETPlotParam(PyFETPlotBase):
                         valx = Data[self.xVarProp[xVar][1]]
                 elif xVar == 'W/L':
                     # TODO: Check division by zero
-                    valx = Data['TrtTypes']['Width']/Data['TrtTypes']['Length']
+                    valx = g.Divide(Data['TrtTypes']['Width'], Data['TrtTypes']['Length'])
 
                 # Calc Y value
                 if axn == 'GmMax':
                     v = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
                     # TODO: Check division by zero
-                    valy = np.max(np.abs(v))/Data['Vds'][ivd]
+                    valy = g.Divide(np.max(np.abs(v)), Data['Vds'][ivd])
                 elif axn == 'Rds':
                     v = np.polyval(Data['IdsPoly'][:, ivd], Vgs)
                     # TODO: Check division by zero
-                    valy = Data['Vds'][ivd]/v
+                    valy = g.Divide(Data['Vds'][ivd], v)
                 elif axn == 'Vrms':
                     if 'GMPoly' in Data:
                         gm = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
                         # TODO: Check division by zero
                         valy = interp1d(Data['Vgs'],
-                                        Data['Irms'][:, ivd]/np.abs(gm))(Vgs)
+                                        g.Divide(Data['Irms'][:, ivd], np.abs(gm)))(Vgs)
                     else:
                         continue
                 elif axn == 'Ud0':
@@ -473,7 +476,7 @@ class PyFETPlot(PyFETPlotBase):
                 v = cy[self.ColorParams[ColorOn][1]]
         elif ColorOn == 'W/L':
             #TODO: Check division by zero
-            v = cy['TrtTypes']['Width']/cy['TrtTypes']['Length']
+            v = g.Divide(cy['TrtTypes']['Width'], cy['TrtTypes']['Length'])
 
         return v
 
@@ -575,7 +578,7 @@ class PyFETPlot(PyFETPlotBase):
                             gm = np.polyval(Data['GMPoly'][:, ivd],
                                             Data['Vgs'])
                             # TODO: Check division by zero
-                            Valy = Data['Irms'][:, ivd]/np.abs(gm)
+                            Valy = g.Divide(['Irms'][:, ivd], np.abs(gm))
                         else:
                             continue
                     elif axn == 'Ig':
@@ -597,7 +600,7 @@ class PyFETPlot(PyFETPlotBase):
                                               Data['Vgs'])
                         else:
                             # TODO: Check division by zero
-                            Valy = np.diff(Data['Ids'][:,ivd])/np.diff(Data['Vgs'])
+                            Valy = g.Divide(np.diff(Data['Ids'][:, ivd]), np.diff(Data['Vgs']))
                             Valx = Valx[1:]  # To check
                     elif axn == 'Ids':
                         Valy = Data['Ids'][:, ivd]
@@ -607,7 +610,7 @@ class PyFETPlot(PyFETPlotBase):
                                                Data['Vgs']), 'k-', alpha=0.3)
                     elif axn == 'Rds':
                         # TODO: Check division by zero
-                        Valy = Data['Vds'][ivd]/Data['Ids'][:, ivd]
+                        Valy = g.Divide(Data['Vds'][ivd], Data['Ids'][:, ivd])
                     elif axn == 'IrmsIds':
                         Valy = Data['Irms'][:, ivd]
                     elif self.AxsProp[axn][2]:  # Polynom

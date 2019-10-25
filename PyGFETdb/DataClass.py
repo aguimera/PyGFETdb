@@ -6,14 +6,16 @@ Created on Fri Jun 16 17:43:50 2017
 @author: aguimera
 """
 
+import sys
+
 import numpy as np
-from scipy.interpolate import interp1d
+import quantities as pq
 import scipy.optimize as optim
 from scipy.integrate import simps
-import quantities as pq
+from scipy.interpolate import interp1d
 
+from PyGFETdb import GlobalClass as g
 from PyGFETdb import PlotDataClass
-import sys
 
 DebugPrint = True
 
@@ -140,15 +142,15 @@ class DataCharDC(object):
         Ids = self.GetIds()
         Gm = np.abs(self.GetGM())
         for ivd, Vds in enumerate(self.Vds):
-            n = (FEMCdl * VgUd[:, ivd])/FEMq
+            n = g.Divide(FEMCdl * VgUd[:, ivd], FEMq)
             self.FEMn[:, ivd] = np.sqrt(n**2 + FEMn0**2)
 
-            Ieff = Vds/(Vds/Ids[:, ivd] - FEMRc)
-            mu = (Ieff*L)/(W*Vds*n*FEMq)
+            Ieff = g.Divide(Vds, (g.Divide(Vds, Ids[:, ivd]) - FEMRc))
+            mu = g.Divide(Ieff * L, (W * Vds * n * FEMq))
             self.FEMmu[:, ivd] = mu
 
             Vdseff = Vds - Ids[:, ivd]*FEMRc
-            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W)
+            muGM = g.Divide(g.Divide(Gm[:, ivd] * L), (FEMCdl * Vdseff * W))
             self.FEMmuGm[:, ivd] = muGM
 
     def GetUd0(self, Vds=None, Vgs=None, Ud0Norm=False,
@@ -257,7 +259,8 @@ class DataCharDC(object):
                 vg = vgs
             gm = np.polyval(self.GMPoly[:, ivd], vg)
             if Normalize:
-                gm = gm/self.Vds[ivd] #*(self.TrtTypes['Length']/self.TrtTypes['Width'])/
+                # TODO: Check division by zero
+                gm = g.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
 
         return self._FormatOutput(GM, **kwargs)
@@ -283,7 +286,7 @@ class DataCharDC(object):
         Rds = np.array([])
         for iid, ivd in enumerate(iVds):
             #TODO: Check division by zero
-            rds = self.Vds[ivd]/Ids[:, iid]
+            rds = g.Divide(self.Vds[ivd], Ids[:, iid])
             Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
         return self._FormatOutput(Rds, **kwargs)

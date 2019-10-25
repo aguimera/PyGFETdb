@@ -6,10 +6,13 @@ Created on Fri Jan 12 13:12:37 2018
 @author: aguimera
 """
 
-from PyGFETdb.DataClass import DataCharAC
-import PyGFETdb.DBCore as PyFETdb
-import numpy as np
 import logging
+
+import numpy as np
+
+import PyGFETdb.DBCore as PyFETdb
+from PyGFETdb import GlobalClass as g
+from PyGFETdb.DataClass import DataCharAC
 
 
 def GenGroups(GroupBase, GroupBy, LongName=True):
@@ -182,7 +185,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         Data = RemoveOutilers(Data, OutilerFilter)
         Trts = Data.keys()
         logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
-        print ('Outlier filter Yield -> ', len(Trts)/Total)
+        print('Outlier filter Yield -> ', g.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
         Trts = {}

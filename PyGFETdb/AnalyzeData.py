@@ -10,10 +10,14 @@ Revsion history
 TODO implement graph for selected channels
 
 """
-import numpy as np
-import PyGFETdb.NoiseModel as noise
 import sys
+
+import numpy as np
 from scipy import interpolate
+
+import PyGFETdb.GlobalClass as g
+import PyGFETdb.NoiseModel as noise
+
 
 ###############################################################################
 #####
@@ -33,14 +37,14 @@ def CalcDCparams (DevDC):   #calculates Dirac,MaxGM, Imin, Rmin,..
         
         for ivd,Vds in enumerate(chDC['Vds']):
             #TODO: Check division by zero
-            Rds = Vds/chDC['Ids'][:,ivd]
+            Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
             #Calc Dirac
             Imin = np.min(chDC['Ids'][:,ivd])
             Ud = chDC['Vgs'][np.argmin(chDC['Ids'][:,ivd])]
             Rmin = np.min(Rds)
             #TODO: Check division by zero
-            gm = np.diff(chDC['Ids'][:,ivd])/np.diff(chDC['Vgs'])
-            GMax = np.max(gm)           
+            gm = g.Divide(np.diff(chDC['Ids'][:, ivd]), np.diff(chDC['Vgs']))
+            GMax = np.max(gm)
             
             chDC['Ud'][ivd] = Ud
             chDC['Rmin'][ivd] = Rmin
@@ -105,7 +109,7 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
     
         for ivd,Vds in enumerate(chDC['Vds']):
             #TODO: Check division by zero
-            Rds = Vds/chDC['Ids'][:,ivd]
+            Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
             
             if np.any([Rds<RdsMin,Rds>RdsMax]):
                 print ('{} -- NOK -- {} {}'.format(Ch,np.min(Rds),np.max(Rds)))
