@@ -207,26 +207,28 @@ class SpecSlot():
         x = t + sig.t_start.magnitude
         y = f[finds].magnitude   
         img = self.Ax.imshow(data,
-                             cmap='jet',
+                             cmap=self.Cmap,
                              norm=Norm,
                              interpolation='bilinear',
                              origin='lower',
                              aspect='auto',
                              extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
 
-        cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
-        cbar.ax.tick_params(length=1, labelsize='xx-small')
+
 
         su = str(sig.units).split(' ')[-1]
         if self.Zscore is True:
             label='Z-score'
         else:    
             label = "[{}^2]".format(su)
-        cbar.set_label(label, fontsize='xx-small')
 
         if self.LogScale:
             self.Ax.set_yscale('log')
-
+        
+        if self.CAx is not None:
+            cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
+            cbar.ax.tick_params(length=1, labelsize='xx-small')
+            cbar.set_label(label, fontsize='xx-small')
 
 def UpdateTreeDictProp(obj, prop):
     ains = ArtistInspector(obj)
