@@ -128,7 +128,6 @@ class SpecSlot():
         self.CAx = None
         self.Fig = None
         
-        self.cmap='jet'
         self.Signal = Signal
 
         self.units = Units
@@ -208,7 +207,7 @@ class SpecSlot():
         x = t + sig.t_start.magnitude
         y = f[finds].magnitude   
         img = self.Ax.imshow(data,
-                             cmap=self.cmap,
+                             cmap=self.Cmap,
                              norm=Norm,
                              interpolation='bilinear',
                              origin='lower',
