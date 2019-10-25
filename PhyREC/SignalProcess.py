@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import elephant
 import scipy.stats as stats
+from scipy import interpolate
+
 
 def Derivative(sig):
     derivative_sig = NeoSignal(            
@@ -345,6 +347,25 @@ def xcorr(x, y, normed=True, detrend=mlab.detrend_none,
 #            b = None
         return lags, correls   
     
-    
+
+def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='Hole'):
+    Vgs = Tchar.GetVgs()
+    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
+    if Regim == 'Hole':
+        Inds = np.where(vgs < Tchar.GetUd0())[1]
+    else:
+        Inds = np.where(vgs > Tchar.GetUd0())[1]
+    Ids = Tchar.GetIds(Vgs=vgs[Inds])
+    fgm = interpolate.interp1d(Ids[:, 0], vgs[Inds])
+    IdsExp = Tchar.GetIds(Vgs=VgsExp)
+    IdsOff = np.mean(Sig)-IdsExp
+    st = fgm(np.clip(Sig - IdsOff, np.min(Ids), np.max(Ids)))
+    print(str(Sig.name), '-> ', 'IdsOff', IdsOff, 'Vgs', np.mean(st))
+    return NeoSignal(st*pq.V,
+                     units='V',
+                     t_start=Sig.t_start,
+                     sampling_rate=Sig.sampling_rate,
+                     name=str(Sig.name),
+                     file_origin=Sig.file_origin)    
 
 
