@@ -13,7 +13,7 @@ import numpy as np
 import scipy.optimize as optim
 from scipy.integrate import simps
 
-from PyGFETdb import GlobalClass as g
+from PyGFETdb import GlobalFunctions as g
 
 
 ###############################################################################

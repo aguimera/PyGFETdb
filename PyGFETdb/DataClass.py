@@ -14,7 +14,7 @@ import scipy.optimize as optim
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
 
-from PyGFETdb import GlobalClass as g
+from PyGFETdb import GlobalFunctions as g
 from PyGFETdb import PlotDataClass
 
 DebugPrint = True

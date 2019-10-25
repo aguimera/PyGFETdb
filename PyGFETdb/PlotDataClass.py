@@ -18,7 +18,7 @@ import numpy as np
 from matplotlib import gridspec
 from scipy.interpolate import interp1d
 
-import PyGFETdb.GlobalClass as g
+import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.NoiseModel as noise
 
 

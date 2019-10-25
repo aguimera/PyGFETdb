@@ -11,7 +11,7 @@ import logging
 import numpy as np
 
 import PyGFETdb.DBCore as PyFETdb
-from PyGFETdb import GlobalClass as g
+from PyGFETdb import GlobalFunctions as g
 from PyGFETdb.DataClass import DataCharAC
 
 

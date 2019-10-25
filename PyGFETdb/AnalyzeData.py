@@ -15,7 +15,7 @@ import sys
 import numpy as np
 from scipy import interpolate
 
-import PyGFETdb.GlobalClass as g
+import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.NoiseModel as noise
 
 
