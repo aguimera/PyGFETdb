@@ -217,7 +217,7 @@ class DataCharDC(object):
             return None
 
         if Vgs is not None:
-            vgs = Vgs  # TODO Check Vgs range
+            vgs = Vgs  # TODO: Check Vgs range
         else:
             vgs = self.Vgs
 
@@ -242,7 +242,7 @@ class DataCharDC(object):
             return None
 
         if Vgs is not None:
-            vgs = Vgs  # TODO Check Vgs range
+            vgs = Vgs  # TODO: Check Vgs range
         else:
             vgs = self.Vgs
 
@@ -282,6 +282,7 @@ class DataCharDC(object):
 
         Rds = np.array([])
         for iid, ivd in enumerate(iVds):
+            #TODO: Check division by zero
             rds = self.Vds[ivd]/Ids[:, iid]
             Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
@@ -447,7 +448,7 @@ class DataCharAC(DataCharDC):
         if vgs is None:
             return None, None
 
-# TODO check for more than 1 vds
+# TODO: check for more than 1 vds
         if Ud0Norm is True:
             vgs = vgs - self.Ud0[iVds[0]]
 
@@ -494,7 +495,7 @@ class DataCharAC(DataCharDC):
                     self.NoB = NoB
                     self.FitErrA = FitErrA
                     self.FitErrB = FitErrB
-                except:
+                except: # TODO: catch *all* exceptions
                     print ("Fitting error:", sys.exc_info()[0])
 
     def CalcIRMS(self, Fmin, Fmax):
@@ -660,7 +661,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
             try:
                 self.Plot(DataDict, Vgs=Vgs, Vds=Vds,
                           Ud0Norm=Ud0Norm, PltIsOK=PltIsOK)
-            except:  # catch *all* exceptions
+            except:  # TODO: catch *all* exceptions
                 print (sys.exc_info()[0])
 
     def PlotDataSet(self, DataDict, Trts=None,
@@ -692,7 +693,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 try:
                     self.Plot(Dat, Vgs=Vgs, Vds=Vds,
                               Ud0Norm=Ud0Norm, PltIsOK=PltIsOK, **kwargs)
-                except:  # catch *all* exceptions
+                except:  # TODO: catch *all* exceptions
                     print (TrtN, sys.exc_info()[0])
 
     def Plot(self, Data, Vgs=None, Vds=None,

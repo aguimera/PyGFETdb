@@ -41,7 +41,7 @@ class PyFETdb():
             print (query, values)
         try:
             cur.execute(query, values)
-        except:
+        except: #TODO: catch *all* exceptions
             print ('Error')
             self.db.connect()
             cur = self.db.cursor()
@@ -62,7 +62,7 @@ class PyFETdb():
             try:
                 bDict = pickle.loads(DataF, encoding='latin')
                 return bDict
-            except:
+            except: #TODO: catch *all* exceptions
                 Dict = {}
                 for k, v in bDict.items():
                     if isinstance(v, dict):

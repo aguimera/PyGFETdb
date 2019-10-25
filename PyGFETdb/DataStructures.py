@@ -29,7 +29,8 @@ import os.path
 #    if not DevDCVals:    
 #        DevDCVals = InitDCRecord(nVds=nVds, nVgs=nVgs, ChNames=ChNames)
 #    
-#    if not DevACVals:            
+#    if not DevACVals:
+# TODO: Check division by zero
 #        Fpsd = np.fft.rfftfreq(ACchar.PSDnFFT,1/ACchar.PSDFs)
 #        Fgm = ACchar.SigFreqs
 #        DevACVals = InitACRecord(nVds=nVds, nVgs=nVgs[nACvgs], nFgm=Fgm, nFpsd=Fpsd, ChNames=ChNames)
@@ -161,7 +162,7 @@ def InitACRecord(nVds, nVgs, nFgm, nFpsd, ChNames):
 ###############################################################################
 #####
 ###############################################################################
-def LoadDataFromFile (FileName): # TODO check the dictionary order DC, AC
+def LoadDataFromFile (FileName): # TODO: check the dictionary order DC, AC
     DataIn = dd.io.load(FileName)
 
     if type(DataIn) == dict:

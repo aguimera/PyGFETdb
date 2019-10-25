@@ -358,7 +358,7 @@ class PyFETPlotParam(PyFETPlotBase):
             for cyn, cy in Data[TrtN].items():
                 try:
                     self.Plot(cy, xVar, Bias, PltUd0)
-                except:  # catch *all* exceptions
+                except:  # TODO: catch *all* exceptions
                     print (TrtN, cyn, sys.exc_info()[0])
 
     def Plot(self, Data, xVar, Bias, PltUd0):
@@ -391,18 +391,22 @@ class PyFETPlotParam(PyFETPlotBase):
                     else:
                         valx = Data[self.xVarProp[xVar][1]]
                 elif xVar == 'W/L':
+                    # TODO: Check division by zero
                     valx = Data['TrtTypes']['Width']/Data['TrtTypes']['Length']
 
                 # Calc Y value
                 if axn == 'GmMax':
                     v = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
+                    # TODO: Check division by zero
                     valy = np.max(np.abs(v))/Data['Vds'][ivd]
                 elif axn == 'Rds':
                     v = np.polyval(Data['IdsPoly'][:, ivd], Vgs)
+                    # TODO: Check division by zero
                     valy = Data['Vds'][ivd]/v
                 elif axn == 'Vrms':
                     if 'GMPoly' in Data:
                         gm = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
+                        # TODO: Check division by zero
                         valy = interp1d(Data['Vgs'],
                                         Data['Irms'][:, ivd]/np.abs(gm))(Vgs)
                     else:
@@ -468,6 +472,7 @@ class PyFETPlot(PyFETPlotBase):
             else:
                 v = cy[self.ColorParams[ColorOn][1]]
         elif ColorOn == 'W/L':
+            #TODO: Check division by zero
             v = cy['TrtTypes']['Width']/cy['TrtTypes']['Length']
 
         return v
@@ -480,7 +485,7 @@ class PyFETPlot(PyFETPlotBase):
 #            self.Plot(Trtv)
             try:
                 self.Plot(Trtv, PltUd0=PltUd0, PltIsOK=PltIsOK)
-            except:  # catch *all* exceptions
+            except:  # TODO: catch *all* exceptions
                 print (sys.exc_info()[0])
 
     def PlotDataSet(self, Data, Trts, PltUd0=False, PltIsOK=False,
@@ -506,7 +511,7 @@ class PyFETPlot(PyFETPlotBase):
                 self.NextMark()
                 try:
                     self.Plot(cy, PltUd0=PltUd0, PltIsOK=PltIsOK)
-                except:  # catch *all* exceptions
+                except:  # TODO: catch *all* exceptions
                     print (TrtN, cyn, sys.exc_info()[0])
 
     def Plot(self, Data, iVds=None, iVgs=None,
@@ -569,6 +574,7 @@ class PyFETPlot(PyFETPlotBase):
                         if 'GMPoly' in Data:
                             gm = np.polyval(Data['GMPoly'][:, ivd],
                                             Data['Vgs'])
+                            # TODO: Check division by zero
                             Valy = Data['Irms'][:, ivd]/np.abs(gm)
                         else:
                             continue
@@ -590,6 +596,7 @@ class PyFETPlot(PyFETPlotBase):
                             Valy = np.polyval(Data['GMPoly'][:, ivd],
                                               Data['Vgs'])
                         else:
+                            # TODO: Check division by zero
                             Valy = np.diff(Data['Ids'][:,ivd])/np.diff(Data['Vgs'])
                             Valx = Valx[1:]  # To check
                     elif axn == 'Ids':
@@ -599,6 +606,7 @@ class PyFETPlot(PyFETPlotBase):
                                     np.polyval(Data['IdsPoly'][:, ivd],
                                                Data['Vgs']), 'k-', alpha=0.3)
                     elif axn == 'Rds':
+                        # TODO: Check division by zero
                         Valy = Data['Vds'][ivd]/Data['Ids'][:, ivd]
                     elif axn == 'IrmsIds':
                         Valy = Data['Irms'][:, ivd]

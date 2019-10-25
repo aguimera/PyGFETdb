@@ -156,7 +156,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
                     Valx = funcX(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
                     Valy = funcY(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
                     Ax.plot(Valx, Valy, '*', color=Color, label=label)
-                except:  # catch *all* exceptions
+                except:  #TODO: catch *all* exceptions
                     print(Dat.Name, sys.exc_info()[0])
 
     if 'xscale' in list(kwargs.keys()):
@@ -164,7 +164,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
     elif Xvar != 'DateTime':
         try:
             Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
-        except:
+        except:   # TODO: catch *all* exceptions
             print('Formating error')
 
     if 'yscale' in list(kwargs.keys()):
@@ -188,7 +188,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
 
             try:
                 Val = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
-            except:  # catch *all* exceptions
+            except:  # TODO: catch *all* exceptions
                 print(Dat.Name, sys.exc_info()[0])
                 Val = None
     
@@ -282,7 +282,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
                 if 'XlsFile' in list(kwargs.keys()):
                     xlssheet = xlswbook.add_worksheet(str(Grn))
                     kwargs['xlsSheet'] = xlssheet
-            except:
+            except: # TODO: catch *all* exceptions
                 print('Error in excel generation')
 
             try:
@@ -290,7 +290,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
                      Color=next(col),
                      label=Grn,
                      **kwargs)
-            except:
+            except:     #TODO: catch *all* exceptions
                 print(Grn, 'ERROR --> ', sys.exc_info()[0])
         else:
             print('Empty data for ', Grn)

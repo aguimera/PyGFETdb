@@ -139,6 +139,8 @@ class DBViewApp(QtWidgets.QMainWindow):
 
 # TODO: Decide if we show the GUI or not, when a connection error occurs. Simply (un)comment the return line.
 
+# TODO: Decide if we reconnect to DB, or we can input or select the DB to work with.
+
         try:
             self.DB = PyFETdb.PyFETdb()
         except OperationalError:
@@ -351,7 +353,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         try:
             for d in sorted(set(Vals)):
                 Lst.addItem(str(d))
-        except:
+        except: # TODO: check *all* exceptions
             for d in set(Vals):
                 Lst.addItem(str(d))
 

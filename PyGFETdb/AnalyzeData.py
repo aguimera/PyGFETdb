@@ -31,12 +31,14 @@ def CalcDCparams (DevDC):   #calculates Dirac,MaxGM, Imin, Rmin,..
         chDC['GMax']=np.zeros(len(chDC['Vds'])) 
         chDC['Cicle']=ich  
         
-        for ivd,Vds in enumerate(chDC['Vds']):                    
+        for ivd,Vds in enumerate(chDC['Vds']):
+            #TODO: Check division by zero
             Rds = Vds/chDC['Ids'][:,ivd]
             #Calc Dirac
             Imin = np.min(chDC['Ids'][:,ivd])
             Ud = chDC['Vgs'][np.argmin(chDC['Ids'][:,ivd])]
             Rmin = np.min(Rds)
+            #TODO: Check division by zero
             gm = np.diff(chDC['Ids'][:,ivd])/np.diff(chDC['Vgs'])
             GMax = np.max(gm)           
             
@@ -102,6 +104,7 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
             chAC=DevAC[Ch]
     
         for ivd,Vds in enumerate(chDC['Vds']):
+            #TODO: Check division by zero
             Rds = Vds/chDC['Ids'][:,ivd]
             
             if np.any([Rds<RdsMin,Rds>RdsMax]):
@@ -174,7 +177,7 @@ def FitACNoise(Dev, Fmin=None, Fmax=None, IsOkFilt=True):
                     ChDat['FitErrA'][ivg,ivd] = err[0]
                     ChDat['FitErrB'][ivg,ivd] = err[1]
                     
-                except:
+                except: # TODO: catch *all* exceptions
                     print ("Unexpected error:", sys.exc_info()[0])
                     print ('Channel Name ', ChName, 'Vd ', ivd, 'Vg ',ivg)
 
