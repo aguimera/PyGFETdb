@@ -15,6 +15,10 @@ import neo
 from PhyREC.NeoInterface import NeoSegment, NeoSignal
 
 
+def nFFTFMin(Fs, Fmin):
+    return int(2**(np.around(np.log2(Fs/Fmin))+1))
+
+
 def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
                         RelaxTime=None):
     """
@@ -70,6 +74,39 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
         outevents = events
 
     return outevents
+
+
+def PlotSpectralCoherence(RefSig, Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
+                          scaling='density', Units=None, **LineKwargs):
+
+    if Ax is None:
+        Fig, Ax = plt.subplots()
+
+    if FMin is not None:
+        nFFT = nFFTFMin(RefSig.sampling_rate, FMin)
+
+    csACC = []
+    for sl in Signals:
+        if not hasattr(sl, 'GetSignal'):
+            continue
+        
+        f, cs = signal.coherence(RefSig,
+                                 sl.GetSignal(Time, Units=Units),
+                                 fs=RefSig.sampling_rate,
+                                 nperseg=nFFT, axis=0)
+
+        if hasattr(sl, 'LineKwargs'):
+            lkwargs = sl.LineKwargs.copy()
+            lkwargs.update(LineKwargs)
+        else:
+            lkwargs = LineKwargs
+
+        if 'label' not in lkwargs:
+            lkwargs['label'] = sl.name
+
+        Ax.loglog(f, cs, **lkwargs)        
+        csACC.append(cs)
+    return f, csACC
 
 
 def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
