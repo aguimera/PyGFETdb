@@ -233,7 +233,7 @@ class DataCharDC(object):
             ids = np.polyval(self.IdsPoly[:, ivd], vg)
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
-        Ids = Ids * DefaultUnits['Ids']
+#        Ids = Ids * DefaultUnits['Ids']
         return self._FormatOutput(Ids, **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
