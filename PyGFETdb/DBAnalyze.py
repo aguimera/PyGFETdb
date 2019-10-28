@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jun 27 15:08:05 2017
@@ -6,14 +5,16 @@ Created on Tue Jun 27 15:08:05 2017
 @author: aguimera
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mpcolors
-import matplotlib.cm as cmx
 import sys
 from itertools import cycle
+
+import matplotlib.cm as cmx
+import matplotlib.colors as mpcolors
+import matplotlib.pyplot as plt
+import numpy as np
 import statsmodels.api as sm
 import xlsxwriter as xlsw
+
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
 
 
