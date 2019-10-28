@@ -1,4 +1,4 @@
 Documentation
 -------------
 
-[The PyGFETdb page](pygfetdb.rtd.io)
+[The PyGFETdb page](https://pygfetdb.rtfd.io)
