@@ -148,7 +148,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         --------
             Return : tupple of (Data, Trts)
                 Data: Dictionary with the data arranged as follows:
-                    {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
+                {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
 
                 Trts: List of transistors
 
