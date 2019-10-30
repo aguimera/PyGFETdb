@@ -513,8 +513,8 @@ class PyFETPlot(PyFETPlotBase):
                 self.NextMark()
                 try:
                     self.Plot(cy, PltUd0=PltUd0, PltIsOK=PltIsOK)
-                except:  # TODO: catch *all* exceptions
-                    print (TrtN, cyn, sys.exc_info()[0])
+                except KeyError:
+                    print(TrtN, cyn, sys.exc_info())
 
     def Plot(self, Data, iVds=None, iVgs=None,
              PltUd0=False, PltIsOK=False, ColorOnVgs=False):
@@ -577,7 +577,7 @@ class PyFETPlot(PyFETPlotBase):
                             gm = np.polyval(Data['GMPoly'][:, ivd],
                                             Data['Vgs'])
                             # TODO: Check division by zero
-                            Valy = g.Divide(['Irms'][:, ivd], np.abs(gm))
+                            Valy = g.Divide(Data['Irms'][:, ivd], np.abs(gm))
                         else:
                             continue
                     elif axn == 'Ig':
