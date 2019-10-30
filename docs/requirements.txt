@@ -1,0 +1,5 @@
+statsmodels
+quantities
+deepdish
+qtpy
+PyGFETdb
