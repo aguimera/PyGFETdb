@@ -2,4 +2,5 @@ statsmodels
 quantities
 deepdish
 qtpy
+xlsxwriter
 PyGFETdb
