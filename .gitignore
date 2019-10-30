@@ -1,3 +1,5 @@
+.gitignore
 /PyGFETdb.egg-info/
 *.pyc
 /dist/
+/PyGFETdb/DB.py

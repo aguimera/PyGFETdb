@@ -3,5 +3,5 @@ quantities
 deepdish
 qtpy
 xlsxwriter
-PySide
+PySide2
 PyGFETdb
