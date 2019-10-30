@@ -17,9 +17,6 @@ def Divide(Dividend, Divisor):
     """
 
     ret = np.divide(Dividend, Divisor)
-    if type(ret) is np.ndarray:
-        return np.where(np.isfinite(ret), ret, Dividend)
-    if np.isfinite(ret):
-        return ret
-    else:
-        return Dividend
+    ret = np.where(np.isfinite(ret), ret, Dividend)
+
+    return ret
