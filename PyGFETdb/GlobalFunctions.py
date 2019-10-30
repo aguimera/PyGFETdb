@@ -18,5 +18,7 @@ def Divide(Dividend, Divisor):
 
     ret = np.divide(Dividend, Divisor)
     ret = np.where(np.isfinite(ret), ret, Dividend)
-
-    return ret
+    if ret.ndim == 0:
+        return ret.tolist()
+    else:
+        return ret
