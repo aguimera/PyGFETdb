@@ -400,22 +400,18 @@ class PyFETPlotParam(PyFETPlotBase):
                     else:
                         valx = Data[self.xVarProp[xVar][1]]
                 elif xVar == 'W/L':
-                    # TODO: Check division by zero
                     valx = g.Divide(Data['TrtTypes']['Width'], Data['TrtTypes']['Length'])
 
                 # Calc Y value
                 if axn == 'GmMax':
                     v = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
-                    # TODO: Check division by zero
                     valy = g.Divide(np.max(np.abs(v)), Data['Vds'][ivd])
                 elif axn == 'Rds':
                     v = np.polyval(Data['IdsPoly'][:, ivd], Vgs)
-                    # TODO: Check division by zero
                     valy = g.Divide(Data['Vds'][ivd], v)
                 elif axn == 'Vrms':
                     if 'GMPoly' in Data:
                         gm = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
-                        # TODO: Check division by zero
                         valy = interp1d(Data['Vgs'],
                                         g.Divide(Data['Irms'][:, ivd], np.abs(gm)))(Vgs)
                     else:
@@ -482,7 +478,6 @@ class PyFETPlot(PyFETPlotBase):
             else:
                 v = cy[self.ColorParams[ColorOn][1]]
         elif ColorOn == 'W/L':
-            #TODO: Check division by zero
             v = g.Divide(cy['TrtTypes']['Width'], cy['TrtTypes']['Length'])
 
         return v
@@ -585,7 +580,6 @@ class PyFETPlot(PyFETPlotBase):
                         if 'GMPoly' in Data:
                             gm = np.polyval(Data['GMPoly'][:, ivd],
                                             Data['Vgs'])
-                            # TODO: Check division by zero
                             Valy = g.Divide(Data['Irms'][:, ivd], np.abs(gm))
                         else:
                             continue
@@ -595,7 +589,7 @@ class PyFETPlot(PyFETPlotBase):
                     elif axn == 'GmMag':
                         Valy = np.abs(Data['gm'][svds][ivg, :])
                     elif axn == 'GmPh':
-                        Valy = np.angle(Data['gm'][svds][ivg, :])*180/np.pi
+                        Valy = g.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
                     elif axn == 'PSD':
                         Valy = Data[axn][svds][ivg, :]
                         if 'NoA' in Data:
@@ -607,7 +601,6 @@ class PyFETPlot(PyFETPlotBase):
                             Valy = np.polyval(Data['GMPoly'][:, ivd],
                                               Data['Vgs'])
                         else:
-                            # TODO: Check division by zero
                             Valy = g.Divide(np.diff(Data['Ids'][:, ivd]), np.diff(Data['Vgs']))
                             Valx = Valx[1:]  # To check
                     elif axn == 'Ids':
@@ -617,7 +610,6 @@ class PyFETPlot(PyFETPlotBase):
                                     np.polyval(Data['IdsPoly'][:, ivd],
                                                Data['Vgs']), 'k-', alpha=0.3)
                     elif axn == 'Rds':
-                        # TODO: Check division by zero
                         Valy = g.Divide(Data['Vds'][ivd], Data['Ids'][:, ivd])
                     elif axn == 'IrmsIds':
                         Valy = Data['Irms'][:, ivd]

@@ -36,13 +36,11 @@ def CalcDCparams (DevDC):   #calculates Dirac,MaxGM, Imin, Rmin,..
         chDC['Cicle']=ich  
         
         for ivd,Vds in enumerate(chDC['Vds']):
-            #TODO: Check division by zero
             Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
             #Calc Dirac
             Imin = np.min(chDC['Ids'][:,ivd])
             Ud = chDC['Vgs'][np.argmin(chDC['Ids'][:,ivd])]
             Rmin = np.min(Rds)
-            #TODO: Check division by zero
             gm = g.Divide(np.diff(chDC['Ids'][:, ivd]), np.diff(chDC['Vgs']))
             GMax = np.max(gm)
             
@@ -108,7 +106,6 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
             chAC=DevAC[Ch]
     
         for ivd,Vds in enumerate(chDC['Vds']):
-            #TODO: Check division by zero
             Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
             
             if np.any([Rds<RdsMin,Rds>RdsMax]):

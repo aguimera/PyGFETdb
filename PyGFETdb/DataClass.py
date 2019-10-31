@@ -16,7 +16,7 @@ from scipy.interpolate import interp1d
 from PyGFETdb import GlobalFunctions as g
 from PyGFETdb import PlotDataClass
 
-DebugPrint = True
+DebugPrint = False
 
 DefaultUnits = {'Vds': pq.V,
                 'Ud0': pq.V,
@@ -171,7 +171,7 @@ class DataCharDC(object):
         for ivd in iVds:
             ud0 = self.Ud0[ivd]
             if Normalize:
-                ud0 = ud0-(self.Vds[ivd]/2)
+                ud0 = ud0 - g.Divide(self.Vds[ivd], 2)
             Ud0 = np.vstack((Ud0, ud0)) if Ud0.size else ud0
 
         return self._FormatOutput(Ud0, **kwargs)
@@ -264,7 +264,6 @@ class DataCharDC(object):
                 vg = vgs
             gm = np.polyval(self.GMPoly[:, ivd], vg)
             if Normalize:
-                # TODO: Check division by zero
                 gm = g.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
 
@@ -290,7 +289,6 @@ class DataCharDC(object):
 
         Rds = np.array([])
         for iid, ivd in enumerate(iVds):
-            #TODO: Check division by zero
             rds = g.Divide(self.Vds[ivd], Ids[:, iid])
             Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
@@ -362,7 +360,7 @@ class DataCharDC(object):
 
             par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
-                par = par/self.Vds[ivd]
+                par = g.Divide(par, self.Vds[ivd])
             PAR = np.vstack((PAR, par)) if PAR.size else par
         
         return self._FormatOutput(PAR, **kwargs)
@@ -372,7 +370,7 @@ class DataCharDC(object):
         return self.Name
 
     def GetWL(self, **kwargs):
-        return self.TrtTypes['Width']/self.TrtTypes['Length']
+        return g.Divide(self.TrtTypes['Width'], self.TrtTypes['Length'])
 
     def GetPass(self, **kwargs):
         return self.TrtTypes['Pass']
@@ -405,7 +403,7 @@ class DataCharDC(object):
         return np.array(self.Info['AnalyteCon'])[None, None]
 
     def GetGds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Gds = 1 / self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        Gds = g.Divide(1, self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
         return Gds
 
     def GetGMNorm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
@@ -417,7 +415,7 @@ class DataCharDC(object):
 
 
 def Fnoise(f, a, b):
-    return a/f**b
+    return g.Divide(a, f ** b)
 
 
 def LogFnoise(f, a, b):
@@ -567,7 +565,7 @@ class DataCharAC(DataCharDC):
         if Irms is None:
             return None
         gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        return Irms/gm
+        return g.Divide(Irms, gm)
 
     def _CheckFitting(self, FFmin, FFmax):
         if FFmin is not None or FFmax is not None:
@@ -591,7 +589,7 @@ class DataCharAC(DataCharDC):
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return NoA/(Ids**2)
+        return g.Divide(NoA, (Ids ** 2))
 
     def GetIrmsVds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return self._GetParam('Irms', Vgs=Vgs, Vds=Vds,
@@ -600,17 +598,17 @@ class DataCharAC(DataCharDC):
     def GetIrmsIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/(Ids**2)
+        return g.Divide(Irms, (Ids ** 2))
 
     def GetIrmsIds15(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/(Ids**1.5)
+        return g.Divide(Irms, (Ids ** 1.5))
 
     def GetIrmsIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/Ids
+        return g.Divide(Irms, Ids)
 
 
 
@@ -657,7 +655,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 v = Data.__getattribute__(self.ColorParams[ColorOn][1])
         elif ColorOn == 'W/L':
             p = Data.__getattribute__('TrtTypes')
-            v = p['Width']/p['TrtTypes']['Length']
+            v = g.Divide(p['Width'], p['TrtTypes']['Length'])
         return v
 
     def PlotDataCh(self, DataDict, Trts, Vgs=None, Vds=None, Ud0Norm=False,

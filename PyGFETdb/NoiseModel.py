@@ -23,14 +23,12 @@ def Fnoise (f,a,b):
     '''
     return a/f^b
     '''
-    # TODO: Check division by zero
     return g.Divide(a, f ** b)
 
 def FnoiseTh (f,a,b,c):
     '''
     return a/f^b+c
     '''
-    # TODO: Check division by zero
     return g.Divide(a, f ** b + c)
 
 def LogFnoise (f,a,b):

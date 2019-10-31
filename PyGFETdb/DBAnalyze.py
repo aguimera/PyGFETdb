@@ -15,6 +15,7 @@ import numpy as np
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
+import PyGFETdb.GlobalFunctions as g
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
 
 
@@ -418,7 +419,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
         Rc[ivg] = res.params[0]
         RcMax[ivg] = res.bse[0]+res.params[0]
         RcMin[ivg] = -res.bse[0]+res.params[0]
-        LT[ivg] = (res.params[0]/res.params[1])/2
+        LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
     AxRc.fill_between(VGS, RcMax, RcMin,
@@ -523,11 +524,11 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
         Rsheet[ivg] = res.params[1] * Width
         RsheetMax[ivg] = (res.bse[1]+res.params[1]) * Width
         RsheetMin[ivg] = (-res.bse[1]+res.params[1]) * Width
-        Rc[ivg] = (res.params[0]/2) * (Width*1e6)
-        RcError = (res.bse[0]/2) * (Width*1e6)
+        Rc[ivg] = g.Divide(res.params[0], 2) * (Width * 1e6)
+        RcError = g.Divide(res.bse[0], 2) * (Width * 1e6)
         RcMax[ivg] = RcError+Rc[ivg]
         RcMin[ivg] = -RcError+Rc[ivg]
-        LT[ivg] = (res.params[0]/res.params[1])/2
+        LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
     AxRc.fill_between(VGS, RcMax, RcMin,

@@ -204,7 +204,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             name = DataSel['Name']
             v = float(len(Trts[name]))
             if Total > 0:
-                print(name, ' Yield -> ', v / Total)
+                print(name, ' Yield -> ', g.Divide(v, Total))
 
     return Data, Trts
 

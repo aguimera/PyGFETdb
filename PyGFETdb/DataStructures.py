@@ -10,12 +10,14 @@ Revsion history
 TODO implement graph for selected channels
 
 """
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
-#from PlotData import PlotDC, PlotAC
-import deepdish as dd
 import os.path
+
+# from PlotData import PlotDC, PlotAC
+import deepdish as dd
+import numpy as np
+
+
 #from DaqInterface import *
 
 ##############################################################################
@@ -30,7 +32,6 @@ import os.path
 #        DevDCVals = InitDCRecord(nVds=nVds, nVgs=nVgs, ChNames=ChNames)
 #    
 #    if not DevACVals:
-# TODO: Check division by zero
 #        Fpsd = np.fft.rfftfreq(ACchar.PSDnFFT,1/ACchar.PSDFs)
 #        Fgm = ACchar.SigFreqs
 #        DevACVals = InitACRecord(nVds=nVds, nVgs=nVgs[nACvgs], nFgm=Fgm, nFpsd=Fpsd, ChNames=ChNames)
