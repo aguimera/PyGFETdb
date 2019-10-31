@@ -256,6 +256,13 @@ def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None,
             if Function is not None:
                 Val = Function(Val)
 
+            # Added extra checks to make scripts compatible
+            # begin fix
+            if Val is None:
+                continue
+            if not type(Val) is tuple:
+                Val = (Val)
+            # end fix
             if InSide:
                 if Range[0] is None:
                     MinCond = False

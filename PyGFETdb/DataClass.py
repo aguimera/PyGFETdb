@@ -62,6 +62,12 @@ class DataCharDC(object):
         if 'Units' in kwargs:
             Par.rescale(kwargs['Units'])
 
+        # Added extra checks to make scripts compatible
+        # begin fix
+        if Par is not type(np.ndarray) and Par is not list and Par is not tuple:
+            Par = np.array(Par)
+        # end fix
+
         if not hasattr(Par, '__iter__'):
             return Par[None, None]
         s = Par.shape
