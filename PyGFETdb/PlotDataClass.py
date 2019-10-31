@@ -65,6 +65,9 @@ class PyFETPlotBase:
     def FigExists(self):
         return plt.fignum_exists(self.Fig.number)
 
+    # def ErasePlot(self):
+    #    return plt.delaxes()
+
     def AddAxes(self, AxNames, Xvar=None):
         self.Axs = {}
 
@@ -84,10 +87,12 @@ class PyFETPlotBase:
         self.Fig.tight_layout()
 
 
+
     def ClearAxes(self):
         for ax in self.Axs.values():
-            while ax.lines:
-                ax.lines[0].remove()
+            plt.delaxes(ax)
+        self.Axs = {}
+
 
     def SetAxesXLabels(self, Xvar=None):
 #        print 'empty'
@@ -315,11 +320,12 @@ class PyFETPlotBase:
                                          scilimits=scilimits)
 
     def AddLegend(self, Axn=None, fontsize='xx-small'):
-
         if Axn:
             Ax = self.Axs[Axn]
-        else:
+        elif self.Axs.keys():
             Ax = self.Axs[list(self.Axs.keys())[0]]
+        else:
+            return
 
         Ax.legend(fontsize=fontsize,
                   ncol=3, framealpha=0.2, loc=0)
@@ -421,6 +427,7 @@ class PyFETPlotParam(PyFETPlotBase):
                 else:
                     valy = interp1d(Data['Vgs'], Data[axn][:, ivd])(Vgs)
 
+                ax.plot()
                 # Plot data
                 ax.plot(valx, valy, self.mark, color=self.color)
 

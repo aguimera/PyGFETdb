@@ -10,12 +10,11 @@ import pickle
 import sys
 
 import matplotlib.pyplot as plt
+from pymysql.err import OperationalError
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt, QItemSelectionModel
 from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
 from qtpy.QtWidgets import QHeaderView, QMessageBox
-
-from pymysql.err import OperationalError
 
 import PyGFETdb.AnalyzeData as PyFETData
 import PyGFETdb.DBCore as PyFETdb
@@ -777,20 +776,25 @@ class AppDataExp(QtWidgets.QMainWindow):
             del self.PlotFreq
             self.CreateNewPlotFreq()
 
-        self.PlotFreq.ClearAxes()
+        self.UpdateAxes()
         self.PlotFreq.Plot(self.Data[trt][cy], iVds=ivds, iVgs=ivgs,
                            ColorOnVgs=True)
-        self.PlotFreq.Fig.canvas.draw()
+        plt.show()
 
     def CreateNewPlotFreq(self):
         print ('New plot')
         self.PlotFreq = PyFETpl.PyFETPlot()
+        self.PlotFreq.Fig.canvas.draw_idle()
+        self.UpdateAxes(False)
+
+    def UpdateAxes(self, clear=True):
+        if clear:
+            self.PlotFreq.ClearAxes()
         Axs = []
         for ck in self.GrpFreq.findChildren(QtWidgets.QCheckBox):
             if ck.isChecked():
                 Axs.append(ck.text())
         self.PlotFreq.AddAxes(Axs)
-
 
 def main():
     import argparse
@@ -807,12 +811,16 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
 
     try:
+        plt.ion()
         w = DBViewApp()
         w.show()
     except AttributeError:
         # if an attribute is accessed without proper initialization...
         print("Fatal error. Stopping...")
         sys.exit(-1)
+    except KeyboardInterrupt:
+        # if the app is interrupted, do nothing
+        pass
     sys.exit(app.exec_())
 
 
