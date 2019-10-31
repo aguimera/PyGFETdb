@@ -82,7 +82,7 @@ class PyFETPlotBase:
         self.SetAxesLabels()
         self.SetAxesXLabels(Xvar)
         self.Fig.tight_layout()
-        plt.show()
+
 
     def ClearAxes(self):
         for ax in self.Axs.values():
@@ -362,6 +362,7 @@ class PyFETPlotParam(PyFETPlotBase):
                     self.Plot(cy, xVar, Bias, PltUd0)
                 except:  # TODO: catch *all* exceptions
                     print (TrtN, cyn, sys.exc_info()[0])
+        plt.show()
 
     def Plot(self, Data, xVar, Bias, PltUd0):
 
@@ -515,6 +516,7 @@ class PyFETPlot(PyFETPlotBase):
                     self.Plot(cy, PltUd0=PltUd0, PltIsOK=PltIsOK)
                 except KeyError:
                     print(TrtN, cyn, sys.exc_info())
+        plt.show()
 
     def Plot(self, Data, iVds=None, iVgs=None,
              PltUd0=False, PltIsOK=False, ColorOnVgs=False):
@@ -638,3 +640,4 @@ class PyFETPlot(PyFETPlotBase):
                                 Mark,
                                 color=self.color,
                                 label=label)
+
