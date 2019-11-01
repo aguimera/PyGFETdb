@@ -18,17 +18,7 @@ from PyGFETdb import PlotDataClass
 
 DebugPrint = False
 
-DefaultUnits = {'Vds': pq.V,
-                'Ud0': pq.V,
-#                'PSD': pq.A**2/pq.Hz,
-#                'Fgm': pq.S,
-#                'gm': pq.S,
-                'Vgs': pq.V,
-#                'Fpsd': pq.Hz,
-#                'Ig': pq.A,
-                'Irms': pq.V,
-                'Ids': pq.A,
-                }
+
 
 
 class DataCharDC(object):
@@ -50,22 +40,28 @@ class DataCharDC(object):
                         print ('NaN in gate values')
                 else:
                     self.__setattr__('Ig', v['Ig'])
-#            if k in DefaultUnits:
-##                print(k, v, DefaultUnits[k])
-#                v = v * DefaultUnits[k]
+
+            # if Quantity support is activated
+            #   assign the proper unit
+            if g.Quantities and g.isQuantity(k):
+                v = g.createDefaultQuantity(k, v)
+
             self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
-           
-    def _FormatOutput(self, Par, **kwargs):
-        if 'Units' in kwargs:
-            Par.rescale(kwargs['Units'])
 
-        # Added extra checks to make scripts compatible
+    def _FormatOutput(self, Par, **kwargs):
+
+        if g.Quantities and 'Units' in kwargs:  # Quantities support
+            Par = Par.rescale(kwargs['Units'])
+
+        # Added extra checks to add Quantities support
         # begin fix
-        if Par is not type(np.ndarray) and Par is not list and Par is not tuple:
+        if type(Par) is float or type(Par) is int:
             Par = np.array(Par)
+        elif type(Par) is pq.Quantity:
+            return Par
         # end fix
 
         if not hasattr(Par, '__iter__'):
@@ -222,9 +218,9 @@ class DataCharDC(object):
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None
-
+        # TODO: Check Vgs range
         if Vgs is not None:
-            vgs = Vgs  # TODO: Check Vgs range
+            vgs = g.createDefaultQuantity('Vgs', Vgs)  # Quantities support
         else:
             vgs = self.Vgs
 
@@ -237,19 +233,19 @@ class DataCharDC(object):
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
-            ids = np.polyval(self.IdsPoly[:, ivd], vg)
+            ids = np.polyval(self.IdsPoly[:, ivd], vg.data)
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
-        Ids = Ids * DefaultUnits['Ids']
+        Ids = g.createDefaultQuantity('Ids', Ids)  # Quantity support
         return self._FormatOutput(Ids, **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None
-
+        # TODO: Check Vgs range
         if Vgs is not None:
-            vgs = Vgs  # TODO: Check Vgs range
+            vgs = g.createDefaultQuantity("Vgs", Vgs)  # Quantities support
         else:
             vgs = self.Vgs
 
@@ -262,7 +258,12 @@ class DataCharDC(object):
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
-            gm = np.polyval(self.GMPoly[:, ivd], vg)
+
+            gm = np.polyval(self.GMPoly[:, ivd], vg.data)
+
+            # Assign proper units
+            gm = g.createDefaultQuantity('gm', gm)  # Quantity support
+
             if Normalize:
                 gm = g.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
@@ -287,10 +288,13 @@ class DataCharDC(object):
 
         iVds = self.GetVdsIndexes(Vds)
 
-        Rds = np.array([])
-        for iid, ivd in enumerate(iVds):
-            rds = g.Divide(self.Vds[ivd], Ids[:, iid])
-            Rds = np.vstack((Rds, rds)) if Rds.size else rds
+        if type(Ids) is pq.Quantity:  # Quantity support
+            Rds = g.Divide(self.Vds, Ids)
+        else:
+            Rds = np.array([])
+            for iid, ivd in enumerate(iVds):
+                rds = g.Divide(self.Vds[ivd], Ids[:, iid])
+                Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
         return self._FormatOutput(Rds, **kwargs)
 
@@ -317,6 +321,7 @@ class DataCharDC(object):
 
     def CheckVgsRange(self, Vgs, iVds, Ud0Norm):
         if Vgs is not None:
+            Vgs = g.createDefaultQuantity("Vgs", Vgs)
             for ivd in iVds:
                 if Ud0Norm is None or Ud0Norm is False:
                     vg = Vgs
@@ -349,7 +354,8 @@ class DataCharDC(object):
         if Param not in self.__dict__:
             print ('Not Data')
             return None
-        Par = self.__getattribute__(Param)
+        Par: np.ndarray = self.__getattribute__(Param)
+
 
         PAR = np.array([])
         for ivd in iVds:
@@ -357,14 +363,14 @@ class DataCharDC(object):
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
-
             par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
                 par = g.Divide(par, self.Vds[ivd])
+
             PAR = np.vstack((PAR, par)) if PAR.size else par
-        
-        return self._FormatOutput(PAR, **kwargs)
-    
+
+        return self._FormatOutput(g.returnQuantity(PAR, Param, **kwargs), **kwargs)  # Quantity support
+
 
     def GetName(self, **kwargs):
         return self.Name
@@ -511,14 +517,20 @@ class DataCharAC(DataCharDC):
         Irms = np.ones((nVgs, nVds))*np.NaN
         for ivd in range(nVds):
             for ivg in range(nVgs):
-                psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
+                if type(self.PSD) is pq.Quantity:
+                    # raise NotImplementedError
+                    # FIXME: Proper
+                    psd = self.PSD
+                    psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
+                else:
+                    psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
                 Fpsd = self.Fpsd
                 if np.any(np.isnan(psd)):
                     continue
 
                 Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
                 Irms[ivg, ivd] = np.sqrt(simps(psd[Inds], Fpsd[Inds]))
-        self.Irms = Irms
+        self.Irms = g.createDefaultQuantity('Irms', Irms)
 
     def GetPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
@@ -558,7 +570,7 @@ class DataCharAC(DataCharDC):
     def GetIrms(self, Vgs=None, Vds=None, Ud0Norm=False,
                 NFmin=None, NFmax=None, **kwargs):
         self._CheckRMS(NFmax=NFmax, NFmin=NFmin)
-        return self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetVrms(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self.GetIrms(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)

@@ -12,6 +12,7 @@ import matplotlib.cm as cmx
 import matplotlib.colors as mpcolors
 import matplotlib.pyplot as plt
 import numpy as np
+import quantities as pq
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
@@ -34,7 +35,6 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                 Color='r', PlotOverlap=False, PlotOverlapMean=False,
                 PlotStd=True,
                 label=None, ScaleFactor=1, **kwargs):
-
     fontsize = 'medium'
     labelsize = 5
     scilimits = (-2, 2)
@@ -81,7 +81,7 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
         xlscol = 0
         kwargs['xlsSheet'].write(0, xlscol, Xvar + ' - ' + Yvar)
         for ivr, vr in enumerate(ValX):
-            kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
+            kwargs['xlsSheet'].write(ivr + 1, xlscol, vr)
 
     for Trtn, Datas in Data.items():
         for Dat in Datas:
@@ -96,7 +96,7 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
                         xlscol = xlscol + 1
                         kwargs['xlsSheet'].write(0, xlscol, Trtn)
                         for ivr, vr in enumerate(Valy):
-                            kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
+                            kwargs['xlsSheet'].write(ivr + 1, xlscol, vr)
 
                     if PlotOverlapMean:
                         Ax.plot(ValX, Valy, color=Color, alpha=0.2)
@@ -105,23 +105,23 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
         avg = np.mean(ValY, axis=1)
         std = np.std(ValY, axis=1)
         Ax.plot(ValX, avg, color=Color, label=label)
-        if PlotStd: 
-            Ax.fill_between(ValX, avg+std, avg-std,
-                             color=Color,
-                             linewidth=0.0,
-                             alpha=0.3)
+        if PlotStd:
+            Ax.fill_between(ValX, avg + std, avg - std,
+                            color=Color,
+                            linewidth=0.0,
+                            alpha=0.3)
 
     if 'xlsSheet' in list(kwargs.keys()):
         xlscol = xlscol + 1
         kwargs['xlsSheet'].write(0, xlscol, 'Avg')
         for ivr, vr in enumerate(avg):
-            kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
+            kwargs['xlsSheet'].write(ivr + 1, xlscol, vr)
 
     if 'xlsSheet' in list(kwargs.keys()):
         xlscol = xlscol + 1
         kwargs['xlsSheet'].write(0, xlscol, 'Std')
         for ivr, vr in enumerate(std):
-            kwargs['xlsSheet'].write(ivr+1, xlscol, vr)
+            kwargs['xlsSheet'].write(ivr + 1, xlscol, vr)
 
     if 'xscale' in list(kwargs.keys()):
         Ax.set_xscale(kwargs['xscale'])
@@ -140,7 +140,6 @@ def PlotMeanStd(Data, Xvar, Yvar, Vgs=None, Vds=None, Ax=None, Ud0Norm=True,
 
 def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
                Ax=None, Color=None, **kwargs):
-
     fontsize = 'medium'
     labelsize = 5
     scilimits = (-2, 2)
@@ -158,7 +157,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
                     Valx = funcX(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
                     Valy = funcY(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
                     Ax.plot(Valx, Valy, '*', color=Color, label=label)
-                except:  #TODO: catch *all* exceptions
+                except:  # TODO: catch *all* exceptions
                     print(Dat.Name, sys.exc_info()[0])
 
     if 'xscale' in list(kwargs.keys()):
@@ -166,7 +165,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
     elif Xvar != 'DateTime':
         try:
             Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
-        except:   # TODO: catch *all* exceptions
+        except:  # TODO: catch *all* exceptions
             print('Formating error')
 
     if 'yscale' in list(kwargs.keys()):
@@ -180,10 +179,11 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
     Ax.set_ylabel(Yvar, fontsize=fontsize)
     Ax.set_xlabel(Xvar, fontsize=fontsize)
     Ax.tick_params(axis='both', which='Both', labelsize=labelsize)
-    
+
 
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-    Vals = np.array([])
+    Vals = g.createQuantityList()
+
     for Trtn, Datas in Data.items():
         for Dat in Datas:
             func = Dat.__getattribute__('Get' + Param)
@@ -191,12 +191,19 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
             try:
                 Val = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
             except:  # TODO: catch *all* exceptions
-                print(Dat.Name, sys.exc_info()[0])
+                print(Dat.Name, Param, sys.exc_info()[0])
                 Val = None
-    
+
             if Val is not None:
-                Vals = np.hstack((Vals, Val)) if Vals.size else Val
-    return Vals
+                if type(Val) is pq.Quantity:
+                    Vals = g.appendQuantity(Vals, Val)
+                else:
+                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+
+    if not g.Quantities:
+        return Vals
+    else:
+        return [Vals]
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):
@@ -216,8 +223,13 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 
         if len(Data) > 0:
             vals = GetParam(Data, **kwargs)
+
+            if g.Quantities:  # if Quantities is activated
+                vals = np.array(vals)  # convert the results into an array
+
             if vals is None:
                 continue
+
             if vals.size == 0:
                 continue
 
@@ -227,14 +239,14 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
             if 'XlsFile' in list(kwargs.keys()):
                 xlssheet.write(0, iGr, Grn)
                 for ivr, vr in enumerate(vals):
-                    xlssheet.write(ivr+1, iGr, vr)
+                    xlssheet.write(ivr + 1, iGr, vr)
 
             if Plot:
                 if Boxplot:
-                    Ax.boxplot(vals.transpose(), positions=(iGr+1,))
-                    xPos.append(iGr+1)
+                    Ax.boxplot(vals.transpose(), positions=(iGr + 1,))
+                    xPos.append(iGr + 1)
                 else:
-                    Ax.plot(np.ones(len(vals))*iGr, vals, '*')
+                    Ax.plot(np.ones(len(vals)) * iGr, vals, '*')
                     xPos.append(iGr)
                 xLab.append(Grn)
         else:
@@ -243,14 +255,14 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
     if Plot:
         plt.xticks(xPos, xLab, rotation=45)
         if ParamUnits is not None:
-            Ax.set_ylabel(kwargs['Param']+ ParamUnits)
+            Ax.set_ylabel(kwargs['Param'] + ParamUnits)
         else:
             Ax.set_ylabel(kwargs['Param'])
-            
+
         Ax.grid()
         Ax.ticklabel_format(axis='y', style='sci', scilimits=(2, 2))
         if len(xPos) > 1:
-            Ax.set_xlim(min(xPos)-0.5, max(xPos)+0.5)
+            Ax.set_xlim(min(xPos) - 0.5, max(xPos) + 0.5)
         if 'Vgs' in kwargs and 'Vds' in kwargs:
             title = 'Vgs {} Vds {}'.format(kwargs['Vgs'], kwargs['Vds'])
             plt.title(title)
@@ -284,7 +296,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
                 if 'XlsFile' in list(kwargs.keys()):
                     xlssheet = xlswbook.add_worksheet(str(Grn))
                     kwargs['xlsSheet'] = xlssheet
-            except: # TODO: catch *all* exceptions
+            except:  # TODO: catch *all* exceptions
                 print('Error in excel generation')
 
             try:
@@ -292,7 +304,7 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
                      Color=next(col),
                      label=Grn,
                      **kwargs)
-            except:     #TODO: catch *all* exceptions
+            except:  # TODO: catch *all* exceptions
                 print(Grn, 'ERROR --> ', sys.exc_info()[0])
         else:
             print('Empty data for ', Grn)
@@ -315,7 +327,6 @@ def SearchAndPlot(Groups, Func=PlotMeanStd, **kwargs):
 
 
 def PlotGroupBy(GroupBase, GroupBy, **kwargs):
-
     GroupList = FindCommonValues(Table=GroupBase['Table'],
                                  Conditions=GroupBase['Conditions'],
                                  Parameter=GroupBy)
@@ -330,8 +341,8 @@ def PlotGroupBy(GroupBase, GroupBy, **kwargs):
 
     return SearchAndPlot(Groups=Groups, **kwargs)
 
-def PlotGroupBySearchAndGetParam(GroupBase, GroupBy, **kwargs):
 
+def PlotGroupBySearchAndGetParam(GroupBase, GroupBy, **kwargs):
     GroupList = FindCommonValues(Table=GroupBase['Table'],
                                  Conditions=GroupBase['Conditions'],
                                  Parameter=GroupBy)
@@ -350,9 +361,9 @@ def PlotGroupBySearchAndGetParam(GroupBase, GroupBy, **kwargs):
 def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
             DebugPlot=False, Label=None):
     if Ax is None:
-        fig,  AxRs = plt.subplots()
+        fig, AxRs = plt.subplots()
         AxRc = AxRs.twinx()
-        fig1,  AxLT = plt.subplots()
+        fig1, AxLT = plt.subplots()
     else:
         AxRc = Ax[0]
         AxRs = Ax[1]
@@ -381,13 +392,13 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
     VxMin = np.max(VxMin)
     VGS = np.linspace(VxMin, VxMax, PointsInRange)
 
-    Rsheet = np.ones(VGS.size)*np.NaN
-    RsheetMax = np.ones(VGS.size)*np.NaN
-    RsheetMin = np.ones(VGS.size)*np.NaN
-    Rc = np.ones(VGS.size)*np.NaN
-    RcMax = np.ones(VGS.size)*np.NaN
-    RcMin = np.ones(VGS.size)*np.NaN
-    LT = np.ones(VGS.size)*np.NaN
+    Rsheet = np.ones(VGS.size) * np.NaN
+    RsheetMax = np.ones(VGS.size) * np.NaN
+    RsheetMin = np.ones(VGS.size) * np.NaN
+    Rc = np.ones(VGS.size) * np.NaN
+    RcMax = np.ones(VGS.size) * np.NaN
+    RcMin = np.ones(VGS.size) * np.NaN
+    LT = np.ones(VGS.size) * np.NaN
 
     if DebugPlot:
         plt.figure()
@@ -414,11 +425,11 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
         X = sm.add_constant(X)
         res = sm.OLS(Y, X).fit()
         Rsheet[ivg] = res.params[1] * Width
-        RsheetMax[ivg] = (res.bse[1]+res.params[1]) * Width
-        RsheetMin[ivg] = (-res.bse[1]+res.params[1]) * Width
+        RsheetMax[ivg] = (res.bse[1] + res.params[1]) * Width
+        RsheetMin[ivg] = (-res.bse[1] + res.params[1]) * Width
         Rc[ivg] = res.params[0]
-        RcMax[ivg] = res.bse[0]+res.params[0]
-        RcMin[ivg] = -res.bse[0]+res.params[0]
+        RcMax[ivg] = res.bse[0] + res.params[0]
+        RcMin[ivg] = -res.bse[0] + res.params[0]
         LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
@@ -452,11 +463,11 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
 
 
 def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
-            DebugPlot=False, Label=None, Lerror=0.4e-6, TrackResistance=None):
+             DebugPlot=False, Label=None, Lerror=0.4e-6, TrackResistance=None):
     if Ax is None:
-        fig,  AxRs = plt.subplots()
+        fig, AxRs = plt.subplots()
         AxRc = AxRs.twinx()
-        fig1,  AxLT = plt.subplots()
+        fig1, AxLT = plt.subplots()
     else:
         AxRc = Ax[0]
         AxRs = Ax[1]
@@ -486,13 +497,13 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
     VxMin = np.max(VxMin)
     VGS = np.linspace(VxMin, VxMax, PointsInRange)  # Generate VGS common range
 
-    Rsheet = np.ones(VGS.size)*np.NaN
-    RsheetMax = np.ones(VGS.size)*np.NaN
-    RsheetMin = np.ones(VGS.size)*np.NaN
-    Rc = np.ones(VGS.size)*np.NaN
-    RcMax = np.ones(VGS.size)*np.NaN
-    RcMin = np.ones(VGS.size)*np.NaN
-    LT = np.ones(VGS.size)*np.NaN
+    Rsheet = np.ones(VGS.size) * np.NaN
+    RsheetMax = np.ones(VGS.size) * np.NaN
+    RsheetMin = np.ones(VGS.size) * np.NaN
+    Rc = np.ones(VGS.size) * np.NaN
+    RcMax = np.ones(VGS.size) * np.NaN
+    RcMin = np.ones(VGS.size) * np.NaN
+    LT = np.ones(VGS.size) * np.NaN
 
     if DebugPlot:
         plt.figure()
@@ -504,7 +515,7 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
             if len(Data) > 0:
                 for Trtn, Datas in Data.items():
                     for Dat in Datas:
-                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)                        
+                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)
                         if TrackResistance is not None:
                             rds = rds - TrackResistance[Dat.Name.split('-')[-1][1:]]
                         Y = np.vstack((Y, rds)) if Y.size else rds
@@ -522,12 +533,12 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
         X = sm.add_constant(X)
         res = sm.OLS(Y, X).fit()
         Rsheet[ivg] = res.params[1] * Width
-        RsheetMax[ivg] = (res.bse[1]+res.params[1]) * Width
-        RsheetMin[ivg] = (-res.bse[1]+res.params[1]) * Width
+        RsheetMax[ivg] = (res.bse[1] + res.params[1]) * Width
+        RsheetMin[ivg] = (-res.bse[1] + res.params[1]) * Width
         Rc[ivg] = g.Divide(res.params[0], 2) * (Width * 1e6)
         RcError = g.Divide(res.bse[0], 2) * (Width * 1e6)
-        RcMax[ivg] = RcError+Rc[ivg]
-        RcMin[ivg] = -RcError+Rc[ivg]
+        RcMax[ivg] = RcError + Rc[ivg]
+        RcMin[ivg] = -RcError + Rc[ivg]
         LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
