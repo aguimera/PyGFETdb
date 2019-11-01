@@ -15,9 +15,10 @@ Quantities = True
 
 DefaultUnits = {'Vds': pq.V,
                 'Ud0': pq.V,
-                # 'PSD': pq.A**2/pq.Hz, # TODO: Fix PSD quantity implementation
+                'PSD': pq.A ** 2 / pq.Hz,
                 'Fgm': pq.S,
                 'gm': pq.S,
+                'gmV': pq.S,
                 'Vgs': pq.V,
                 'Fpsd': pq.Hz,
                 'Ig': pq.A,
@@ -90,6 +91,20 @@ def appendQuantity(vals, val):
     vals[len(vals):] = [val]
     return vals
 
+
+def rescaleFromKey(qtylist, units, **kwargs):
+    """
+
+    :param qtylist: The input list of Quantities
+    :param units: The units to rescale
+    :param kwargs: Keyword arguments
+    :return:
+    """
+    ret = createQuantityList()
+    if qtylist and units:
+        for qty in enumerate(qtylist):
+            ret = appendQuantity(ret, returnQuantity(qty[1], kwargs.update({'Units': units})))
+    return ret
 
 def Divide(Dividend, Divisor):
     """

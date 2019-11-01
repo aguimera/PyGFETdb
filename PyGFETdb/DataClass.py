@@ -517,11 +517,8 @@ class DataCharAC(DataCharDC):
         Irms = np.ones((nVgs, nVds))*np.NaN
         for ivd in range(nVds):
             for ivg in range(nVgs):
-                if type(self.PSD) is pq.Quantity:
-                    # raise NotImplementedError
-                    # FIXME: Proper
-                    psd = self.PSD
-                    psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
+                if type(self.PSD) is pq.Quantity:  # Quantities Support
+                    psd = self.PSD.item(0)['Vd{}'.format(ivd)][ivg, :]
                 else:
                     psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
                 Fpsd = self.Fpsd

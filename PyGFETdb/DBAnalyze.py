@@ -225,8 +225,11 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
             vals = GetParam(Data, **kwargs)
 
             if g.Quantities:  # if Quantities is activated
-                vals = np.array(vals)  # convert the results into an array
-
+                if ParamUnits:
+                    qtyvals = g.rescaleFromKey(vals, ParamUnits)
+                    vals = np.array(qtyvals)  # convert the results into an array
+                else:
+                    vals = np.array(vals)
             if vals is None:
                 continue
 
@@ -255,7 +258,7 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
     if Plot:
         plt.xticks(xPos, xLab, rotation=45)
         if ParamUnits is not None:
-            Ax.set_ylabel(kwargs['Param'] + ParamUnits)
+            Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
         else:
             Ax.set_ylabel(kwargs['Param'])
 
