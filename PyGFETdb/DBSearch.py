@@ -13,6 +13,9 @@ import PyGFETdb.DBCore as PyFETdb
 from PyGFETdb import GlobalFunctions as g
 from PyGFETdb.DataClass import DataCharAC
 
+# Log file
+log = 'pyGFETdb.log'
+
 
 def GenGroups(GroupBase, GroupBy, LongName=True):
     GroupList = FindCommonValues(Table=GroupBase['Table'],
@@ -157,6 +160,8 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
     """
 
+    logging.basicConfig(filename=log, level=logging.DEBUG)
+
     Conditions = CheckConditionsCharTable(Conditions, Table)
 
     MyDb = PyFETdb.PyFETdb()
@@ -247,6 +252,8 @@ def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None,
                   ParArgs={'Vgs': None,
                            'Vds': None,
                            'Ud0Norm': False}):
+    logging.basicConfig(filename=log, level=logging.DEBUG)
+
     DataFilt = {}
     for Trtn, Datas in Data.items():
         DatTrt = []
