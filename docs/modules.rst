@@ -2,6 +2,6 @@ PyGFETdb
 ========
 
 .. toctree::
-   :maxdepth: 12
+   :maxdepth: 4
 
    PyGFETdb
