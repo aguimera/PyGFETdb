@@ -118,6 +118,23 @@ def rescaleFromKey(qtylist, units):
         return ret
 
 
+def getQuantityUnits(qtylist):
+    """
+
+    :param qtylist: The Quantity-like to obtain the units from
+    :return: A string with the proper units in latex format for easy plotting
+    """
+    ret = None
+    if qtylist:
+        if type(qtylist) is pq.Quantity:
+            return qtylist.dimensionality.latex
+        elif type(qtylist) is list:
+            if len(qtylist):
+                if len(qtylist[0]):
+                    return qtylist[0][0].dimensionality.latex
+    return ret
+
+
 def Divide(Dividend, Divisor):
     """
     :param Dividend: the Quantity-like to be divided.
