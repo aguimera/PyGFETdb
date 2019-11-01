@@ -9,6 +9,7 @@ import numpy as np
 import quantities as pq
 
 Quantities = True
+# Quantities = False
 """
  Activate python-quantities support
 """
@@ -25,6 +26,7 @@ DefaultUnits = {'Vds': pq.V,
                 'Irms': pq.V,
                 'Vrms': pq.V / pq.S,
                 'Ids': pq.A,
+                'Rds': pq.V / pq.A
                 }
 """
  Dictionary with the association between PlotParameters and Units
@@ -64,12 +66,11 @@ def returnQuantity(param, unitKey=None, **kwargs):
     if not Quantities:
         return param
     unit = DefaultUnits.get(unitKey)
-    if type(param) is pq.Quantity or (not (unit or 'Units' in kwargs)):
+
+    if type(param) is pq.Quantity or not unit:
         return param
-    qty = pq.Quantity(param, unit)
-    if 'Units' in kwargs:
-        qty = qty.rescale(kwargs.get('Units'))
-    return qty
+    else:
+        return pq.Quantity(param, unit)
 
 
 def createQuantityList():
@@ -92,7 +93,7 @@ def appendQuantity(vals, val):
     return vals
 
 
-def rescaleFromKey(qtylist, units, **kwargs):
+def rescaleFromKey(qtylist, units):
     """
 
     :param qtylist: The input list of Quantities
@@ -102,8 +103,9 @@ def rescaleFromKey(qtylist, units, **kwargs):
     """
     ret = createQuantityList()
     if qtylist and units:
-        for qty in enumerate(qtylist):
-            ret = appendQuantity(ret, returnQuantity(qty[1], kwargs.update({'Units': units})))
+        for enum in enumerate(qtylist):
+            for qty in enumerate(enum[1]):
+                ret = appendQuantity(ret, qty[1].rescale(units))
     return ret
 
 def Divide(Dividend, Divisor):

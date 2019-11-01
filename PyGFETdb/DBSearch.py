@@ -116,9 +116,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         This function returns data which meets with "Conditions" dictionary for sql
         select query constructor.
 
-        Parameters:
-        -----------
-            Conditions : dictionary, conditions to construct the sql select query.
+        :param: Conditions : dictionary, conditions to construct the sql select query.
                 The dictionary should follow this structure:\n
                 {'Table.Field <sql operator>' : iterable type of values}
                 Example:
@@ -126,19 +124,19 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                 {'Wafers.Name = ':(B10803W17, B10803W11),
                 'CharTable.IsOK > ':(0,)}
 
-            Table : string, optional. Posible values 'ACcharacts' or 'DCcharacts'.
+        :param: Table : string, optional. Posible values 'ACcharacts' or 'DCcharacts'.
                 The default value is 'ACcharacts'. Characterization table to get data
 
                 The characterization table of Conditions dictionary can be indicated
                 as 'CharTable'. In that case 'CharTable' will be replaced by Table
                 value.
 
-            Last : bolean, optional. If True (default value) just the last measured
+        :param: Last : bolean, optional. If True (default value) just the last measured
                 data for each transistor is returned. If False, all measured data is
                 returned
-            Last : bolean, optional. If True (default value) the gate measured data
+        :param: Last : bolean, optional. If True (default value) the gate measured data
                 is also obtained
-            OutilerFilter : dictionary, optional. (default 'None'),
+        :param: OutilerFilter : dictionary, optional. (default 'None'),
                 If defined, dictionary to perform a statistical pre-evaluation of the
                 data. The data that are not between the p25 and p75 percentile are
                 not returned. The dictionary should follow this structure:
@@ -147,16 +145,11 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                 'Vds':Value,   --> Vds evaluationd point
                 'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
 
-        Returns:
-        --------
-            Return : tupple of (Data, Trts)
-                Data: Dictionary with the data arranged as follows:
-                {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
 
-                Trts: List of transistors
+        :return: Data: Dictionary with the data arranged as follows:
+                        {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
 
-        Examples:
-        ---------
+        :return: Trts: List of transistors
 
     """
 
