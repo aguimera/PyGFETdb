@@ -31,7 +31,7 @@ DefaultUnits = {'Vds': pq.V,
 """
 
 
-def isQuantity(key):
+def isQuantityKey(key):
     return DefaultUnits.get(key) is not None
 
 

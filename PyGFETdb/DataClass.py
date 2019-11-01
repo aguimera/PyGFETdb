@@ -43,7 +43,7 @@ class DataCharDC(object):
 
             # if Quantity support is activated
             #   assign the proper unit
-            if g.Quantities and g.isQuantity(k):
+            if g.Quantities and g.isQuantityKey(k):
                 v = g.createDefaultQuantity(k, v)
 
             self.__setattr__(k, v)
