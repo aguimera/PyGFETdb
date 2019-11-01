@@ -13,8 +13,10 @@ import numpy as np
 import scipy.optimize as optim
 from scipy.integrate import simps
 
-from PyGFETdb import GlobalFunctions as g
+from PyGFETdb import qty
 
+
+# from PyGFETdb import GlobalFunctions as glb
 
 ###############################################################################
 #### !/f noise functions
@@ -23,13 +25,13 @@ def Fnoise (f,a,b):
     '''
     return a/f^b
     '''
-    return g.Divide(a, f ** b)
+    return qty.Divide(a, f ** b)
 
 def FnoiseTh (f,a,b,c):
     '''
     return a/f^b+c
     '''
-    return g.Divide(a, f ** b + c)
+    return qty.Divide(a, f ** b + c)
 
 def LogFnoise (f,a,b):
     '''

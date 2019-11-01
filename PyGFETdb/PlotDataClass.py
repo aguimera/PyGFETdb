@@ -17,8 +17,11 @@ import numpy as np
 from matplotlib import gridspec
 from scipy.interpolate import interp1d
 
-import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.NoiseModel as noise
+from PyGFETdb import qty
+
+
+# import PyGFETdb.GlobalFunctions as global
 
 
 class MyCycle():
@@ -400,20 +403,20 @@ class PyFETPlotParam(PyFETPlotBase):
                     else:
                         valx = Data[self.xVarProp[xVar][1]]
                 elif xVar == 'W/L':
-                    valx = g.Divide(Data['TrtTypes']['Width'], Data['TrtTypes']['Length'])
+                    valx = qty.Divide(Data['TrtTypes']['Width'], Data['TrtTypes']['Length'])
 
                 # Calc Y value
                 if axn == 'GmMax':
                     v = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
-                    valy = g.Divide(np.max(np.abs(v)), Data['Vds'][ivd])
+                    valy = qty.Divide(np.max(np.abs(v)), Data['Vds'][ivd])
                 elif axn == 'Rds':
                     v = np.polyval(Data['IdsPoly'][:, ivd], Vgs)
-                    valy = g.Divide(Data['Vds'][ivd], v)
+                    valy = qty.Divide(Data['Vds'][ivd], v)
                 elif axn == 'Vrms':
                     if 'GMPoly' in Data:
                         gm = np.polyval(Data['GMPoly'][:, ivd], Data['Vgs'])
                         valy = interp1d(Data['Vgs'],
-                                        g.Divide(Data['Irms'][:, ivd], np.abs(gm)))(Vgs)
+                                        qty.Divide(Data['Irms'][:, ivd], np.abs(gm)))(Vgs)
                     else:
                         continue
                 elif axn == 'Ud0':
@@ -478,7 +481,7 @@ class PyFETPlot(PyFETPlotBase):
             else:
                 v = cy[self.ColorParams[ColorOn][1]]
         elif ColorOn == 'W/L':
-            v = g.Divide(cy['TrtTypes']['Width'], cy['TrtTypes']['Length'])
+            v = qty.Divide(cy['TrtTypes']['Width'], cy['TrtTypes']['Length'])
 
         return v
 
@@ -580,7 +583,7 @@ class PyFETPlot(PyFETPlotBase):
                         if 'GMPoly' in Data:
                             gm = np.polyval(Data['GMPoly'][:, ivd],
                                             Data['Vgs'])
-                            Valy = g.Divide(Data['Irms'][:, ivd], np.abs(gm))
+                            Valy = qty.Divide(Data['Irms'][:, ivd], np.abs(gm))
                         else:
                             continue
                     elif axn == 'Ig':
@@ -589,7 +592,7 @@ class PyFETPlot(PyFETPlotBase):
                     elif axn == 'GmMag':
                         Valy = np.abs(Data['gm'][svds][ivg, :])
                     elif axn == 'GmPh':
-                        Valy = g.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
+                        Valy = qty.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
                     elif axn == 'PSD':
                         Valy = Data[axn][svds][ivg, :]
                         if 'NoA' in Data:
@@ -601,7 +604,7 @@ class PyFETPlot(PyFETPlotBase):
                             Valy = np.polyval(Data['GMPoly'][:, ivd],
                                               Data['Vgs'])
                         else:
-                            Valy = g.Divide(np.diff(Data['Ids'][:, ivd]), np.diff(Data['Vgs']))
+                            Valy = qty.Divide(np.diff(Data['Ids'][:, ivd]), np.diff(Data['Vgs']))
                             Valx = Valx[1:]  # To check
                     elif axn == 'Ids':
                         Valy = Data['Ids'][:, ivd]
@@ -610,7 +613,7 @@ class PyFETPlot(PyFETPlotBase):
                                     np.polyval(Data['IdsPoly'][:, ivd],
                                                Data['Vgs']), 'k-', alpha=0.3)
                     elif axn == 'Rds':
-                        Valy = g.Divide(Data['Vds'][ivd], Data['Ids'][:, ivd])
+                        Valy = qty.Divide(Data['Vds'][ivd], Data['Ids'][:, ivd])
                     elif axn == 'IrmsIds':
                         Valy = Data['Irms'][:, ivd]
                     elif self.AxsProp[axn][2]:  # Polynom

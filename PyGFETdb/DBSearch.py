@@ -10,8 +10,11 @@ import logging
 import numpy as np
 
 import PyGFETdb.DBCore as PyFETdb
-from PyGFETdb import GlobalFunctions as g
+import PyGFETdb.QuantityClass as qty
+from PyGFETdb import qty
 from PyGFETdb.DataClass import DataCharAC
+
+# import PyGFETdb.GlobalFunctions as global
 
 # Log file
 log = 'pyGFETdb.log'
@@ -184,7 +187,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         Data = RemoveOutilers(Data, OutilerFilter)
         Trts = Data.keys()
         logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
-        print('Outlier filter Yield -> ', g.Divide(len(Trts), Total))
+        print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
         Trts = {}
@@ -202,7 +205,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             name = DataSel['Name']
             v = float(len(Trts[name]))
             if Total > 0:
-                print(name, ' Yield -> ', g.Divide(v, Total))
+                print(name, ' Yield -> ', qty.Divide(v, Total))
 
     return Data, Trts
 

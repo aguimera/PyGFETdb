@@ -13,12 +13,10 @@ import scipy.optimize as optim
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
 
-from PyGFETdb import GlobalFunctions as g
 from PyGFETdb import PlotDataClass
+from PyGFETdb import qty
 
 DebugPrint = False
-
-
 
 
 class DataCharDC(object):
@@ -43,8 +41,8 @@ class DataCharDC(object):
 
             # if Quantity support is activated
             #   assign the proper unit
-            if g.Quantities and g.isDefaultQuantityKey(k):
-                v = g.createDefaultQuantity(k, v)
+            if qty.isDefaultQuantityKey(k):
+                v = qty.createDefaultQuantity(k, v)
 
             self.__setattr__(k, v)
 
@@ -53,7 +51,7 @@ class DataCharDC(object):
 
     def _FormatOutput(self, Par, **kwargs):
 
-        Par = g.rescaleFromKey(Par, kwargs.get('Units'))
+        Par = qty.rescaleFromKey(Par, kwargs.get('Units'))
 
         # Added extra checks to add Quantities support
         # begin fix
@@ -142,15 +140,15 @@ class DataCharDC(object):
         Ids = self.GetIds()
         Gm = np.abs(self.GetGM())
         for ivd, Vds in enumerate(self.Vds):
-            n = g.Divide(FEMCdl * VgUd[:, ivd], FEMq)
+            n = qty.Divide(FEMCdl * VgUd[:, ivd], FEMq)
             self.FEMn[:, ivd] = np.sqrt(n**2 + FEMn0**2)
 
-            Ieff = g.Divide(Vds, (g.Divide(Vds, Ids[:, ivd]) - FEMRc))
-            mu = g.Divide(Ieff * L, (W * Vds * n * FEMq))
+            Ieff = qty.Divide(Vds, (qty.Divide(Vds, Ids[:, ivd]) - FEMRc))
+            mu = qty.Divide(Ieff * L, (W * Vds * n * FEMq))
             self.FEMmu[:, ivd] = mu
 
             Vdseff = Vds - Ids[:, ivd]*FEMRc
-            muGM = g.Divide(g.Divide(Gm[:, ivd] * L), (FEMCdl * Vdseff * W))
+            muGM = qty.Divide(qty.Divide(Gm[:, ivd] * L), (FEMCdl * Vdseff * W))
             self.FEMmuGm[:, ivd] = muGM
 
     def GetUd0(self, Vds=None, Vgs=None, Ud0Norm=False,
@@ -166,7 +164,7 @@ class DataCharDC(object):
         for ivd in iVds:
             ud0 = self.Ud0[ivd]
             if Normalize:
-                ud0 = ud0 - g.Divide(self.Vds[ivd], 2)
+                ud0 = ud0 - qty.Divide(self.Vds[ivd], 2)
             Ud0 = np.vstack((Ud0, ud0)) if Ud0.size else ud0
 
         return self._FormatOutput(Ud0, **kwargs)
@@ -219,7 +217,7 @@ class DataCharDC(object):
             return None
         # TODO: Check Vgs range
         if Vgs is not None:
-            vgs = g.createDefaultQuantity('Vgs', Vgs)  # Quantities support
+            vgs = qty.createDefaultQuantity('Vgs', Vgs)  # Quantities support
         else:
             vgs = self.Vgs
 
@@ -235,7 +233,7 @@ class DataCharDC(object):
             ids = np.polyval(self.IdsPoly[:, ivd], vg.data)
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
-        Ids = g.createDefaultQuantity('Ids', Ids)  # Quantity support
+        Ids = qty.createDefaultQuantity('Ids', Ids)  # Quantity support
         return self._FormatOutput(Ids, **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
@@ -244,7 +242,7 @@ class DataCharDC(object):
             return None
         # TODO: Check Vgs range
         if Vgs is not None:
-            vgs = g.createDefaultQuantity("Vgs", Vgs)  # Quantities support
+            vgs = qty.createDefaultQuantity("Vgs", Vgs)  # Quantities support
         else:
             vgs = self.Vgs
 
@@ -261,10 +259,10 @@ class DataCharDC(object):
             gm = np.polyval(self.GMPoly[:, ivd], vg.data)
 
             # Assign proper units
-            gm = g.createDefaultQuantity('gm', gm)  # Quantity support
+            gm = qty.createDefaultQuantity('gm', gm)  # Quantity support
 
             if Normalize:
-                gm = g.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
+                gm = qty.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
 
         return self._FormatOutput(GM, **kwargs)
@@ -288,11 +286,11 @@ class DataCharDC(object):
         iVds = self.GetVdsIndexes(Vds)
 
         if type(Ids) is pq.Quantity:  # Quantity support
-            Rds = g.Divide(self.Vds, Ids)
+            Rds = qty.Divide(self.Vds, Ids)
         else:
             Rds = np.array([])
             for iid, ivd in enumerate(iVds):
-                rds = g.Divide(self.Vds[ivd], Ids[:, iid])
+                rds = qty.Divide(self.Vds[ivd], Ids[:, iid])
                 Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
         return self._FormatOutput(Rds, **kwargs)
@@ -320,7 +318,7 @@ class DataCharDC(object):
 
     def CheckVgsRange(self, Vgs, iVds, Ud0Norm):
         if Vgs is not None:
-            Vgs = g.createDefaultQuantity("Vgs", Vgs)
+            Vgs = qty.createDefaultQuantity("Vgs", Vgs)
             for ivd in iVds:
                 if Ud0Norm is None or Ud0Norm is False:
                     vg = Vgs
@@ -364,11 +362,11 @@ class DataCharDC(object):
                 vg = vgs
             par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
-                par = g.Divide(par, self.Vds[ivd])
+                par = qty.Divide(par, self.Vds[ivd])
 
             PAR = np.vstack((PAR, par)) if PAR.size else par
 
-        PAR = g.returnQuantity(PAR, Param, **kwargs)
+        PAR = qty.returnQuantity(PAR, Param, **kwargs)
         return self._FormatOutput(PAR, **kwargs)  # Quantity support
 
 
@@ -376,7 +374,7 @@ class DataCharDC(object):
         return self.Name
 
     def GetWL(self, **kwargs):
-        return g.Divide(self.TrtTypes['Width'], self.TrtTypes['Length'])
+        return qty.Divide(self.TrtTypes['Width'], self.TrtTypes['Length'])
 
     def GetPass(self, **kwargs):
         return self.TrtTypes['Pass']
@@ -409,7 +407,7 @@ class DataCharDC(object):
         return np.array(self.Info['AnalyteCon'])[None, None]
 
     def GetGds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Gds = g.Divide(1, self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
+        Gds = qty.Divide(1, self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
         return Gds
 
     def GetGMNorm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
@@ -421,7 +419,7 @@ class DataCharDC(object):
 
 
 def Fnoise(f, a, b):
-    return g.Divide(a, f ** b)
+    return qty.Divide(a, f ** b)
 
 
 def LogFnoise(f, a, b):
@@ -527,7 +525,7 @@ class DataCharAC(DataCharDC):
 
                 Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
                 Irms[ivg, ivd] = np.sqrt(simps(psd[Inds], Fpsd[Inds]))
-        self.Irms = g.createDefaultQuantity('Irms', Irms)
+        self.Irms = qty.createDefaultQuantity('Irms', Irms)
 
     def GetPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
@@ -574,7 +572,7 @@ class DataCharAC(DataCharDC):
         if Irms is None:
             return None
         gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        return g.Divide(Irms, gm)
+        return qty.Divide(Irms, gm)
 
     def _CheckFitting(self, FFmin, FFmax):
         if FFmin is not None or FFmax is not None:
@@ -598,7 +596,7 @@ class DataCharAC(DataCharDC):
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return g.Divide(NoA, (Ids ** 2))
+        return qty.Divide(NoA, (Ids ** 2))
 
     def GetIrmsVds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return self._GetParam('Irms', Vgs=Vgs, Vds=Vds,
@@ -607,17 +605,17 @@ class DataCharAC(DataCharDC):
     def GetIrmsIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return g.Divide(Irms, (Ids ** 2))
+        return qty.Divide(Irms, (Ids ** 2))
 
     def GetIrmsIds15(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return g.Divide(Irms, (Ids ** 1.5))
+        return qty.Divide(Irms, (Ids ** 1.5))
 
     def GetIrmsIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return g.Divide(Irms, Ids)
+        return qty.Divide(Irms, Ids)
 
 
 
@@ -664,7 +662,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 v = Data.__getattribute__(self.ColorParams[ColorOn][1])
         elif ColorOn == 'W/L':
             p = Data.__getattribute__('TrtTypes')
-            v = g.Divide(p['Width'], p['TrtTypes']['Length'])
+            v = qty.Divide(p['Width'], p['TrtTypes']['Length'])
         return v
 
     def PlotDataCh(self, DataDict, Trts, Vgs=None, Vds=None, Ud0Norm=False,

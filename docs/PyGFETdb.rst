@@ -91,6 +91,14 @@ PyGFETdb.PlotDataClass module
    :undoc-members:
    :show-inheritance:
 
+PyGFETdb.QuantityClass module
+-----------------------------
+
+.. automodule:: PyGFETdb.QuantityClass
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

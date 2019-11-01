@@ -16,8 +16,12 @@ import quantities as pq
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
-import PyGFETdb.GlobalFunctions as g
+import PyGFETdb.QuantityClass as qty
+from PyGFETdb import qty
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
+
+
+# import PyGFETdb.GlobalFunctions as global
 
 
 def CreateCycleColors(Vals):
@@ -182,7 +186,7 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
 
 
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-    Vals = g.createQuantityList()
+    Vals = qty.createQuantityList()
 
     for Trtn, Datas in Data.items():
         for Dat in Datas:
@@ -194,11 +198,11 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
 
             if Val is not None:
                 if type(Val) is pq.Quantity:
-                    Vals = g.appendQuantity(Vals, Val)
+                    Vals = qty.appendQuantity(Vals, Val)
                 else:
                     Vals = np.hstack(((Vals), Val)) if Vals.size else Val
 
-    if not g.Quantities:  # Quantities support
+    if not qty.Quantities:  # Quantities support
         return Vals
     else:
         return [Vals]
@@ -252,8 +256,8 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 
     if Plot:
         plt.xticks(xPos, xLab, rotation=45)
-        if g.Quantities:
-            qtyunits = g.getQuantityUnits(qtys)
+        if qty.Quantities:
+            qtyunits = qty.getQuantityUnits(qtys)
             if qtyunits:
                 Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')
             elif units is not None:
@@ -434,7 +438,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
         Rc[ivg] = res.params[0]
         RcMax[ivg] = res.bse[0] + res.params[0]
         RcMin[ivg] = -res.bse[0] + res.params[0]
-        LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
+        LT[ivg] = qty.Divide(qty.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
     AxRc.fill_between(VGS, RcMax, RcMin,
@@ -539,11 +543,11 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
         Rsheet[ivg] = res.params[1] * Width
         RsheetMax[ivg] = (res.bse[1] + res.params[1]) * Width
         RsheetMin[ivg] = (-res.bse[1] + res.params[1]) * Width
-        Rc[ivg] = g.Divide(res.params[0], 2) * (Width * 1e6)
-        RcError = g.Divide(res.bse[0], 2) * (Width * 1e6)
+        Rc[ivg] = qty.Divide(res.params[0], 2) * (Width * 1e6)
+        RcError = qty.Divide(res.bse[0], 2) * (Width * 1e6)
         RcMax[ivg] = RcError + Rc[ivg]
         RcMin[ivg] = -RcError + Rc[ivg]
-        LT[ivg] = g.Divide(g.Divide(res.params[0], res.params[1]), 2)
+        LT[ivg] = qty.Divide(qty.Divide(res.params[0], res.params[1]), 2)
 
     AxRc.plot(VGS, Rc, color=Color, label=Label)
     AxRc.fill_between(VGS, RcMax, RcMin,

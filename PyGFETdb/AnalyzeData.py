@@ -15,8 +15,11 @@ import sys
 import numpy as np
 from scipy import interpolate
 
-import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.NoiseModel as noise
+from PyGFETdb import qty
+
+
+# import PyGFETdb.GlobalFunctions as global
 
 
 ###############################################################################
@@ -36,12 +39,12 @@ def CalcDCparams (DevDC):   #calculates Dirac,MaxGM, Imin, Rmin,..
         chDC['Cicle']=ich  
         
         for ivd,Vds in enumerate(chDC['Vds']):
-            Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
+            Rds = qty.Divide(Vds, chDC['Ids'][:, ivd])
             #Calc Dirac
             Imin = np.min(chDC['Ids'][:,ivd])
             Ud = chDC['Vgs'][np.argmin(chDC['Ids'][:,ivd])]
             Rmin = np.min(Rds)
-            gm = g.Divide(np.diff(chDC['Ids'][:, ivd]), np.diff(chDC['Vgs']))
+            gm = qty.Divide(np.diff(chDC['Ids'][:, ivd]), np.diff(chDC['Vgs']))
             GMax = np.max(gm)
             
             chDC['Ud'][ivd] = Ud
@@ -106,7 +109,7 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
             chAC=DevAC[Ch]
     
         for ivd,Vds in enumerate(chDC['Vds']):
-            Rds = g.Divide(Vds, chDC['Ids'][:, ivd])
+            Rds = qty.Divide(Vds, chDC['Ids'][:, ivd])
             
             if np.any([Rds<RdsMin,Rds>RdsMax]):
                 print ('{} -- NOK -- {} {}'.format(Ch,np.min(Rds),np.max(Rds)))
