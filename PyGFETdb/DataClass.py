@@ -43,7 +43,7 @@ class DataCharDC(object):
 
             # if Quantity support is activated
             #   assign the proper unit
-            if g.Quantities and g.isQuantityKey(k):
+            if g.Quantities and g.isDefaultQuantityKey(k):
                 v = g.createDefaultQuantity(k, v)
 
             self.__setattr__(k, v)
@@ -53,8 +53,7 @@ class DataCharDC(object):
 
     def _FormatOutput(self, Par, **kwargs):
 
-        if g.Quantities and 'Units' in kwargs:  # Quantities support
-            Par = Par.rescale(kwargs['Units'])
+        Par = g.rescaleFromKey(Par, kwargs.get('Units'))
 
         # Added extra checks to add Quantities support
         # begin fix
@@ -369,7 +368,8 @@ class DataCharDC(object):
 
             PAR = np.vstack((PAR, par)) if PAR.size else par
 
-        return self._FormatOutput(g.returnQuantity(PAR, Param, **kwargs), **kwargs)  # Quantity support
+        PAR = g.returnQuantity(PAR, Param, **kwargs)
+        return self._FormatOutput(PAR, **kwargs)  # Quantity support
 
 
     def GetName(self, **kwargs):

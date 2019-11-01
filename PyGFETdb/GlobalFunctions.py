@@ -5,6 +5,8 @@
 Global Functions that do not fit in the previous files.
 """
 
+import sys
+
 import numpy as np
 import quantities as pq
 
@@ -33,7 +35,7 @@ DefaultUnits = {'Vds': pq.V,
 """
 
 
-def isQuantityKey(key):
+def isDefaultQuantityKey(key):
     return DefaultUnits.get(key) is not None
 
 
@@ -48,9 +50,7 @@ def createDefaultQuantity(key, value):
     unit = DefaultUnits.get(key)
     if unit is not None:
         value = pq.Quantity(value, unit)
-    else:
-        print('Error: No default unit for:', key)
-        value = pq.Quantity(value, pq.V)
+
     return value
 
 
@@ -60,14 +60,13 @@ def returnQuantity(param, unitKey=None, **kwargs):
     :param param: The argument to be evaluated if the Quatities support is activated
     :param unitKey: The key in Default Units.
     :param kwargs: The argument keywords in order to check unit rescaling.
-    :return: The Quantity (rescaled if indicated in kwargs) or param if the Quantities
-             support is not activated
+    :return: The Quantity or param if the Quantities support is not activated
     """
     if not Quantities:
         return param
     unit = DefaultUnits.get(unitKey)
 
-    if type(param) is pq.Quantity or not unit:
+    if not unit or type(param) is pq.Quantity:
         return param
     else:
         return pq.Quantity(param, unit)
@@ -96,22 +95,33 @@ def appendQuantity(vals, val):
 def rescaleFromKey(qtylist, units):
     """
 
-    :param qtylist: The input list of Quantities
+    :param qtylist: The input Quantity-like
     :param units: The units to rescale
     :param kwargs: Keyword arguments
-    :return:
+    :return: The input Quantity-like rescaled to the intented units
     """
+    if not Quantities or not units or not qtylist: return qtylist
+    if type(qtylist) is pq.Quantity:
+        try:
+            return qtylist.rescale(units)
+        except:
+            raise BaseException(sys.exc_info()[1])
+
     ret = createQuantityList()
-    if qtylist and units:
+    if units:
         for enum in enumerate(qtylist):
             for qty in enumerate(enum[1]):
-                ret = appendQuantity(ret, qty[1].rescale(units))
-    return ret
+                try:
+                    ret = appendQuantity(ret, qty[1].rescale(units))
+                except:
+                    raise BaseException(sys.exc_info()[1])
+        return ret
+
 
 def Divide(Dividend, Divisor):
     """
-    :param Dividend: the array-like to be divided.
-    :param Divisor:  the array-like to divide by.
+    :param Dividend: the Quantity-like to be divided.
+    :param Divisor:  the Quantity-like to divide by.
 
     :returns: Divides Dividend by Divisor avoiding division by zero.
     """

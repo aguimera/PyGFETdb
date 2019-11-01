@@ -188,11 +188,9 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         for Dat in Datas:
             func = Dat.__getattribute__('Get' + Param)
 
-            try:
-                Val = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
-            except:  # TODO: catch *all* exceptions
-                print(Dat.Name, Param, sys.exc_info()[0])
-                Val = None
+            # I eliminated the try clause in order to get
+            # Type-checking exceptions when a wrong unit is specified
+            Val = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
             if Val is not None:
                 if type(Val) is pq.Quantity:
@@ -200,13 +198,15 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
                 else:
                     Vals = np.hstack(((Vals), Val)) if Vals.size else Val
 
-    if not g.Quantities:
+    if not g.Quantities:  # Quantities support
         return Vals
     else:
         return [Vals]
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):
+    units = kwargs.get('Units')
+
     if Plot:
         fig, Ax = plt.subplots()
         xLab = []
@@ -225,7 +225,7 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
             vals = GetParam(Data, **kwargs)
 
             if g.Quantities:  # if Quantities is activated
-                if ParamUnits:
+                if units:
                     qtyvals = g.rescaleFromKey(vals, ParamUnits)
                     vals = np.array(qtyvals)  # convert the results into an array
                 else:
@@ -257,7 +257,9 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 
     if Plot:
         plt.xticks(xPos, xLab, rotation=45)
-        if ParamUnits is not None:
+        if g.Quantities and units is not None:
+            Ax.set_ylabel(kwargs['Param'] + '[' + units + ']')
+        elif ParamUnits is not None:
             Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
         else:
             Ax.set_ylabel(kwargs['Param'])
