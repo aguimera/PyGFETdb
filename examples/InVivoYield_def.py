@@ -196,7 +196,6 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
 
             # test 2
             Vals = qty.toQuantity(quantities)
-            print('Vals=', Vals)
 
             # We only rescale Quantities with Units
             # Vals.rescale("mV/S") raises exceptions rescaling
