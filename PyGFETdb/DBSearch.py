@@ -247,7 +247,8 @@ def RemoveOutilers(Data, OutilerFilter):
 def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None,
                   ParArgs={'Vgs': None,
                            'Vds': None,
-                           'Ud0Norm': False}):
+                           'Ud0Norm': False,
+                           'Units': None}):
     logging.basicConfig(filename=log, level=logging.DEBUG)
 
     DataFilt = {}

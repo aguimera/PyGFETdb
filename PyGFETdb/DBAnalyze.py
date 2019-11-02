@@ -210,6 +210,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):
     units = kwargs.get('Units')
+    qtys = None
 
     if Plot:
         fig, Ax = plt.subplots()

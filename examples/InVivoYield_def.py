@@ -30,6 +30,7 @@ DataSelectionConfig = [
     {'Param': 'Ud0',  # Parameter to evaluate
      'Range': (0.2, 0.5),  # Range of allowed values, (Min, Max)
      'Name': 'UD0y',
+     'ParArgs': {'Units': 'V'}
      },
 
     #                            {'Param': 'Rds', # Parameter to evaluate
@@ -46,6 +47,7 @@ DataSelectionConfig = [
      'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
                  'Vds': None,
                  'Ud0Norm': True,
+                 'Units': "S/V"
                  },
      'Name': 'GMVy'},
 
@@ -56,6 +58,7 @@ DataSelectionConfig = [
          'Ud0Norm': True,
          'NFmin': 10,
          'NFmax': 1000,
+         'Units': 'V'
      },
      'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
      #                              'Function': np.min, # Funtion to apply into given results
