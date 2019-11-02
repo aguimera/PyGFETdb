@@ -6,6 +6,7 @@ Python Quantities Support Class
 """
 
 import sys
+from itertools import chain
 
 import numpy as np
 import quantities as pq
@@ -148,6 +149,20 @@ class QuantityClass(object):
                 if len(qtylist):
                     if len(qtylist[0]):
                         return qtylist[0][0].dimensionality.latex
+        return ret
+
+    def toQuantity(self, listOfQuantities):
+        if type(listOfQuantities) is pq.Quantity: return listOfQuantities
+
+        ret = listOfQuantities
+        if type(ret) is list:
+            templist = list(chain.from_iterable(ret))
+            if len(templist):
+                ret = pq.Quantity(templist, templist[0].units)
+            else:
+                ret = pq.Quantity(templist)
+        else:
+            ret = pq.Quantity(ret)
         return ret
 
     def Divide(self, Dividend, Divisor):
