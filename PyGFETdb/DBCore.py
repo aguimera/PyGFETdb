@@ -6,10 +6,13 @@ Created on Tue Nov 15 23:15:19 2016
 """
 
 import datetime
-import pymysql
 import pickle
-from PyGFETdb.DB import *
 import sys
+
+import pymysql
+
+from PyGFETdb.DB import *
+
 
 class PyFETdb():
     PrintQuery = False

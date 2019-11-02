@@ -32,7 +32,7 @@ long_description = """
                    Library for GFET analysis tools
                    """
 
-install_requires = ['pymysql',
+install_requires = ['pymysql', 'quantities', 'numpy', 'matplotlib', 'statsmodels', 'xlsxwriter', 'scipy', 'deepdish'
                     ]
 
 console_scripts = ['GFETDbView3 = PyGFETdb.GuiDBView.GuiDBView:main',
