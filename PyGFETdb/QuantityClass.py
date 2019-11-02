@@ -151,18 +151,46 @@ class QuantityClass(object):
                         return qtylist[0][0].dimensionality.latex
         return ret
 
-    def toQuantity(self, listOfQuantities):
-        if type(listOfQuantities) is pq.Quantity: return listOfQuantities
+    def toQuantity(self, value):
+        """
 
-        ret = listOfQuantities
-        if type(ret) is list:
-            templist = list(chain.from_iterable(ret))
+        :param value: The value to be converted, a Quantity-like
+        :return: A Quantity with consistent units depending on parameter value
+        """
+        ret = pq.Quantity(np.nan)
+        if value:
+            if type(value) is list:
+                ret = self.getConsistentQuantityFromList(value)
+            elif type(value) is pq.Quantity:
+                ret = value
+            else:  # is a number
+                ret = pq.Quantity(value)
+        return ret
+
+    def getConsistentQuantityFromList(self, listQty: list):
+        """
+
+        :param listQty:
+        :return: A list of Quantities if all the Quantities have consistent Units,
+                 with pq.dimensionless in the case were incompatible,
+                 or a 'nan' Quantity if it were not possible to convert them
+        """
+        ret = pq.Quantity(np.nan)
+
+        if listQty:
+            templist = list(chain.from_iterable(listQty))
             if len(templist):
-                ret = pq.Quantity(templist, templist[0].units)
-            else:
-                ret = pq.Quantity(templist)
-        else:
-            ret = pq.Quantity(ret)
+                if type(templist) is list and type(templist[0]) is pq.Quantity:
+                    retunits = templist[0].units
+                    units = None
+                    for i, quan in enumerate(templist):
+                        if not units:
+                            units = templist[i].units
+                        elif quan.units != units:
+                            retunits = pq.dimensionless
+                    ret = pq.Quantity(templist, retunits)
+                else:
+                    ret = pq.Quantity(templist)
         return ret
 
     def Divide(self, Dividend, Divisor):
