@@ -4,6 +4,8 @@
 Created on Mon Oct 28 13:03:30 2019
 
 @author: aguimera
+
+current version with Quantity Support adapted by dragc
 """
 import os
 
@@ -14,7 +16,9 @@ import PyGFETdb.DBAnalyze as Dban
 import PyGFETdb.DBSearch as DbSe
 from PyGFETdb import qty
 
-qtyDebug = True
+qtyDebug = True  # Set to false to print less debug info of the rescaling examples
+
+# qty.setActive(False)  # Uncomment to deactivate Quantity Support
 
 plt.close('all')
 
@@ -26,46 +30,86 @@ Wafers = (
     'B11601W4',
 )
 
-DataSelectionConfig = [
-    {'Param': 'Ud0',  # Parameter to evaluate
-     'Range': (0.2, 0.5),  # Range of allowed values, (Min, Max)
-     'Name': 'UD0y',
-     'ParArgs': {'Units': 'V'}
-     },
+if qty.isActive():
 
-    #                            {'Param': 'Rds', # Parameter to evaluate
-    #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
-    #                              'Function': np.max, # Funtion to apply into given results
-    #                              'InSide': True,  # Inside or outside the range, Default True
-    #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
-    #                                          'Vds': None,
-    #                                          'Ud0Norm': False},
-    #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
+    DataSelectionConfig = [
+        {'Param': 'Ud0',  # Parameter to evaluate
+         'Range': (200, 500),  # Range of allowed values, (Min, Max)
+         'Name': 'UD0y',
+         'ParArgs': {'Units': 'mV'}
+         },
 
-    {'Param': 'GMV',  # Parameter to evaluate
-     'Range': (1e-4, 1e-2),  # Range of allowed values, (Min, Max)
-     'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
-                 'Vds': None,
-                 'Ud0Norm': True,
-                 'Units': "S/V"
-                 },
-     'Name': 'GMVy'},
+        #                            {'Param': 'Rds', # Parameter to evaluate
+        #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
+        #                              'Function': np.max, # Funtion to apply into given results
+        #                              'InSide': True,  # Inside or outside the range, Default True
+        #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
+        #                                          'Vds': None,
+        #                                          'Ud0Norm': False},
+        #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
 
-    {'Param': 'Vrms',  # Parameter to evaluate
-     'ParArgs': {
-         'Vgs': -0.1,  # Bias point to evaluate
-         'Vds': None,
-         'Ud0Norm': True,
-         'NFmin': 10,
-         'NFmax': 1000,
-         'Units': 'V'
-     },
-     'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
-     #                              'Function': np.min, # Funtion to apply into given results
+        {'Param': 'GMV',  # Parameter to evaluate
+         'Range': (100, 10000),  # Range of allowed values, (Min, Max)
+         'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
+                     'Vds': None,
+                     'Ud0Norm': True,
+                     'Units': "uS/V"
+                     },
+         'Name': 'GMVy'},
 
-     },
+        {'Param': 'Vrms',  # Parameter to evaluate
+         'ParArgs': {
+             'Vgs': -0.1,  # Bias point to evaluate
+             'Vds': None,
+             'Ud0Norm': True,
+             'NFmin': 10,
+             'NFmax': 1000,
+             'Units': 'V'
+         },
+         'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
+         #                              'Function': np.min, # Funtion to apply into given results
+         },
+    ]
+else:  ##################################### IF NO QUANTITY SUPPORT
+    DataSelectionConfig = [
+        {'Param': 'Ud0',  # Parameter to evaluate
+         'Range': (.2, .5),  # Range of allowed values, (Min, Max)
+         'Name': 'UD0y',
+         },
 
-]
+        #                            {'Param': 'Rds', # Parameter to evaluate
+        #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
+        #                              'Function': np.max, # Funtion to apply into given results
+        #                              'InSide': True,  # Inside or outside the range, Default True
+        #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
+        #                                          'Vds': None,
+        #                                          'Ud0Norm': False},
+        #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
+
+        {'Param': 'GMV',  # Parameter to evaluate
+         'Range': (1e-4, 1e-2),  # Range of allowed values, (Min, Max)
+         'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
+                     'Vds': None,
+                     'Ud0Norm': True,
+                     },
+         'Name': 'GMVy'},
+
+        {'Param': 'Vrms',  # Parameter to evaluate
+         'ParArgs': {
+             'Vgs': -0.1,  # Bias point to evaluate
+             'Vds': None,
+             'Ud0Norm': True,
+             'NFmin': 10,
+             'NFmax': 1000,
+         },
+         'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
+         #                              'Function': np.min, # Funtion to apply into given results
+         },
+    ]
+
+
+
+
 
 Conditions = {'Wafers.Name = ': Wafers,
               'Devices.Name != ': ('B12708W2-M6',),
@@ -94,7 +138,6 @@ Dban.SearchAndGetParam(GrDevs,
                        NFmax=1000,
                        Units='uV'
                        )
-qty.setActive(False)
 
 Dban.SearchAndGetParam(GrDevs,
                        #                       Boxplot=True,
@@ -104,7 +147,6 @@ Dban.SearchAndGetParam(GrDevs,
                        yscale='log',
                        Units='uV/A'
                        )
-qty.setActive(True)
 
 Dban.SearchAndGetParam(GrDevs,
                        #                       Boxplot=True,
@@ -285,7 +327,8 @@ plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Wafers', fontsize='large')
 ax2.set_title('Working gSGFETs (16 x Probe)', fontsize='large')
-
+#
+#
 plt.show()
 os.system("read")
 #
