@@ -5,10 +5,8 @@
 @author: dragc
 
 """
-import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import quantities as pq
 
 import PyGFETdb.DBAnalyze as DbAn
@@ -133,82 +131,30 @@ if multithrds:
     del pool
     Vals = g.Plot(GrWs, ResultsParams, args)
 else:
-    Vals = {}
-    for iarg, arg in enumerate(args):
-        xLab = []
-        xPos = []
-        fig, Ax = plt.subplots()
-        qtys = None
-        for iGr, (Grn, Grc) in enumerate(sorted(GrWs.items())):
-            group = {}
-            Data, Trts = DbSe.GetFromDB(**Grc)
-            ParamData = DbAn.GetParam(Data, **arg)
-            if ParamData is not None:
-                g.updateDictOfLists(group, Grn, ParamData)
-                Vals.update({iarg: group})
-                if qty.isActive():
-                    ParamData = qty.flatten(ParamData)
-                    qtys = np.array(ParamData)
-                ParamData = np.array(ParamData)
-                g.PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
-        g.closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
+    ResultsDB = g.SearchDB(GrWs)
+    Results = g.GetParams(ResultsDB, GrWs, args, True)
+
 
 fig, ax = plt.subplots()
 
 Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 
+arg1 = {
+    'Param': 'Vrms',
+    'Vgs': -0.1,
+    'Ud0Norm': True,
+    'Units': 'uV',
+}
 GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
-iDev = 0
 Results = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     GrDs = DbSe.GenGroups(Grwc, 'Devices.Name', LongName=False)
     Col = Colors[iWf]
-
     Results[Grwn] = {}
-    for Grn, Grc in GrDs.items():
-        iDev += 1
-        Data, t = DbSe.GetFromDB(**Grc)
-
-        quantities = DbAn.GetParam(Data,
-                                   Param='Vrms',
-                                   Vgs=-0.1,
-                                   Ud0Norm=True,
-                                   Units='uV',
-                                   )
-
-        # startExamples ###################################
-
-        if qty.isActive() and qtyDebug:
-            """
-                Some examples with Quantities conversion and rescaling
-            """
-
-            # test 1
-            Vals = qty.rescaleFromKey(quantities, "mV/S")
-            print('Vals=', Vals)
-
-            # test 2
-            Vals = qty.toQuantity(quantities)
-
-            # We only rescale Quantities with Units
-            # Vals.rescale("mV/S") raises exceptions rescaling
-            # Quantitites without units, so on those cases
-            # we rescale manually
-            if Vals.units != pq.dimensionless:
-                Vals = Vals.rescale("mV/S")
-            else:
-                Vals *= 1e3
-            print('Vals=', Vals)
-
-        # endExamples ####################################
-
-        """ 
-        Finally, we lose the units, 
-        but maintained compatibility
-        with the rest of the script
-        """
-
-        # Final value of Vals
+    ResultsDB = g.SearchDB(GrDs)
+    ResultsParams = g.GetParams(ResultsDB, GrDs, [arg1])
+    for iDev, (Grn, Grc) in enumerate(sorted(ResultsParams[0].items())):
+        quantities = Grc  # Param 0
         if qty.isActive():
             Vals = pq.Quantity(quantities)  # np.array also works fine
         else:
@@ -216,26 +162,26 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
 
         Results[Grwn][Grn] = Vals
 
-        bplt = ax.boxplot(Vals.transpose(),
-                          positions=(iDev,),
-                          patch_artist=True,  # fill with color
-                          widths=0.75,
-                          sym='+',
-                          labels=('',),
-                          #                      notch=True,
-                          )
+    bplt = ax.boxplot(Vals.transpose(),
+                      positions=(iWf,),
+                      patch_artist=True,  # fill with color
+                      widths=0.75,
+                      sym='+',
+                      labels=('',),
+                      #                      notch=True,
+                      )
 
-        for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
+    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
             plt.setp(bplt[element], color=Col)
 
-        for fl in bplt['fliers']:
-            fl.set_markeredgecolor(Col)
+    for fl in bplt['fliers']:
+        fl.set_markeredgecolor(Col)
 
-        for patch in bplt['boxes']:
+    for patch in bplt['boxes']:
             patch.set(facecolor=Col)
             patch.set(alpha=0.5)
 
-        # ax.set_yscale('log')
+    # ax.set_yscale('log')
 ax.set_ylabel('[uVrms]', fontsize='large')
 ax.set_xlabel('Probes', fontsize='large')
 ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
@@ -248,6 +194,7 @@ xLab = []
 xPos = []
 for iWf, (wn, dd) in enumerate(Results.items()):
     work = []
+    #    (work.shape[0]/16)*100
     Col = Colors[iWf]
     for dn, d in dd.items():
         if len(d):
@@ -278,7 +225,7 @@ ax2.set_title('Working gSGFETs (16 x Probe)', fontsize='large')
 #
 #
 plt.show()
-os.system("read")
+# os.system("read")
 #
 #
 #

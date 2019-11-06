@@ -206,3 +206,35 @@ def closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
         Ax.set_xscale(kwargs['xscale'])
     if 'yscale' in list(kwargs.keys()):
         Ax.set_yscale(kwargs['yscale'])
+
+
+def GetParams(ResultsDB, Group, args, Plot=None, **kwargs):
+    Results = {}
+    for iarg, arg in enumerate(args):
+        Results[iarg] = {}
+        if Plot:
+            fig, Ax = plt.subplots()
+            xLab = []
+            xPos = []
+        for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
+            Data = ResultsDB[Grn]
+            ParamData = DbAn.GetParam(Data, **arg)
+            if ParamData is not None:
+                Results[iarg][Grn] = ParamData
+                if qty.isActive():
+                    qtys = np.array(ParamData)
+                    ParamData = qty.flatten(ParamData)
+                ParamData = np.array(ParamData)
+                if Plot:
+                    PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
+        if Plot:
+            closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
+    return Results
+
+
+def SearchDB(Group, **kwargs):
+    ResultsDB = {}
+    for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
+        Data, Trts = DbSe.GetFromDB(**Grc)
+        ResultsDB[Grn] = dict(Data)
+    return ResultsDB

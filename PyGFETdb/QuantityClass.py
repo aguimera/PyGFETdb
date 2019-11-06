@@ -203,21 +203,21 @@ class QuantityClass(object):
                 Dat = list(chain.from_iterable(quantity))
             else:
                 Dat = quantity
-        for item in Dat:
-            if type(item) is pq.Quantity and item.size > 1 or type(item) is np.ndarray and item.size > 0:
-                if len(item) > 0:
-                    for item2 in item:
-                        tvals.append(item2)
+            for item in Dat:
+                if type(item) is pq.Quantity and item.size > 1 or type(item) is np.ndarray and item.size > 0:
+                    if len(item) > 0:
+                        for item2 in item:
+                            tvals.append(item2)
+                    else:
+                        tvals.append(item)
                 else:
-                    tvals.append(item)
-            else:
-                if type(item) is list:
-                    # if len(item)>0 and type(item[0]) is list:
-                    tvals.append(self.flatten(item))
-                    # else:
-                    #   tvals.append(item)
-                else:
-                    tvals.append(item)
+                    if type(item) is list:
+                        # if len(item)>0 and type(item[0]) is list:
+                        tvals.append(self.flatten(item))
+                        # else:
+                        #   tvals.append(item)
+                    else:
+                        tvals.append(item)
         return tvals
 
     def Divide(self, Dividend, Divisor):
