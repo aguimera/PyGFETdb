@@ -11,6 +11,7 @@ import numpy as np
 
 import PyGFETdb.DBCore as PyFETdb
 import PyGFETdb.QuantityClass as qty
+from PyGFETdb import multithrds
 from PyGFETdb import qty
 from PyGFETdb.DataClass import DataCharAC
 
@@ -158,6 +159,10 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
     logging.basicConfig(filename=log, level=logging.DEBUG)
 
+    if qty.isActive() and multithrds and type(Conditions) is dict:
+        DataSelectionConfig = Conditions.get('DataSelectionConfig')
+        Conditions = Conditions.get('Conditions')
+
     Conditions = CheckConditionsCharTable(Conditions, Table)
 
     MyDb = PyFETdb.PyFETdb()
@@ -205,7 +210,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             name = DataSel['Name']
             v = float(len(Trts[name]))
             if Total > 0:
-                print(name, ' Yield -> ', qty.Divide(v, Total))
+                print(name, ' Yield -> ', v / Total)
 
     return Data, Trts
 

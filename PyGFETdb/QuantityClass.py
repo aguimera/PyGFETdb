@@ -108,7 +108,10 @@ class QuantityClass(object):
         :param val: A Quantity.
         :return: A new list with val appended to vals.
         """
-        vals[len(vals):] = [val]
+        if vals is not None:
+            vals.append(val)
+        else:
+            vals = []
         return vals
 
     def rescaleFromKey(self, qtylist, units):
@@ -118,7 +121,7 @@ class QuantityClass(object):
         :param units: The units to rescale
         :return: The input Quantity-like rescaled to the intented units
         """
-        if not self.Quantities or not units or not qtylist: return qtylist
+        if not self.Quantities or not units or qtylist is None: return qtylist
         if type(qtylist) is pq.Quantity:
             try:
                 return qtylist.rescale(units)
@@ -142,7 +145,7 @@ class QuantityClass(object):
         :return: A string with the proper units in latex format for easy plotting
         """
         ret = None
-        if qtylist:
+        if qtylist is not None:
             if type(qtylist) is pq.Quantity:
                 return qtylist.dimensionality.latex
             elif type(qtylist) is list:
@@ -192,6 +195,31 @@ class QuantityClass(object):
                 else:
                     ret = pq.Quantity(templist)
         return ret
+
+    def flatten(self, quantity):
+        tvals = []
+        if type(quantity) is list and len(quantity) > 0:
+            if type(quantity[0]) is list:
+                Dat = list(chain.from_iterable(quantity))
+            else:
+                Dat = quantity
+        for item in Dat:
+            if type(item) is pq.Quantity and item.size > 1 or type(item) is np.ndarray and item.size > 0:
+                if len(item) > 0:
+                    for item2 in item:
+                        tvals.append(item2)
+                else:
+                    tvals.append(item)
+            else:
+                if type(item) is list:
+                    # if len(item)>0 and type(item[0]) is list:
+                    tvals.append(self.flatten(item))
+                    # else:
+                    #   tvals.append(item)
+                else:
+                    tvals.append(item)
+        tvals = np.array(tvals)
+        return tvals
 
     def Divide(self, Dividend, Divisor):
         """
