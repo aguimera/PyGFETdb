@@ -181,16 +181,18 @@ def PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None
 def closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
     units = kwargs.get('Units')
     plt.xticks(xPos, xLab, rotation=45)
-    if qty.Quantities:
+
+    if ParamUnits is not None:
+        Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
+    else:
+        Ax.set_ylabel(kwargs['Param'])
+
+    if qty.Quantities and qtys is not None:
         qtyunits = qty.getQuantityUnits(qtys)
         if qtyunits:
             Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')
         elif units is not None:
             Ax.set_ylabel(kwargs['Param'] + '[' + units + ']')
-    if ParamUnits is not None:
-        Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
-    else:
-        Ax.set_ylabel(kwargs['Param'])
 
     Ax.grid()
     Ax.ticklabel_format(axis='y', style='sci', scilimits=(2, 2))

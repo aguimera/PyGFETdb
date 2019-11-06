@@ -5,8 +5,10 @@
 @author: dragc
 
 """
+import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import quantities as pq
 
 import PyGFETdb.DBAnalyze as DbAn
@@ -14,7 +16,7 @@ import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
 from PyGFETdb import qty, Thread, multithrds
 
-qtyDebug = True  # Set to false to print less debug info of the rescaling examples
+qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
 # qty.setActive(False)  # Uncomment to deactivate Quantity Support
 
@@ -136,6 +138,7 @@ else:
         xLab = []
         xPos = []
         fig, Ax = plt.subplots()
+        qtys = None
         for iGr, (Grn, Grc) in enumerate(sorted(GrWs.items())):
             group = {}
             Data, Trts = DbSe.GetFromDB(**Grc)
@@ -145,8 +148,10 @@ else:
                 Vals.update({iarg: group})
                 if qty.isActive():
                     ParamData = qty.flatten(ParamData)
+                    qtys = np.array(ParamData)
+                ParamData = np.array(ParamData)
                 g.PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
-        g.closePlotValsGroup(Ax, xLab, xPos, **arg)
+        g.closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
 
 fig, ax = plt.subplots()
 
@@ -273,7 +278,7 @@ ax2.set_title('Working gSGFETs (16 x Probe)', fontsize='large')
 #
 #
 plt.show()
-# os.system("read")
+os.system("read")
 #
 #
 #

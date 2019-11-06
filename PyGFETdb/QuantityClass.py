@@ -218,7 +218,6 @@ class QuantityClass(object):
                     #   tvals.append(item)
                 else:
                     tvals.append(item)
-        tvals = np.array(tvals)
         return tvals
 
     def Divide(self, Dividend, Divisor):
