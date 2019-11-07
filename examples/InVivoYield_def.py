@@ -9,10 +9,9 @@
 import matplotlib.pyplot as plt
 import quantities as pq
 
-import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, Thread, multithrds
+from PyGFETdb import qty, multithrds
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
@@ -124,12 +123,9 @@ args5 = {
 args = [args1, args2, args3, args4, args5]
 if multithrds:
     # GetFromDB
-    ResultsDB = g.SearchDB(GrDevs)
-    pool = Thread.PyFETdb(DbAn)
-    g.GetParams(ResultsDB, **args)
-    ResultsParams = pool.getResults()
-    del pool
-    Vals = g.Plot(GrWs, ResultsParams, args)
+    ResultsDB = g.SearchDB(GrWs)
+    ResultsParams = g.GetParamsThread(args, ResultsDB, GrWs)
+    Vals = g.PlotGroup(ResultsParams, GrWs, args)
 else:
     ResultsDB = g.SearchDB(GrWs)
     Results = g.GetParams(ResultsDB, GrWs, args)

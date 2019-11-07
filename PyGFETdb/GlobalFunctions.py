@@ -30,60 +30,34 @@ def getFromDB(Groups):
     return ret
 """
 
-def GetParamsThread(args, ResultsDB, Multidata=None, **kwargs):
+
+def GetParamsThread(args, ResultsDB, Group, **kwargs):
     # GetParamsThread
-    pool = Thread.PyFETdb(DbAn)
-    if Multidata is not None:
-        for r in ResultsDB:
-            for a in args:
-                _GetParamsThread(pool, a, r)
+    if multithrds:  # is not None:
+        pool = Thread.PyFETdb(DbAn)
+        for iarg, arg in enumerate(args):
+            for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
+                pool.call('GetParamThread', [Grn, ResultsDB[Grn], iarg], **arg)
+        tlist = pool.getResults()
+        listres = processResults(args, tlist, **kwargs)
+        del pool
     else:
-        _GetParamsThread(pool, args, ResultsDB)
-    listres = pool.getResults()
-    del pool
+        listres = GetParams(ResultsDB, **kwargs)
     return listres
 
 
-def _GetParamsThread(pool, args, ResultsDB):
-    for Grn, (Data, Trts) in ResultsDB:  #
-        if len(Data) > 0:
-            for i, arg in enumerate(args):
-                if multithrds and pool:
-                    pool.call('GetParamThread', [Grn, Data, i], **arg)
-                else:
-                    return DbAn.GetParamThread(Grn, Data, i, **arg)
-
-
-"""
-def processResults(args, ResultsDB, MultiData=None, **kwargs):
-    if MultiData is not None:
-        Results = []
-        for r in ResultsDB:
-            for a in args:
-                Results.append(_processResults(r, a, **kwargs))
+def processResults(args, ResultsDict, **kwargs):
+    Results = {}
+    for iarg, (arg) in enumerate(args):
+        Results[iarg] = {}
+        for r, rd in ResultsDict.items():
+            dict = rd.get(iarg)
+            if dict is not None:
+                for kn, kv in dict.items():
+                    for iGr, (Grn, Grc) in enumerate(kv.items()):
+                        Results[iarg][Grn] = Grc
         return Results
-    else:
-        return _processResults(ResultsDB, args, **kwargs)
-"""
-"""
-def _processResults(Grc, args, groupcallback=None, argcallback=None, **kwargs):
-    args = np.array(args)
-    for i, arg in enumerate(args):
-        for res, results in Grc:
-            if i == results[0]:  # argument number
-                for grn, [Param, Data] in results[1].items():  # group dict
-                    groupcallback(grn, Param, Data, **kwargs)
-        argcallback(grn, Param, Data, **kwargs)
-    return results[1]
-"""
 
-"""
-def Plot(GrDevs, Grc, args, Boxplot=False, ParamUnits=None, **kwargs):
-    if multithrds:
-        return _PlotThreads(GrDevs, Grc, args, **kwargs)
-    else:
-        _Plot(GrDevs, Grc, **args)
-"""
 
 def updateDictOfLists(dict, key, value):
     """
@@ -99,72 +73,6 @@ def updateDictOfLists(dict, key, value):
         dict[key] = value
     else:
         k.append(value)
-
-
-"""
-def _Plot(Groups, Grc, Boxplot=False, ParamUnits=None, **kwargs):
-    Vals = {}
-    fig, Ax = plt.subplots()
-    for iGr, (Grn) in enumerate(Groups.items()):
-        xLab = []
-        xPos = []
-        for (Grn, data) in Grc.items():
-            qtys = data
-            vals = np.array(data)
-            if vals is None:
-                continue
-            if vals.size == 0:
-                continue
-            vals = qty.flatten(vals)
-            # vals = np.array(vals)
-            _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, **kwargs)
-            updateDictOfLists(Vals, Grn, qtys)
-    if vals is not None and len(vals) > 0:
-        _closePlotValsGroup(Ax, xLab, xPos, qtys, **kwargs)
-    return Vals
-
-
-def _PlotThreads(GrDevs, Grc, args, Boxplot=False, ParamUnits=None, **kwargs):
-    args = np.array(args)
-    Vals = {}
-    for iarg, arg in enumerate(args):
-        fig, Ax = plt.subplots()
-        qtys = None
-        param = arg.get('Param')
-        xLab = []
-        xPos = []
-        iGr = 0
-        units = None
-        for gr in GrDevs.items():
-            tdata = []  # np.array()
-            tqtys = []
-            for results in Grc:
-                for iarg2, a2 in results.items():
-                    if iarg2 == iarg:
-                        if a2 is not None:
-                            p = a2.get(param)
-                            if p is not None:
-                                for grn, data in p.items():
-                                    # tdata.append(data)
-                                    qtys = data
-                                    vals = np.array(data)
-                                    if vals is None:
-                                        continue
-                                    if vals.size == 0:
-                                        continue
-                                    tdata.append(vals)
-                                    tqtys.append(qtys)
-            tdata = qty.flatten(tdata)
-            tdata = np.array(tdata)
-            if tdata is not None and len(tdata) > 0:
-                _PlotValsGroup(Ax, xLab, xPos, iGr, gr, tdata, **args[iarg])
-                iGr += 1
-                Vals[grn] = tqtys
-        if tdata is not None and len(tdata) > 0:
-            _closePlotValsGroup(Ax, xLab, xPos, units, **args[iarg])
-            plt.show()
-    return Vals
-"""
 
 
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None, **kwargs):
@@ -210,7 +118,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
         Ax.set_yscale(kwargs['yscale'])
 
 
-def GetParams(ResultsDB, Group, args, Plot=None, **kwargs):
+def GetParams(ResultsDB, Group, args, **kwargs):
     """
 
     :param ResultsDB: The results of a search in the database
@@ -247,7 +155,7 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
         xLab = []
         xPos = []
         for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
-            ParamData = ResultsParams[iarg][Grn]
+            ParamData = ResultsParams.get(iarg).get(Grn)
             if ParamData is not None:
                 Results[iarg][Grn] = ParamData
                 if qty.isActive():

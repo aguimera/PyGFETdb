@@ -4,7 +4,7 @@ from multiprocessing import pool, Lock
 # import numpy as np
 import PyGFETdb
 
-rets = []
+rets = {}
 lock = Lock()
 
 
@@ -36,7 +36,7 @@ class PyFETdb:
 
 def addResult(result):
     PyGFETdb.Thread.lock.acquire()
-    rets.append(result[2])
+    rets[result[0]] = result[2]
     PyGFETdb.Thread.lock.release()
 
 
