@@ -1,3 +1,4 @@
+sphinx-autoapi
 statsmodels
 quantities
 deepdish
@@ -5,5 +6,3 @@ qtpy
 xlsxwriter
 PySide2
 PyGFETdb
-sphinx-autoapi
-multiprocessing
