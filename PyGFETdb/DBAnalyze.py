@@ -16,7 +16,6 @@ import quantities as pq
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
-import PyGFETdb.QuantityClass as qty
 from PyGFETdb import qty
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
 
