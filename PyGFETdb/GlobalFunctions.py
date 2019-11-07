@@ -13,50 +13,35 @@ import PyGFETdb.Thread as Thread
 from PyGFETdb import multithrds
 from PyGFETdb import qty
 
-"""
-def getFromDB(Groups):
-    PyGFETdb.multithrds = False
-    pool = Thread.PyFETdb(DbSe)
-    ret = list([])
-    for iGr, (Grn, Grc) in enumerate(sorted(Groups.items())):
-        print('Getting data for ', Grn)
-        if PyGFETdb.multithrds:
-            pool.call('GetFromDB', [Grc])
-            ret = pool.getResults()
-            del pool
-        else:
-            ret.append([Grn, DbSe.GetFromDB(**Grc)])
-    PyGFETdb.multithrds = True
-    return ret
-"""
 
-
-def GetParamsThread(args, ResultsDB, Group, **kwargs):
-    # GetParamsThread
+def call(klass, function, **kwargs):
     if multithrds:  # is not None:
-        pool = Thread.PyFETdb(DbAn)
-        for iarg, arg in enumerate(args):
-            for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
-                pool.call('GetParamThread', [Grn, ResultsDB[Grn], iarg], **arg)
-        tlist = pool.getResults()
-        listres = processResults(args, tlist, **kwargs)
+        pool = Thread.PyFETdb(klass)
+        pool.call(function, kwargs)
+        tdict = pool.getResults()
         del pool
+        return processResults(tdict, kwargs.get('args'))
     else:
-        listres = GetParams(ResultsDB, **kwargs)
+        func = klass.__getattribute__(function)
+        listres = func(**kwargs)
     return listres
 
 
-def processResults(args, ResultsDict, **kwargs):
+def processResults(ResultsDict, args):
     Results = {}
-    for iarg, (arg) in enumerate(args):
-        Results[iarg] = {}
+    for karg, arg in args.items():
+        Results[karg] = {}
         for r, rd in ResultsDict.items():
-            dict = rd.get(iarg)
-            if dict is not None:
-                for kn, kv in dict.items():
-                    for iGr, (Grn, Grc) in enumerate(kv.items()):
-                        Results[iarg][Grn] = Grc
-        return Results
+            tdict = rd.get(karg)
+            if tdict is not None:
+                for iWf, (Wfn, Wfc) in enumerate(tdict.items()):
+                    Results[karg][Wfn] = {}
+                    if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                        for iGr, (Grn, Grc) in enumerate(tdict.items()):
+                            Results[karg][Wfn][Grn] = Grc
+                    else:
+                        Results[karg][Wfn] = Wfc
+    return Results
 
 
 def updateDictOfLists(dict, key, value):
@@ -97,7 +82,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
     else:
         Ax.set_ylabel(kwargs['Param'])
 
-    if qty.Quantities and qtys is not None:
+    if qty.isActive() and qtys is not None:
         qtyunits = qty.getQuantityUnits(qtys)
         if qtyunits:
             Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')
@@ -118,7 +103,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
         Ax.set_yscale(kwargs['yscale'])
 
 
-def GetParams(ResultsDB, Group, args, **kwargs):
+def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
     """
 
     :param ResultsDB: The results of a search in the database
@@ -129,13 +114,23 @@ def GetParams(ResultsDB, Group, args, **kwargs):
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
     Results = {}
-    for iarg, arg in enumerate(args):
-        Results[iarg] = {}
-        for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
-            Data = ResultsDB[Grn]
-            ParamData = DbAn.GetParam(Data, **arg)
-            if ParamData is not None:
-                Results[iarg][Grn] = ParamData
+    for karg, arg in args.items():
+        Results[karg] = {}
+        for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
+            Results[karg][Wfn] = {}
+            if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
+                    Data = ResultsDB.get(Grn)
+                    if Data is not None:
+                        ParamData = DbAn.GetParam(Data, **arg)
+                        if ParamData is not None:
+                            Results[karg][Wfn][Grn] = ParamData
+            else:
+                Data = ResultsDB.get(Wfn)
+                if Data is not None:
+                    ParamData = DbAn.GetParam(Data, **arg)
+                    if ParamData is not None:
+                        Results[karg][Wfn] = ParamData
     return Results
 
 
@@ -149,32 +144,42 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
     Results = {}
-    for iarg, arg in enumerate(args):
-        Results[iarg] = {}
+    for karg, arg in args.items():
+        Results[karg] = {}
         fig, Ax = plt.subplots()
         xLab = []
         xPos = []
+        qtys = None
         for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
-            ParamData = ResultsParams.get(iarg).get(Grn)
-            if ParamData is not None:
-                Results[iarg][Grn] = ParamData
-                if qty.isActive():
-                    qtys = np.array(ParamData)
-                    ParamData = qty.flatten(ParamData)
-                ParamData = np.array(ParamData)
-                _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
+            argRes = ResultsParams.get(karg)
+            if argRes is not None:
+                ParamData = argRes.get(Grn)
+                if ParamData is not None:
+                    Results[karg][Grn] = ParamData
+                    if qty.isActive():
+                        qtys = np.array(ParamData)
+                        ParamData = qty.flatten(ParamData)
+                    ParamData = np.array(ParamData)
+                    _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
         _closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
     return Results
 
 
-def SearchDB(Group):
+def SearchDB(GrWfs, **kwargs):
     """
 
     :param Group: A group of conditions
     :return: The results of the search in the database
     """
     ResultsDB = {}
-    for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
-        Data, Trts = DbSe.GetFromDB(**Grc)
-        ResultsDB[Grn] = dict(Data)
-    return ResultsDB
+    for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
+        ResultsDB[Wfn] = {}
+        if type(Wfc) is dict and Wfc.get('Conditions') is None:
+            for iGr, (Grn, Grc) in enumerate(Wfc.items()):
+                Data, Trts = DbSe.GetFromDB(**Grc)
+                ResultsDB[Wfn][Grn] = dict(Data)
+        else:
+            Data, Trts = DbSe.GetFromDB(**Wfc)
+            ResultsDB[Wfn] = dict(Data)
+
+    return dict(ResultsDB)

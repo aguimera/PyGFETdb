@@ -55,10 +55,10 @@ class DataCharDC(object):
 
         # Added extra checks to add Quantities support
         # begin fix
-        if type(Par) is float or type(Par) is int:
-            Par = np.array(Par)
-        elif type(Par) is pq.Quantity:
+        if type(Par) is pq.Quantity:
             return Par
+        else:
+            Par = np.array(Par)
         # end fix
 
         if not hasattr(Par, '__iter__'):

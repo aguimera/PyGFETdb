@@ -1,9 +1,11 @@
 # import threading as th
+import random
 from multiprocessing import pool, Lock
 
 # import numpy as np
 import PyGFETdb
 
+NUMTHREADS = 10000
 rets = {}
 lock = Lock()
 
@@ -14,9 +16,16 @@ class PyFETdb:
         self.parent = package
         rets = []
 
-    def call(self, funcname, args, **kwargs):
+    def call(self, funcname, arguments):
         func = self.parent.__getattribute__(funcname)
-        ret = self.pool.apply_async(func, args, kwargs, error_callback=errorlog, callback=addResult)
+        i = arguments.get('args')
+        for karg, varg in i.items():
+            args = []
+            for kargument, vargument in arguments.items():
+                if kargument != "args":
+                    args.append(vargument)
+            args.append(dict({karg: varg}))
+            ret = self.pool.apply_async(func, args, error_callback=errorlog, callback=addResult)
         return ret
 
     # def getPool(self):
@@ -36,7 +45,8 @@ class PyFETdb:
 
 def addResult(result):
     PyGFETdb.Thread.lock.acquire()
-    rets[result[0]] = result[2]
+    randomkey = random.randint(0, NUMTHREADS)
+    rets[randomkey] = result
     PyGFETdb.Thread.lock.release()
 
 

@@ -184,11 +184,6 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
     Ax.tick_params(axis='both', which='Both', labelsize=labelsize)
 
 
-def GetParamThread(Grn, Data, index, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-    val = GetParam(Data, Param, Vgs, Vds, Ud0Norm, **kwargs)
-    ret = [str(index).join(Param), [index, Param, Grn], {index: {Param: {Grn: val}}}]
-    return ret
-
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     Vals = qty.createQuantityList()
     if not Data: return Vals
@@ -205,16 +200,20 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
             try:
                 Val = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
             except:
-                print('Wrong value calcutation for ', Trtn, sys.exc_info())
+                print('Wrong value calculation for ', Trtn, sys.exc_info())
                 Val = None
 
             if Val is not None:
                 if type(Val) is pq.Quantity:
                     Vals = qty.appendQuantity(Vals, Val)
                 else:
-                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+                    try:
+                        Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+                    except:
+                        print(sys.exc_info())
+                        raise ArithmeticError
 
-    if not qty.Quantities:  # Quantities support
+    if not qty.isActive():  # Quantities support
         return Vals
     else:
         return [Vals]
@@ -269,7 +268,7 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
 
     if Plot:
         plt.xticks(xPos, xLab, rotation=45)
-        if qty.Quantities:
+        if qty.isActive():
             qtyunits = qty.getQuantityUnits(qtys)
             if qtyunits:
                 Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')

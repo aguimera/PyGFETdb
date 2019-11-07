@@ -11,7 +11,7 @@ import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, multithrds
+from PyGFETdb import qty, GlobalFunctions
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
@@ -27,7 +27,7 @@ Wafers = (
     'B11870W8',  # (IDIBAPS implants)
     'B11601W4',
 )
-
+""" 
 DataSelectionConfig = [
     {'Param': 'Ud0',  # Parameter to evaluate
      'Range': (200, 500),  # Range of allowed values, (Min, Max)
@@ -62,9 +62,46 @@ DataSelectionConfig = [
          'NFmax': 1000,
          'Units': 'V'
      },
-     'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
+     'Range': (5e-6, 0.6e-4), '# Range of allowed values, (Min, Max)
      #                              'Function': np.min, # Funtion to apply into given results
      },
+]
+"""
+
+DataSelectionConfig = [
+    {'Param': 'Ud0',  # Parameter to evaluate
+     'Range': (0.2, 0.5),  # Range of allowed values, (Min, Max)
+     'Name': 'UD0y'},
+
+    #                            {'Param': 'Rds', # Parameter to evaluate
+    #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
+    #                              'Function': np.max, # Funtion to apply into given results
+    #                              'InSide': True,  # Inside or outside the range, Default True
+    #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
+    #                                          'Vds': None,
+    #                                          'Ud0Norm': False},
+    #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
+
+    {'Param': 'GMV',  # Parameter to evaluate
+     'Range': (1e-4, 1e-2),  # Range of allowed values, (Min, Max)
+     'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
+                 'Vds': None,
+                 'Ud0Norm': True,
+                 },
+     'Name': 'GMVy'},
+
+    {'Param': 'Vrms',  # Parameter to evaluate
+     'ParArgs': {
+         'Vgs': -0.1,  # Bias point to evaluate
+         'Vds': None,
+         'Ud0Norm': True,
+         'NFmin': 10,
+         'NFmax': 1000,
+     },
+     'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
+     #                              'Function': np.min, # Funtion to apply into given results
+
+     }
 ]
 
 Conditions = {'Wafers.Name = ': Wafers,
@@ -84,64 +121,59 @@ Devices = DbSe.FindCommonValues(Parameter='Devices.Name',
 GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
 GrDevs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
 
-args1 = {
-    'Param': 'Vrms',
-    'Vgs': -0.1,
-    'Ud0Norm': True,
-    'yscale': 'log',
-    'NFmin': 10,
-    'NFmax': 1000,
-    'Units': 'uV'
-}
-args2 = {
-    'Param': 'Rds',
-    'Vgs': 0,
-    'Ud0Norm': True,
-    'yscale': 'log',
-    'Units': 'uV/A'
-}
-args3 = {
-    'Param': 'GMV',
-    'Vgs': -0.1,
-    'Ud0Norm': True,
-    'yscale': 'log',
-    'Units': 'uS/V'
-}
-args4 = {
-    'Param': 'Ud0',
-    'Units': 'uV'
-}
-args5 = {
-    'Param': 'Ids',
-    'Vgs=': -0.1,
-    'Ud0Norm': True,
-    'yscale': 'log',
-    'Units': 'uA'
+arguments = {
+    'arg0': {
+        'Param': 'Vrms',
+        'Vgs': -0.1,
+        'Ud0Norm': True,
+        'yscale': 'log',
+        'NFmin': 10,
+        'NFmax': 1000,
+        'Units': 'uV'
+    },
+    'arg1': {
+        'Param': 'Rds',
+        'Vgs': 0,
+        'Ud0Norm': True,
+        'yscale': 'log',
+        'Units': 'uV/A'
+    },
+    'arg2': {
+        'Param': 'GMV',
+        'Vgs': -0.1,
+        'Ud0Norm': True,
+        'yscale': 'log',
+        'Units': 'uS/V'
+    },
+    'arg3': {
+        'Param': 'Ud0',
+        'Units': 'uV'
+    },
+    'arg4': {
+        'Param': 'Ids',
+        'Vgs=': -0.1,
+        'Ud0Norm': True,
+        'yscale': 'log',
+        'Units': 'uA'
+    }
 }
 
-# GetParamsThread
-args = [args1, args2, args3, args4, args5]
-if multithrds:
-    # GetFromDB
-    ResultsDB = g.SearchDB(GrWs)
-    ResultsParams = g.GetParamsThread(args, ResultsDB, GrWs)
-    Vals = g.PlotGroup(ResultsParams, GrWs, args)
-else:
-    ResultsDB = g.SearchDB(GrWs)
-    Results = g.GetParams(ResultsDB, GrWs, args)
-    g.PlotGroup(Results, GrWs, args)
+ResultsDB = g.SearchDB(GrWs)
+argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
+ResultsParams = g.call(GlobalFunctions, 'GetParams', **argParams)
 
+Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
 
 fig, ax = plt.subplots()
 
 Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 
-arg1 = {
+args = {'0': {
     'Param': 'Vrms',
     'Vgs': -0.1,
     'Ud0Norm': True,
     'Units': 'uV',
-}
+}}
 GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
 Results = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
@@ -149,8 +181,8 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     Col = Colors[iWf]
     Results[Grwn] = {}
     ResultsDB = g.SearchDB(GrDs)
-    ResultsParams = g.GetParams(ResultsDB, GrDs, [arg1])
-    for iDev, (Grn, Grc) in enumerate(sorted(ResultsParams[0].items())):
+    ResultsParams = g.GetParams(ResultsDB, GrDs, args)
+    for iDev, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
         quantities = Grc  # Param 0
         if qty.isActive():
             Vals = pq.Quantity(quantities)  # np.array also works fine
