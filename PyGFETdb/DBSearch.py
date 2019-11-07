@@ -10,7 +10,6 @@ import logging
 import numpy as np
 
 import PyGFETdb.DBCore as PyFETdb
-from PyGFETdb import QuantityClass as qty
 from PyGFETdb import multithrds
 from PyGFETdb import qty
 from PyGFETdb.DataClass import DataCharAC
