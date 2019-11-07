@@ -99,6 +99,14 @@ PyGFETdb.QuantityClass module
    :undoc-members:
    :show-inheritance:
 
+PyGFETdb.Thread module
+----------------------
+
+.. automodule:: PyGFETdb.Thread
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------
