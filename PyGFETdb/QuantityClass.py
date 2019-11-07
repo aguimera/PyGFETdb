@@ -197,6 +197,11 @@ class QuantityClass(object):
         return ret
 
     def flatten(self, quantity):
+        """
+
+        :param quantity: A Quantity-like variable
+        :return: A flatted list of values with the magnitudes of quantity
+        """
         tvals = []
         if type(quantity) is list and len(quantity) > 0:
             if type(quantity[0]) is list:

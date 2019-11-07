@@ -7,7 +7,6 @@ Global Functions that do not fit in the previous files.
 import matplotlib.pyplot as plt
 import numpy as np
 
-import PyGFETdb
 import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.Thread as Thread
@@ -15,15 +14,6 @@ from PyGFETdb import multithrds
 from PyGFETdb import qty
 
 """
-pool = Thread.PyFETdb(DbSe)
-for iGr, (Grn, Grc) in enumerate(sorted(GrDevs.items())):
-    print('Getting data for ', Grn)
-    #Data, Trts = DbSe.GetFromDB(**Grc)
-    pool.call('GetFromDB',[Grc])
-ResultsDB = pool.getResults()
-"""
-
-
 def getFromDB(Groups):
     PyGFETdb.multithrds = False
     pool = Thread.PyFETdb(DbSe)
@@ -38,7 +28,7 @@ def getFromDB(Groups):
             ret.append([Grn, DbSe.GetFromDB(**Grc)])
     PyGFETdb.multithrds = True
     return ret
-
+"""
 
 def GetParamsThread(args, ResultsDB, Multidata=None, **kwargs):
     # GetParamsThread
@@ -64,6 +54,7 @@ def _GetParamsThread(pool, args, ResultsDB):
                     return DbAn.GetParamThread(Grn, Data, i, **arg)
 
 
+"""
 def processResults(args, ResultsDB, MultiData=None, **kwargs):
     if MultiData is not None:
         Results = []
@@ -73,8 +64,8 @@ def processResults(args, ResultsDB, MultiData=None, **kwargs):
         return Results
     else:
         return _processResults(ResultsDB, args, **kwargs)
-
-
+"""
+"""
 def _processResults(Grc, args, groupcallback=None, argcallback=None, **kwargs):
     args = np.array(args)
     for i, arg in enumerate(args):
@@ -84,16 +75,25 @@ def _processResults(Grc, args, groupcallback=None, argcallback=None, **kwargs):
                     groupcallback(grn, Param, Data, **kwargs)
         argcallback(grn, Param, Data, **kwargs)
     return results[1]
+"""
 
-
+"""
 def Plot(GrDevs, Grc, args, Boxplot=False, ParamUnits=None, **kwargs):
     if multithrds:
         return _PlotThreads(GrDevs, Grc, args, **kwargs)
     else:
         _Plot(GrDevs, Grc, **args)
-
+"""
 
 def updateDictOfLists(dict, key, value):
+    """
+    Modifies a dictionary of lists, appending the value at the list obtained
+    of applying the key to the dictionary
+    :param dict: A dictionary to update
+    :param key: The key to update
+    :param value: The value to append
+    :return: None
+    """
     k = dict.get(key)
     if k is None:
         dict[key] = value
@@ -101,6 +101,7 @@ def updateDictOfLists(dict, key, value):
         k.append(value)
 
 
+"""
 def _Plot(Groups, Grc, Boxplot=False, ParamUnits=None, **kwargs):
     Vals = {}
     fig, Ax = plt.subplots()
@@ -116,10 +117,10 @@ def _Plot(Groups, Grc, Boxplot=False, ParamUnits=None, **kwargs):
                 continue
             vals = qty.flatten(vals)
             # vals = np.array(vals)
-            PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, **kwargs)
+            _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, **kwargs)
             updateDictOfLists(Vals, Grn, qtys)
     if vals is not None and len(vals) > 0:
-        closePlotValsGroup(Ax, xLab, xPos, qtys, **kwargs)
+        _closePlotValsGroup(Ax, xLab, xPos, qtys, **kwargs)
     return Vals
 
 
@@ -156,16 +157,17 @@ def _PlotThreads(GrDevs, Grc, args, Boxplot=False, ParamUnits=None, **kwargs):
             tdata = qty.flatten(tdata)
             tdata = np.array(tdata)
             if tdata is not None and len(tdata) > 0:
-                PlotValsGroup(Ax, xLab, xPos, iGr, gr, tdata, **args[iarg])
+                _PlotValsGroup(Ax, xLab, xPos, iGr, gr, tdata, **args[iarg])
                 iGr += 1
                 Vals[grn] = tqtys
         if tdata is not None and len(tdata) > 0:
-            closePlotValsGroup(Ax, xLab, xPos, units, **args[iarg])
+            _closePlotValsGroup(Ax, xLab, xPos, units, **args[iarg])
             plt.show()
     return Vals
+"""
 
 
-def PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None, **kwargs):
+def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None, **kwargs):
     if vals is not None:  # and len(vals) >0:
         if Boxplot:
             Ax.boxplot(vals.transpose(), positions=(iGr + 1,))
@@ -178,7 +180,7 @@ def PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None
         print('Empty data for: ', Grn)
 
 
-def closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
+def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
     units = kwargs.get('Units')
     plt.xticks(xPos, xLab, rotation=45)
 
@@ -209,6 +211,15 @@ def closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
 
 
 def GetParams(ResultsDB, Group, args, Plot=None, **kwargs):
+    """
+
+    :param ResultsDB: The results of a search in the database
+    :param Group: A group of conditions to analyse
+    :param args: Arguments for getting the parameters
+    :param Plot: Bool that activates plotting
+    :param kwargs:
+    :return: A dict of args of dicts of groupnames and parameter found in a previous search
+    """
     Results = {}
     for iarg, arg in enumerate(args):
         Results[iarg] = {}
@@ -226,13 +237,18 @@ def GetParams(ResultsDB, Group, args, Plot=None, **kwargs):
                     ParamData = qty.flatten(ParamData)
                 ParamData = np.array(ParamData)
                 if Plot:
-                    PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
+                    _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
         if Plot:
-            closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
+            _closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
     return Results
 
 
-def SearchDB(Group, **kwargs):
+def SearchDB(Group):
+    """
+
+    :param Group: A group of conditions
+    :return: The results of the search in the database
+    """
     ResultsDB = {}
     for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
         Data, Trts = DbSe.GetFromDB(**Grc)
