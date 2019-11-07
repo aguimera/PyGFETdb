@@ -223,23 +223,39 @@ def GetParams(ResultsDB, Group, args, Plot=None, **kwargs):
     Results = {}
     for iarg, arg in enumerate(args):
         Results[iarg] = {}
-        if Plot:
-            fig, Ax = plt.subplots()
-            xLab = []
-            xPos = []
         for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
             Data = ResultsDB[Grn]
             ParamData = DbAn.GetParam(Data, **arg)
+            if ParamData is not None:
+                Results[iarg][Grn] = ParamData
+    return Results
+
+
+def PlotGroup(ResultsParams, Group, args, **kwargs):
+    """
+
+    :param ResultsParams: The results of a search in the database
+    :param Group: A group of conditions to analyse
+    :param args: Arguments for getting the parameters
+    :param kwargs:
+    :return: A dict of args of dicts of groupnames and parameter found in a previous search
+    """
+    Results = {}
+    for iarg, arg in enumerate(args):
+        Results[iarg] = {}
+        fig, Ax = plt.subplots()
+        xLab = []
+        xPos = []
+        for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
+            ParamData = ResultsParams[iarg][Grn]
             if ParamData is not None:
                 Results[iarg][Grn] = ParamData
                 if qty.isActive():
                     qtys = np.array(ParamData)
                     ParamData = qty.flatten(ParamData)
                 ParamData = np.array(ParamData)
-                if Plot:
-                    _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
-        if Plot:
-            _closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
+                _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
+        _closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
     return Results
 
 

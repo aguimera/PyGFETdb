@@ -124,15 +124,16 @@ args5 = {
 args = [args1, args2, args3, args4, args5]
 if multithrds:
     # GetFromDB
-    ResultsDB = g.getFromDB(GrDevs)
+    ResultsDB = g.SearchDB(GrDevs)
     pool = Thread.PyFETdb(DbAn)
-    g._GetParamsThread(pool, args, ResultsDB)
+    g.GetParams(ResultsDB, **args)
     ResultsParams = pool.getResults()
     del pool
     Vals = g.Plot(GrWs, ResultsParams, args)
 else:
     ResultsDB = g.SearchDB(GrWs)
-    Results = g.GetParams(ResultsDB, GrWs, args, True)
+    Results = g.GetParams(ResultsDB, GrWs, args)
+    g.PlotGroup(Results, GrWs, args)
 
 
 fig, ax = plt.subplots()
