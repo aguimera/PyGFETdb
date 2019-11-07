@@ -6,3 +6,4 @@ xlsxwriter
 PySide2
 PyGFETdb
 sphinx-autoapi
+multiprocessing
