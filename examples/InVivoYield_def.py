@@ -11,7 +11,7 @@ import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, GlobalFunctions
+from PyGFETdb import qty, GlobalFunctions, Thread
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
@@ -160,7 +160,7 @@ arguments = {
 
 ResultsDB = g.SearchDB(GrWs)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
-ResultsParams = g.call(GlobalFunctions, 'GetParams', **argParams)
+ResultsParams = Thread.call(GlobalFunctions, 'GetParams', **argParams)
 
 Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
 

@@ -4,13 +4,14 @@ from multiprocessing import pool, Lock
 
 # import numpy as np
 import PyGFETdb
+from PyGFETdb import multithrds
 
 NUMTHREADS = 10000
 rets = {}
 lock = Lock()
 
 
-class PyFETdb:
+class Thread:
     def __init__(self, package):  # , host=DBhost, user=DBuser, passwd=DBpasswd, db=DBdb, Update=True):
         self.pool = pool.Pool()
         self.parent = package
@@ -58,3 +59,33 @@ def addResult(result):
 
 def errorlog(e):
     print(e)
+
+
+def call(klass, function, **kwargs):
+    if multithrds:  # is not None:
+        pool = Thread(klass)
+        pool.call(function, kwargs)
+        tdict = pool.getResults()
+        del pool
+        return processResults(tdict, kwargs.get('args'))
+    else:
+        func = klass.__getattribute__(function)
+        res = func(**kwargs)
+    return res
+
+
+def processResults(ResultsDict, args):
+    Results = {}
+    for karg, arg in args.items():
+        Results[karg] = {}
+        for r, rd in ResultsDict.items():
+            tdict = rd.get(karg)
+            if tdict is not None:
+                for iWf, (Wfn, Wfc) in enumerate(tdict.items()):
+                    Results[karg][Wfn] = {}
+                    if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                        for iGr, (Grn, Grc) in enumerate(tdict.items()):
+                            Results[karg][Wfn][Grn] = Grc
+                    else:
+                        Results[karg][Wfn] = Wfc
+    return Results
