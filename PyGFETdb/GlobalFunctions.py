@@ -23,8 +23,8 @@ def call(klass, function, **kwargs):
         return processResults(tdict, kwargs.get('args'))
     else:
         func = klass.__getattribute__(function)
-        listres = func(**kwargs)
-    return listres
+        res = func(**kwargs)
+    return res
 
 
 def processResults(ResultsDict, args):

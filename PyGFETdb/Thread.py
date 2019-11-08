@@ -19,13 +19,19 @@ class PyFETdb:
     def call(self, funcname, arguments):
         func = self.parent.__getattribute__(funcname)
         i = arguments.get('args')
-        for karg, varg in i.items():
+        if i is not None:
+            for karg, varg in i.items():
+                args = []
+                for kargument, vargument in arguments.items():
+                    if kargument != "args":
+                        args.append(vargument)
+                args.append(dict({karg: varg}))
+                ret = self.pool.apply_async(func, args, error_callback=errorlog, callback=addResult)
+        else:
             args = []
             for kargument, vargument in arguments.items():
-                if kargument != "args":
-                    args.append(vargument)
-            args.append(dict({karg: varg}))
-            ret = self.pool.apply_async(func, args, error_callback=errorlog, callback=addResult)
+                args.append(vargument)
+            ret = self.pool.apply_async(func, [], arguments, error_callback=errorlog, callback=addResult)
         return ret
 
     # def getPool(self):
