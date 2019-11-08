@@ -14,7 +14,7 @@ import pymysql
 from PyGFETdb.DB import *
 
 
-class PyFETdb():
+class _PyFETdb():
     PrintQuery = False
 
     def __init__(self, host=None, user=None, passwd=None, db=None, Update=True):
@@ -33,10 +33,10 @@ class PyFETdb():
     def __del__(self):
         try:
             self.db.close()
-        except AttributeError:
+        except:
             # if we previously could not connect to the DB, the db attributed cannot be accessed
             # then, exit cleanly.
-            return
+            pass
 
     def _execute(self, query, values, LastRowID=False):
         cur = self.db.cursor()
@@ -609,5 +609,67 @@ class PyFETdb():
 #        return Data
 #        
 
+class PyFETdb(_PyFETdb):
+    """
+        Subclass maintained by dragc for db optimisation tests
+    """
+
+    def __init__(self, host=None, user=None, passwd=None, db=None, Update=True):
+        """
+
+        :param host:
+        :param user:
+        :param passwd:
+        :param db:
+        :param Update:
+        """
+        _PyFETdb.__init__(_PyFETdb, host, user, passwd, db, Update)
+
+    """
+    def GetCharactInfo(self, Table, Conditions, Output):
+        #        if not multithrds:
+        #            return _PyFETdb.GetCharactInfo(self,Table,Conditions,Output)
+        #else:
+            kwargs ={'self':self,'Table':Table,'Conditions':Conditions,'Output':Output}
+            return Thread.call(_PyFETdb,'GetCharactInfo',**kwargs)
+
+    def _execute(self, query, values, LastRowID=False):
+        if not multithrds:
+            return _PyFETdb._execute(self, query,values, LastRowID)
+        else:
+            kwargs = {'self': self, 'query': query, 'values': values, 'LastRowID': LastRowID}
+            res = Thread.call(_PyFETdb, '_execute', **kwargs)
+            ret = None
+            if res is not None:
+                if type(res) is tuple:
+                    ret = res
+                elif type(res) is dict:
+                    tres = []
+                    for ires, (rk, rv) in enumerate(res.items()):
+                        tres.append(rv)
+
+                    #if len(tres)>1:
+                    #    ret = tuple(i for i in tres)
+                    #else:
+                    #    ret = (*tres,)
+                    ret = tres
+        return ret
+    
+    
+    def GetData2(self, Conditions, Table, Last=True, GetGate=False):
+        kwargs = {'self': self, 'Table': Table, 'Conditions': Conditions, 'Last': Last, 'GetGate': GetGate}
+        ret = Thread.call(_PyFETdb, 'GetData2', **kwargs)
         
-        
+        Results = ()
+        Data = []
+        Trts = []
+        for r, rd in ret.items():
+            if len(ret)>1:
+               # FIXME : append dicts and lists for each result  
+               Results.append(rd)
+            else:
+               return rd
+
+
+        return Results
+    """

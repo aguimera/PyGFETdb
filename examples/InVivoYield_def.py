@@ -160,8 +160,8 @@ arguments = {
 
 ResultsDB = g.SearchDB(GrWs)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
-ResultsParams = Thread.call(GlobalFunctions, 'GetParams', **argParams)
-
+tempResults = Thread.call(GlobalFunctions, 'GetParams', **argParams)
+ResultsParams = g.processResults(tempResults, arguments)
 Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
 
 fig, ax = plt.subplots()

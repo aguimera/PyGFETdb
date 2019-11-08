@@ -151,3 +151,25 @@ def SearchDB(GrWfs, **kwargs):
             ResultsDB[Wfn] = dict(Data)
 
     return dict(ResultsDB)
+
+
+def processResults(ResultsDict, args):
+    Results = {}
+    if args is not None:
+        for karg, arg in args.items():
+            Results[karg] = {}
+            for r, rd in ResultsDict.items():
+                if type(rd) is dict:
+                    tdict = rd.get(karg)
+                    if tdict is not None:
+                        for iWf, (Wfn, Wfc) in enumerate(tdict.items()):
+                            Results[karg][Wfn] = {}
+                            if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                                for iGr, (Grn, Grc) in enumerate(tdict.items()):
+                                    Results[karg][Wfn][Grn] = Grc
+                            else:
+                                Results[karg][Wfn] = Wfc
+    else:
+        Results = ResultsDict
+
+    return Results
