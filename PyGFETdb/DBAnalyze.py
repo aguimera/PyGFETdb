@@ -209,9 +209,9 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
                 else:
                     try:
                         Vals = np.hstack(((Vals), Val)) if Vals.size else Val
-                    except:
+                    except ValueError:
                         print(sys.exc_info())
-                        raise ArithmeticError
+                        # raise ArithmeticError # FIXME:
 
     if not qty.isActive():  # Quantities support
         return Vals

@@ -11,11 +11,11 @@ import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, GlobalFunctions, Thread
+from PyGFETdb import qty, GlobalFunctions, Thread, multithrds
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
-# qty.setActive(False)  # Uncomment to deactivate Quantity Support
+qty.setActive(False)  # Uncomment to deactivate Quantity Support
 
 plt.close('all')
 
@@ -161,7 +161,10 @@ arguments = {
 ResultsDB = g.SearchDB(GrWs)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
 tempResults = Thread.call(GlobalFunctions, 'GetParams', **argParams)
-ResultsParams = g.processResults(tempResults, arguments)
+if multithrds:
+    ResultsParams = g.processResults(tempResults, arguments)
+else:
+    ResultsParams = tempResults
 Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
 
 fig, ax = plt.subplots()

@@ -37,14 +37,14 @@ class QuantityClass(object):
         :param Quantities: (De)activates python-quantities support
 
         """
-        self._Quantities = Quantities
+        self._Active = Quantities
 
     def isActive(self):
         """
 
         :returns: if the Quantity support is active
         """
-        return self._Quantities
+        return self._Active
 
     def setActive(self, Active=True):
         """
@@ -52,7 +52,7 @@ class QuantityClass(object):
         :param Active: sets new state for the Quantity support
         :return: None
         """
-        self._Quantities = Active
+        self._Active = Active
 
     def isDefaultQuantityKey(self, key: str) -> bool:
         """
@@ -60,7 +60,7 @@ class QuantityClass(object):
         :param key: string indicating the plot parameter to check
         :return: if exist a default unit for the plot parameter
         """
-        return self._Quantities and self.DefaultUnits.get(key) is not None
+        return self.isActive() and self.DefaultUnits.get(key) is not None
 
     def createDefaultQuantity(self, key, value):
         """
@@ -68,7 +68,7 @@ class QuantityClass(object):
         :param value: The magnitude measured
         :return: The value with the default units
         """
-        if not self._Quantities:
+        if not self.isActive():
             return value
         unit = self.DefaultUnits.get(key)
         if unit is not None:
@@ -84,7 +84,7 @@ class QuantityClass(object):
             :param kwargs: The argument keywords in order to check unit rescaling.
             :return: The Quantity or param if the Quantities support is not activated
         """
-        if not self._Quantities:
+        if not self.isActive():
             return param
         unit = self.DefaultUnits.get(unitKey)
 
@@ -99,7 +99,7 @@ class QuantityClass(object):
         :return: An empty list if Quantities support is activated or
                  a empty numpy.array otherwise
         """
-        return [] if self._Quantities else np.array([])
+        return [] if self.isActive() else np.array([])
 
     def appendQuantity(self, vals, val):
         """
@@ -121,7 +121,7 @@ class QuantityClass(object):
         :param units: The units to rescale
         :return: The input Quantity-like rescaled to the intented units
         """
-        if not self._Quantities or not units or qtylist is None: return qtylist
+        if not self.isActive() or not units or qtylist is None: return qtylist
         if type(qtylist) is pq.Quantity:
             try:
                 return qtylist.rescale(units)
@@ -145,7 +145,7 @@ class QuantityClass(object):
         :return: A string with the proper units in latex format for easy plotting
         """
         ret = None
-        if self._Quantities and qtylist is not None:
+        if self.isActive() and qtylist is not None:
             if type(qtylist) is pq.Quantity:
                 return qtylist.dimensionality.latex
             elif type(qtylist) is list:
@@ -161,7 +161,7 @@ class QuantityClass(object):
         :return: A Quantity with consistent units depending on parameter value
         """
         ret = pq.Quantity(np.nan)
-        if self._Quantities and value is not None:
+        if self.isActive() and value is not None:
             if type(value) is list:
                 ret = self.getConsistentQuantityFromList(value)
             elif type(value) is pq.Quantity:
@@ -180,7 +180,7 @@ class QuantityClass(object):
         """
         ret = listQty
 
-        if self._Quantities and listQty is not None:
+        if self.isActive() and listQty is not None:
             ret = pq.Quantity(np.nan)
             templist = list(chain.from_iterable(listQty))
             if len(templist):
@@ -204,7 +204,7 @@ class QuantityClass(object):
         :return: A flatted list of values with the magnitudes of quantity
         """
         tvals = []
-        if self._Quantities and type(quantity) is list and len(quantity) > 0:
+        if self.isActive() and type(quantity) is list and len(quantity) > 0:
             if type(quantity[0]) is list:
                 Dat = list(chain.from_iterable(quantity))
             else:
