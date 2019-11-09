@@ -26,6 +26,27 @@ def updateDictOfLists(dict, key, value):
         k.append(value)
 
 
+def _BoxplotValsGroup(ax, Col, iGroup, Vals):
+    bplt = ax.boxplot(Vals,
+                      positions=(iGroup,),
+                      patch_artist=True,  # fill with color
+                      widths=0.75,
+                      sym='+',
+                      labels=('',),
+                      #                      notch=True,
+                      )
+
+    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
+        plt.setp(bplt[element], color=Col)
+
+    for fl in bplt['fliers']:
+        fl.set_markeredgecolor(Col)
+
+    for patch in bplt['boxes']:
+        patch.set(facecolor=Col)
+        patch.set(alpha=0.5)
+
+
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None, **kwargs):
     if vals is not None:  # and len(vals) >0:
         if Boxplot:
@@ -67,9 +88,6 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
         Ax.set_xscale(kwargs['xscale'])
     if 'yscale' in list(kwargs.keys()):
         Ax.set_yscale(kwargs['yscale'])
-
-
-
 
 
 def PlotGroup(ResultsParams, Group, args, **kwargs):

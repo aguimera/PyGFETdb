@@ -27,46 +27,6 @@ Wafers = (
     'B11870W8',  # (IDIBAPS implants)
     'B11601W4',
 )
-""" 
-DataSelectionConfig = [
-    {'Param': 'Ud0',  # Parameter to evaluate
-     'Range': (200, 500),  # Range of allowed values, (Min, Max)
-     'Name': 'UD0y',
-     'ParArgs': {'Units': 'mV'}
-     },
-
-    #                            {'Param': 'Rds', # Parameter to evaluate
-    #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
-    #                              'Function': np.max, # Funtion to apply into given results
-    #                              'InSide': True,  # Inside or outside the range, Default True
-    #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
-    #                                          'Vds': None,
-    #                                          'Ud0Norm': False},
-    #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
-
-    {'Param': 'GMV',  # Parameter to evaluate
-     'Range': (100, 10000),  # Range of allowed values, (Min, Max)
-     'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
-                 'Vds': None,
-                 'Ud0Norm': True,
-                 'Units': "uS/V"
-                 },
-     'Name': 'GMVy'},
-
-    {'Param': 'Vrms',  # Parameter to evaluate
-     'ParArgs': {
-         'Vgs': -0.1,  # Bias point to evaluate
-         'Vds': None,
-         'Ud0Norm': True,
-         'NFmin': 10,
-         'NFmax': 1000,
-         'Units': 'V'
-     },
-     'Range': (5e-6, 0.6e-4), '# Range of allowed values, (Min, Max)
-     #                              'Function': np.min, # Funtion to apply into given results
-     },
-]
-"""
 
 DataSelectionConfig = [
     {'Param': 'Ud0',  # Parameter to evaluate
@@ -197,27 +157,8 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
             Vals = quantities * 1e6
 
         Results[Grwn][Grn] = Vals
+    g._BoxplotValsGroup(ax, Col, iWf, Vals.transpose())
 
-    bplt = ax.boxplot(Vals.transpose(),
-                      positions=(iWf,),
-                      patch_artist=True,  # fill with color
-                      widths=0.75,
-                      sym='+',
-                      labels=('',),
-                      #                      notch=True,
-                      )
-
-    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
-            plt.setp(bplt[element], color=Col)
-
-    for fl in bplt['fliers']:
-        fl.set_markeredgecolor(Col)
-
-    for patch in bplt['boxes']:
-            patch.set(facecolor=Col)
-            patch.set(alpha=0.5)
-
-    # ax.set_yscale('log')
 ax.set_ylabel('[uVrms]', fontsize='large')
 ax.set_xlabel('Probes', fontsize='large')
 ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
@@ -238,21 +179,7 @@ for iWf, (wn, dd) in enumerate(Results.items()):
 
     xLab.append(wn)
     xPos.append(iWf)
-    bplt = ax2.boxplot(work,
-                       positions=(iWf,),
-                       patch_artist=True,  # fill with color
-                       widths=0.75,
-                       sym='+')
-
-    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
-        plt.setp(bplt[element], color=Col)
-
-    for fl in bplt['fliers']:
-        fl.set_markeredgecolor(Col)
-
-    for patch in bplt['boxes']:
-        patch.set(facecolor=Col)
-        patch.set(alpha=0.5)
+    g._BoxplotValsGroup(ax2, Col, iWf, work)
 
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
