@@ -7,8 +7,6 @@ Global Functions that do not fit in the previous files.
 import matplotlib.pyplot as plt
 import numpy as np
 
-import PyGFETdb.DBAnalyze as DbAn
-import PyGFETdb.DBSearch as DbSe
 from PyGFETdb import qty
 
 
@@ -71,35 +69,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
         Ax.set_yscale(kwargs['yscale'])
 
 
-def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
-    """
 
-    :param ResultsDB: The results of a search in the database
-    :param Group: A group of conditions to analyse
-    :param args: Arguments for getting the parameters
-    :param Plot: Bool that activates plotting
-    :param kwargs:
-    :return: A dict of args of dicts of groupnames and parameter found in a previous search
-    """
-    Results = {}
-    for karg, arg in args.items():
-        Results[karg] = {}
-        for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
-            Results[karg][Wfn] = {}
-            if type(Wfc) is dict and Wfc.get('Conditions') is None:
-                for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
-                    Data = ResultsDB.get(Grn)
-                    if Data is not None:
-                        ParamData = DbAn.GetParam(Data, **arg)
-                        if ParamData is not None:
-                            Results[karg][Wfn][Grn] = ParamData
-            else:
-                Data = ResultsDB.get(Wfn)
-                if Data is not None:
-                    ParamData = DbAn.GetParam(Data, **arg)
-                    if ParamData is not None:
-                        Results[karg][Wfn] = ParamData
-    return Results
 
 
 def PlotGroup(ResultsParams, Group, args, **kwargs):
@@ -133,43 +103,3 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
     return Results
 
 
-def SearchDB(GrWfs, **kwargs):
-    """
-
-    :param Group: A group of conditions
-    :return: The results of the search in the database
-    """
-    ResultsDB = {}
-    for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
-        ResultsDB[Wfn] = {}
-        if type(Wfc) is dict and Wfc.get('Conditions') is None:
-            for iGr, (Grn, Grc) in enumerate(Wfc.items()):
-                Data, Trts = DbSe.GetFromDB(**Grc)
-                ResultsDB[Wfn][Grn] = dict(Data)
-        else:
-            Data, Trts = DbSe.GetFromDB(**Wfc)
-            ResultsDB[Wfn] = dict(Data)
-
-    return dict(ResultsDB)
-
-
-def processResults(ResultsDict, args):
-    Results = {}
-    if args is not None:
-        for karg, arg in args.items():
-            Results[karg] = {}
-            for r, rd in ResultsDict.items():
-                if type(rd) is dict:
-                    tdict = rd.get(karg)
-                    if tdict is not None:
-                        for iWf, (Wfn, Wfc) in enumerate(tdict.items()):
-                            Results[karg][Wfn] = {}
-                            if type(Wfc) is dict and Wfc.get('Conditions') is None:
-                                for iGr, (Grn, Grc) in enumerate(tdict.items()):
-                                    Results[karg][Wfn][Grn] = Grc
-                            else:
-                                Results[karg][Wfn] = Wfc
-    else:
-        Results = ResultsDict
-
-    return Results

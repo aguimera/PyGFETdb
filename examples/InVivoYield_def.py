@@ -11,11 +11,11 @@ import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, GlobalFunctions, Thread, multithrds
+from PyGFETdb import qty, Thread, multithrds, Multiprocessing as mp
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
-qty.setActive(False)  # Uncomment to deactivate Quantity Support
+# qty.setActive(False)  # Uncomment to deactivate Quantity Support
 
 plt.close('all')
 
@@ -158,11 +158,16 @@ arguments = {
     }
 }
 
-ResultsDB = g.SearchDB(GrWs)
-argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
-tempResults = Thread.call(GlobalFunctions, 'GetParams', **argParams)
 if multithrds:
-    ResultsParams = g.processResults(tempResults, arguments)
+    search = mp.SearchDB_MP
+else:
+    search = mp.SearchDB
+
+ResultsDB = search(GrWs)
+argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
+tempResults = Thread.call(mp, 'GetParams', **argParams)
+if multithrds:
+    ResultsParams = mp.processResults(tempResults, arguments)
 else:
     ResultsParams = tempResults
 Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
@@ -183,8 +188,8 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     GrDs = DbSe.GenGroups(Grwc, 'Devices.Name', LongName=False)
     Col = Colors[iWf]
     Results[Grwn] = {}
-    ResultsDB = g.SearchDB(GrDs)
-    ResultsParams = g.GetParams(ResultsDB, GrDs, args)
+    ResultsDB = search(GrDs)
+    ResultsParams = mp.GetParams(ResultsDB, GrDs, args)
     for iDev, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
         quantities = Grc  # Param 0
         if qty.isActive():

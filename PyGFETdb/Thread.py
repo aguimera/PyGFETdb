@@ -1,21 +1,19 @@
 # import threading as th
-import random
 from multiprocessing import pool, Lock
 
 # import numpy as np
-import PyGFETdb
 from PyGFETdb import multithrds
 
-NUMTHREADS = 10000
-rets = {}
-lock = Lock()
 
-
-class Thread:
+class Thread(pool.ThreadPool):
     def __init__(self, package):  # , host=DBhost, user=DBuser, passwd=DBpasswd, db=DBdb, Update=True):
-        self.pool = pool.ThreadPool()
+        pool.ThreadPool.__init__(self)
+        self.pool = self
         self.parent = package
-        rets = []
+        self._NUMTHREADS = 10000000
+        self._rets = []
+        self.lock = Lock()
+        self.args = None
 
     def call(self, funcname, arguments):
         ret = None
@@ -29,42 +27,71 @@ class Thread:
 
             i = arguments.get('args')
             if i is not None:
+                self.args = i
                 for karg, varg in i.items():
                     args = []
                     for kargument, vargument in arguments.items():
                         if kargument != "args":
                             args.append(vargument)
                     args.append(dict({karg: varg}))
-                    ret = self.pool.apply_async(func, args, error_callback=errorlog, callback=addResult)
+                    ret = self.pool.apply_async(func, args, error_callback=self.errorlog, callback=self.addResult)
             else:
-                args = []
-                for kargument, vargument in arguments.items():
-                    args.append(vargument)
-                ret = self.pool.apply_async(func, [], arguments, error_callback=errorlog, callback=addResult)
+                ret = self.pool.apply_async(func, [], arguments, error_callback=self.errorlog, callback=self.addResult)
         return ret
 
     def __del__(self):
         self.pool.close()
         self.pool.join()
-        rets = {}
+        self.rets = {}
 
 
     def getResults(self):
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
-        return rets
+        return self._rets
+
+    def addResult(self, result):
+        self.lock.acquire()
+        self._rets.append(result)
+        self.lock.release()
+
+    def errorlog(self, e):
+        print(e)
 
 
-def addResult(result):
-    PyGFETdb.Thread.lock.acquire()
-    randomkey = random.randint(0, NUMTHREADS)
-    rets[randomkey] = result
-    PyGFETdb.Thread.lock.release()
+##########################################################
+
+lock = Lock()
 
 
-def errorlog(e):
-    print(e)
+class MultiProcess():
+    def __init__(self, klass):
+        self.pool = {}
+
+    def initcall(self, key, klass):
+        self.pool[key] = Thread(klass)
+
+    def call(self, key, klass, function, **kwargs):
+        res = None
+        if multithrds:  # is not None:
+            self.pool[key].call(function, kwargs)
+        else:
+            func = getattr(klass, function)
+            if not callable(func):
+                func = klass.__getattribute__(function)
+                res = klass.func(**kwargs)
+            else:
+                res = func(**kwargs)
+        return res
+
+    def getResults(self, key):
+        ret = {}
+        res = self.pool[key].getResults()
+        for item in res:
+            ret.update({key: item})
+        del self.pool[key]
+        return ret
 
 
 def call(klass, function, **kwargs):

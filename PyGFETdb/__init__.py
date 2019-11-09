@@ -16,4 +16,4 @@ qty = quantities.QuantityClass()  # Activates Quantities support globally
 However, the preferable method to deactivate Quantity support is calling *locally* the method qty.setActive(False)
 """
 
-multithrds = False  # True
+multithrds = True  # False

@@ -11,6 +11,7 @@ import sys
 
 import pymysql
 
+from PyGFETdb import multithrds, Thread
 from PyGFETdb.DB import *
 
 
@@ -624,52 +625,12 @@ class PyFETdb(_PyFETdb):
         :param Update:
         """
         _PyFETdb.__init__(_PyFETdb, host, user, passwd, db, Update)
-
-    """
-    def GetCharactInfo(self, Table, Conditions, Output):
-        #        if not multithrds:
-        #            return _PyFETdb.GetCharactInfo(self,Table,Conditions,Output)
-        #else:
-            kwargs ={'self':self,'Table':Table,'Conditions':Conditions,'Output':Output}
-            return Thread.call(_PyFETdb,'GetCharactInfo',**kwargs)
+        if type(Thread) is None: pass
+        if multithrds is None: pass
 
     def _execute(self, query, values, LastRowID=False):
-        if not multithrds:
-            return _PyFETdb._execute(self, query,values, LastRowID)
-        else:
-            kwargs = {'self': self, 'query': query, 'values': values, 'LastRowID': LastRowID}
-            res = Thread.call(_PyFETdb, '_execute', **kwargs)
-            ret = None
-            if res is not None:
-                if type(res) is tuple:
-                    ret = res
-                elif type(res) is dict:
-                    tres = []
-                    for ires, (rk, rv) in enumerate(res.items()):
-                        tres.append(rv)
-
-                    #if len(tres)>1:
-                    #    ret = tuple(i for i in tres)
-                    #else:
-                    #    ret = (*tres,)
-                    ret = tres
+        # if not multithrds:
+        Thread.lock.acquire()
+        ret = _PyFETdb._execute(self, query, values, LastRowID)
+        Thread.lock.release()
         return ret
-    
-    
-    def GetData2(self, Conditions, Table, Last=True, GetGate=False):
-        kwargs = {'self': self, 'Table': Table, 'Conditions': Conditions, 'Last': Last, 'GetGate': GetGate}
-        ret = Thread.call(_PyFETdb, 'GetData2', **kwargs)
-        
-        Results = ()
-        Data = []
-        Trts = []
-        for r, rd in ret.items():
-            if len(ret)>1:
-               # FIXME : append dicts and lists for each result  
-               Results.append(rd)
-            else:
-               return rd
-
-
-        return Results
-    """
