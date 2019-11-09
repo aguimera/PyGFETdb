@@ -210,10 +210,14 @@ def processOneArg(GrWfs, Results, Ret, karg):
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 for key, result in Results.items():
                     if key.startswith(karg + ' ' + Wfn + ' ' + Grn):
-                        l = list(itertools.chain(result[key]))
-                        Ret[karg][Wfn][Grn] = l
+                        k = result.get(key)
+                        if k is not None:
+                            l = list(itertools.chain(k))
+                            Ret[karg][Wfn][Grn] = l
         else:
             for key, result in Results.items():
                 if key.startswith(karg + ' ' + Wfn):
-                    l = list(itertools.chain(result[key]))
-                    Ret[karg][Wfn] = l
+                    k = result.get(key)
+                    if k is not None:
+                        l = list(itertools.chain(k))
+                        Ret[karg][Wfn] = l
