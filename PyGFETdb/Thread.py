@@ -15,7 +15,7 @@ class Thread(pool.ThreadPool):
         self.lock = Lock()
         self.args = None
 
-    def call(self, funcname, arguments):
+    def call(self, funcname, arguments, **kwargs):
         ret = None
         if self.parent is not None:
             func = getattr(self.parent, funcname)
@@ -28,15 +28,28 @@ class Thread(pool.ThreadPool):
             i = arguments.get('args')
             if i is not None:
                 self.args = i
+                # """""
+                if len(i) > 0:
+                    # for karg, varg in i.items():
+                    args = {}
+                    for kargument, vargument in arguments.items():
+                        if kargument != "args":
+                            args.update({kargument: vargument})
+                    args.update(i)
+                    ret = self.pool.apply_async(func, [], args, error_callback=self.errorlog, callback=self.addResult)
+                else:
+                    ret = self.pool.apply_async(func, arguments, error_callback=self.errorlog, callback=self.addResult)
+                """
                 for karg, varg in i.items():
                     args = []
                     for kargument, vargument in arguments.items():
                         if kargument != "args":
                             args.append(vargument)
                     args.append(dict({karg: varg}))
-                    ret = self.pool.apply_async(func, args, error_callback=self.errorlog, callback=self.addResult)
+                    ret = self.pool.apply_async(func,args, error_callback=self.errorlog, callback=self.addResult)
+                #"""
             else:
-                ret = self.pool.apply_async(func, [], arguments, error_callback=self.errorlog, callback=self.addResult)
+                ret = self.pool.apply_async(func, [], kwargs, error_callback=self.errorlog, callback=self.addResult)
         return ret
 
     def __del__(self):
@@ -72,25 +85,27 @@ class MultiProcess():
     def initcall(self, key, klass):
         self.pool[key] = Thread(klass)
 
-    def call(self, key, klass, function, **kwargs):
+    def call(self, key, klass, function, arguments, **kwargs):
         res = None
         if multithrds:  # is not None:
-            self.pool[key].call(function, kwargs)
+            self.pool[key].call(function, arguments, **kwargs)
         else:
             func = getattr(klass, function)
             if not callable(func):
                 func = klass.__getattribute__(function)
-                res = klass.func(**kwargs)
+                res = klass.func(arguments, **kwargs)
             else:
-                res = func(**kwargs)
+                res = func(arguments, **kwargs)
         return res
 
     def getResults(self, key):
         ret = {}
-        res = self.pool[key].getResults()
-        for item in res:
-            ret.update({key: item})
-        del self.pool[key]
+        pool = self.pool.get(key)
+        if pool is not None:
+            res = pool.getResults()
+            for item in res:
+                ret.update({key: item})
+            del self.pool[key]
         return ret
 
 

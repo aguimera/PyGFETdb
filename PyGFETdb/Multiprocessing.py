@@ -1,3 +1,4 @@
+import itertools
 import sys
 
 import PyGFETdb.DBAnalyze as DbAn
@@ -33,7 +34,7 @@ def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
                     ParamData = DbAn.GetParam(Data, **arg)
                     if ParamData is not None:
                         Results[karg][Wfn] = ParamData
-    return Results
+    return processResults(Results, args)
 
 
 def SearchDB(GrWfs, **kwargs):
@@ -92,10 +93,10 @@ def processResults(Results, args):
     if args is not None:
         for karg, arg in args.items():
             Ret[karg] = {}
-            for rd in Results:
-                if type(rd) is dict:
-                    tdict = rd.get(karg)
-                    if tdict is not None:
+            #            for rk,rd in Results.items():
+            if type(Results) is dict:
+                tdict = Results.get(karg)
+                if tdict is not None:
                         for iWf, (Wfn, Wfc) in enumerate(tdict.items()):
                             Ret[karg][Wfn] = {}
                             if type(Wfc) is dict and Wfc.get('Conditions') is None:
@@ -122,10 +123,10 @@ def SearchDB_MP(GrWfs, **kwargs):
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 key = Wfn + ' ' + Grn
                 thread.initcall(key, DbSe)
-                thread.call(key, DbSe, 'GetFromDB', **Wfc)
+                thread.call(key, DbSe, 'GetFromDB', {}, **Wfc)
         else:
             thread.initcall(Wfn, DbSe)
-            thread.call(Wfn, DbSe, 'GetFromDB', **Wfc)
+            thread.call(Wfn, DbSe, 'GetFromDB', {}, **Wfc)
 
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         ResultsDB[Wfn] = {}
@@ -138,3 +139,81 @@ def SearchDB_MP(GrWfs, **kwargs):
             ResultsDB[Wfn] = processGetFromDB(thread.getResults(Wfn))[0]
 
     return ResultsDB
+
+
+def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
+    """
+
+    :param ResultsDB: The results of a search in the database
+    :param Group: A group of conditions to analyse
+    :param args: Arguments for getting the parameters
+    :param Plot: Bool that activates plotting
+    :param kwargs:
+    :return: A dict of args of dicts of groupnames and parameter found in a previous search
+    """
+    Results = {}
+    thread = Thread.MultiProcess(DbAn)
+    for karg, arg in arguments.items():
+        for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
+            if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
+                    Data = ResultsDB.get(Grn)
+                    if Data is not None:
+                        key = (karg + ' ' + Wfn + ' ' + Grn)
+                        kargs = {'Data': Data, 'args': arg}
+                        thread.initcall(key, DbAn)
+                        thread.call(key, DbAn, 'GetParam', kargs)
+
+            else:
+                Data = ResultsDB.get(Wfn)
+                if Data is not None:
+                    key = karg + ' ' + Wfn
+                    thread.initcall(key, DbAn)
+                    kargs = {'Data': Data, 'args': arg}
+                    thread.call(key, DbAn, 'GetParam', kargs)
+
+    # """""
+    res = {}
+    for karg, arg in arguments.items():
+        for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
+            if type(Wfc) is dict and Wfc.get('Conditions') is None:
+                for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
+                    key = (karg + ' ' + Wfn + ' ' + Grn)
+                    res[key] = thread.getResults(key)
+            else:
+                key = karg + ' ' + Wfn
+                res[key] = thread.getResults(key)
+
+    Results = processGetParams(GrWfs, res, arguments)
+    # """
+
+    return Results
+
+
+def processGetParams(GrWfs, Results, args):
+    Ret = {}
+    if args is not None:
+        for karg, arg in args.items():
+            Ret[karg] = {}
+            if type(Results) is dict:
+                processOneArg(GrWfs, Results, Ret, karg)
+    else:
+        Ret = Results
+
+    return Ret
+
+
+def processOneArg(GrWfs, Results, Ret, karg):
+    for iWf, (Wfn, Wfc) in enumerate(GrWfs.items()):
+        Ret[karg][Wfn] = {}
+        if type(Wfc) is dict and Wfc.get('Conditions') is None:
+            for iGr, (Grn, Grc) in enumerate(Wfc.items()):
+                for key, result in Results.items():
+                    if key.startswith(karg + ' ' + Wfn + ' ' + Grn):
+                        l = list(itertools.chain(result[key]))
+                        Ret[karg][Wfn][Grn] = l
+        else:
+            for key, result in Results.items():
+                if key.startswith(karg + ' ' + Wfn):
+                    l = list(itertools.chain(result[key]))
+                    Ret[karg][Wfn] = l

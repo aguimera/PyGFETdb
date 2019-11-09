@@ -11,7 +11,7 @@ import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, Thread, multithrds, Multiprocessing as mp
+from PyGFETdb import qty, multithrds, Multiprocessing as mp
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
@@ -167,12 +167,8 @@ else:
 
 
 ResultsDB = search(GrWs)
-argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
-tempResults = Thread.call(mp, 'GetParams', **argParams)
-if multithrds:
-    ResultsParams = mp.processResults(tempResults, arguments)
-else:
-    ResultsParams = tempResults
+argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'arguments': arguments, 'args': arguments}
+ResultsParams = getparams(**argParams)
 Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
 
 fig, ax = plt.subplots()
@@ -192,7 +188,7 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     Col = Colors[iWf]
     Results[Grwn] = {}
     ResultsDB = search(GrDs)
-    ResultsParams = mp.GetParams(ResultsDB, GrDs, args)
+    ResultsParams = getparams(ResultsDB, GrDs, args)
     for iDev, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
         quantities = Grc  # Param 0
         if qty.isActive():
