@@ -160,8 +160,11 @@ arguments = {
 
 if multithrds:
     search = mp.SearchDB_MP
+    getparams = mp.GetParams_MP
 else:
     search = mp.SearchDB
+    getparams = mp.GetParams
+
 
 ResultsDB = search(GrWs)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'args': arguments}
