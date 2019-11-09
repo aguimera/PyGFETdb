@@ -109,10 +109,10 @@ class MultiProcess():
         return ret
 
 
-def call(klass, function, **kwargs):
+def call(klass, function, arguments, **kwargs):
     if multithrds:  # is not None:
         pool = Thread(klass)
-        pool.call(function, kwargs)
+        pool.call(function, arguments, **kwargs)
         tdict = pool.getResults()
         del pool
         return tdict

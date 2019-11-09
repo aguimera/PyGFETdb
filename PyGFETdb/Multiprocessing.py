@@ -48,11 +48,11 @@ def SearchDB(GrWfs, **kwargs):
         ResultsDB[Wfn] = {}
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
-                Data, Trts = processGetFromDB(Thread.call(DbSe, 'GetFromDB', **Grc))
+                Data, Trts = processGetFromDB(Thread.call(DbSe, 'GetFromDB', {}, **Grc))
                 if Data is not None:
                     ResultsDB[Wfn][Grn] = dict(Data)
         else:
-            Data, Trts = processGetFromDB(Thread.call(DbSe, 'GetFromDB', **Wfc))
+            Data, Trts = processGetFromDB(Thread.call(DbSe, 'GetFromDB', {}, **Wfc))
             if Data is not None:
                 ResultsDB[Wfn] = dict(Data)
 
