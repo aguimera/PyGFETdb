@@ -171,7 +171,6 @@ xLab = []
 xPos = []
 for iWf, (wn, dd) in enumerate(Results.items()):
     work = []
-    #    (work.shape[0]/16)*100
     Col = Colors[iWf]
     for dn, d in dd.items():
         if len(d):

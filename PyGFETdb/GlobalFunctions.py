@@ -26,7 +26,7 @@ def updateDictOfLists(dict, key, value):
         k.append(value)
 
 
-def _BoxplotValsGroup(ax, Col, iGroup, Vals):
+def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
     bplt = ax.boxplot(Vals,
                       positions=(iGroup,),
                       patch_artist=True,  # fill with color
@@ -60,7 +60,8 @@ def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=Non
         print('Empty data for: ', Grn)
 
 
-def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
+def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
+                        title=None, **kwargs):
     units = kwargs.get('Units')
     plt.xticks(xPos, xLab, rotation=45)
 
@@ -89,6 +90,8 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None, **kwargs):
     if 'yscale' in list(kwargs.keys()):
         Ax.set_yscale(kwargs['yscale'])
 
+    Ax.set_title(title, fontsize='large')
+
 
 def PlotGroup(ResultsParams, Group, args, **kwargs):
     """
@@ -100,7 +103,7 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
     Results = {}
-    for karg, arg in args.items():
+    for iarg, (karg, arg) in enumerate(args.items()):
         Results[karg] = {}
         fig, Ax = plt.subplots()
         xLab = []

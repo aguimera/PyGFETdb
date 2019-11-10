@@ -7,7 +7,6 @@
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
 import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
@@ -112,8 +111,8 @@ DataSelectionConfig = [
 ]
 
 Conditions1 = {'Wafers.Name = ': Wafers1,
-              'Devices.Name != ': ('B12708W2-M6',),
-              'Devices.Name  != ': ('B12142W15-DUT',),
+               'Devices.Name != ': ('B12708W2-M6',),
+               'Devices.Name  != ': ('B12142W15-DUT',),
                }
 
 Conditions2 = {'Wafers.Name = ': Wafers2,
@@ -124,9 +123,9 @@ Conditions2 = {'Wafers.Name = ': Wafers2,
 CharTable = 'ACcharacts'
 
 GrBase1 = {'Conditions': Conditions1,
-          'Table': CharTable,
-          'Last': True,
-          'DataSelectionConfig': DataSelectionConfig
+           'Table': CharTable,
+           'Last': True,
+           'DataSelectionConfig': DataSelectionConfig
            }
 
 GrBase2 = {'Conditions': Conditions2,
@@ -150,32 +149,38 @@ arguments = {
         'yscale': 'log',
         'NFmin': 10,
         'NFmax': 1000,
-        'Units': 'uV'
+        'Units': 'uV',
+        'title': 'Vrms of Waffer {}'.format(Wafers1[0]),
     },
     'arg1': {
         'Param': 'Rds',
         'Vgs': 0,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uV/A'
+        'Units': 'uV/A',
+        'title': 'Rds of Waffer {}'.format(Wafers1[0]),
     },
     'arg2': {
         'Param': 'GMV',
         'Vgs': -0.1,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uS/V'
+        'Units': 'uS/V',
+        'title': 'GMV of Waffer {}'.format(Wafers1[0]),
     },
     'arg3': {
         'Param': 'Ud0',
-        'Units': 'uV'
+        'Units': 'uV',
+        'title': 'Ud0 of Waffer {}'.format(Wafers1[0]),
+
     },
     'arg4': {
         'Param': 'Ids',
         'Vgs=': -0.1,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uA'
+        'Units': 'uA',
+        'title': 'Ids of Waffer {}'.format(Wafers1[0]),
     }
 }
 
@@ -185,6 +190,7 @@ if multithrds:
 else:
     search = mp.SearchDB
     getparams = mp.GetParams
+titlelist = []
 
 ResultsDB = search(GrTypes)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': arguments, 'args': arguments}
@@ -195,7 +201,7 @@ fig, ax = plt.subplots()
 
 Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 
-args = {'0': {
+args = {'arg1': {
     'Param': 'Vrms',
     'Vgs': -0.1,
     'Ud0Norm': True,
@@ -203,59 +209,65 @@ args = {'0': {
 }}
 GrWs = DbSe.GenGroups(GrBase2, 'Wafers.Name', LongName=False)
 Results = {}
+ResultsParams = {}
+pos = 0
+xLab = []
+xPos = []
+types = []
+res = {}
+work = None
+devs = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
     Results[Grwn] = {}
     ResultsDB = search(GrTypes)
-    xLab = []
-    xPos = []
-    ResultsParams = getparams(ResultsDB, GrTypes, args)
-    for iType, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
-        Col = Colors[iWf]
-        quantities = Grc  # Param 0
-        if qty.isActive():
-            Vals = pq.Quantity(quantities)  # np.array also works fine
-        else:
-            Vals = quantities * 1e6
-
-        Results[Grwn][Grn] = Vals
-        xLab.append(Grn)
-        xPos.append(iType)
-        g._BoxplotValsGroup(ax, Col, iType, Vals.transpose())
+    ResultsParams[iWf] = getparams(ResultsDB, GrTypes, args)
+    for iType, (Grn, Grc) in enumerate(sorted(ResultsParams[iWf]['arg1'].items())):  # Param 0
+        if len(Grc):
+            quantities = Grc  # Param 0
+            if qty.isActive():
+                Vals = pq.Quantity(quantities)  # np.array also works fine
+            else:
+                Vals = quantities * 1e6
+            Results[Grwn][Grn] = Vals
+            work = res.get(Grn)
+            if work is None:
+                work = [Vals]
+                devs[Grn] = Vals.size
+            else:
+                work.append(Vals)
+                devs[Grn] += Vals.size
+            res[Grn] = work
+            xPos.append(pos)
+            xLab.append(Grn)
+            types.append(Grn)
+            g._BoxplotValsGroup(ax, Colors[iWf], pos, Vals.transpose())
+            pos += 1
 
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax.set_ylabel('[uVrms]', fontsize='large')
-ax.set_xlabel('Probes', fontsize='large')
-ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
+ax.set_xlabel('Types', fontsize='large')
+ax.set_title('Noise (10Hz-1kHz) ( {} x Wafers)'.format(len(Wafers2)), fontsize='large')
 
 # %%
 
-Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
-work = []
-types = []
-for iWf, (wn, dd) in enumerate(Results.items()):
-    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
+pos = 0
+for iGrn, (Grn, Grc) in enumerate((sorted(res.items()))):
+    work = []
+    for vals in Grc:
         if len(Grc):
-            work.append(Grc.shape[1])
-            types.append(iType)
-n = np.max(work)
-t = np.max(types)
-for iWf, (wn, dd) in enumerate(Results.items()):
-    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-        Col = Colors[iWf]
-        work = (work / n) * 100
-        pos = iType * t
-        if iWf == 0:
-            xLab.append(Grn)
-        xPos.append(pos)
-        g._BoxplotValsGroup(ax2, Col, pos, work)
+            work.append((vals.shape[1] / devs[Grn]) * 100)
+    xPos.append(pos)
+    xLab.append(Grn)
+    g._BoxplotValsGroup(ax2, Colors[iGrn], pos, work)
+    pos += 1
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Types', fontsize='large')
-ax2.set_title('Working gSGFETs ( {} x Probe)'.format(n), fontsize='large')
+ax2.set_title('Working gSGFETs ( {} x Wafers)'.format(len(Wafers2)), fontsize='large')
 # """
 #
 plt.show()
