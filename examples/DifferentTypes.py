@@ -211,7 +211,7 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     xPos = []
     ResultsParams = getparams(ResultsDB, GrTypes, args)
     for iType, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
-        Col = Colors[iType]
+        Col = Colors[iWf]
         quantities = Grc  # Param 0
         if qty.isActive():
             Vals = pq.Quantity(quantities)  # np.array also works fine
