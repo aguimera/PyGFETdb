@@ -8,7 +8,6 @@
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
@@ -167,10 +166,12 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
 
 # DATA CLASSIFICATION
-Results = {}
+ResultsPer_Wf_Type = {}
 types = []
+devs = {}
+resPerType = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
-    Results[Grwn] = {}
+    ResultsPer_Wf_Type[Grwn] = {}
     for iGr, (Grn, Grc) in enumerate(sorted(ResultsParams.get(Grwn).items())):  # Param 0
         for iType, (TGrn, TGrc) in enumerate(Grc.items()):
             quantities = TGrc  # Param 0
@@ -179,8 +180,18 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
             else:
                 Vals = quantities * 1e6
             if Vals is not None:
-                Results[Grwn][TGrn] = Vals
-                if not TGrn in types:
+                ResultsPer_Wf_Type[Grwn][TGrn] = Vals
+                work = resPerType.get(TGrn)
+                if work is None:
+                    work = [Vals]
+                    devs[TGrn] = Vals.size
+                else:
+                    work.append(Vals)
+                    devs[TGrn] += Vals.size
+
+                resPerType[TGrn] = work
+
+                if TGrn not in types:
                     types.append(TGrn)
 # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xLab = []
@@ -189,7 +200,7 @@ pos = 0
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     for nt, typename in enumerate(types):
         Col = Colors[iWf]
-        vals = Results[Grwn].get(typename)
+        vals = ResultsPer_Wf_Type[Grwn].get(typename)
         if vals is not None:
             xPos.append(pos)
             xLab.append(typename)
@@ -205,23 +216,18 @@ ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
 fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
-work = []
-for iWf, (wn, dd) in enumerate(Results.items()):
-    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-        if len(Grc):
-            work.append(Grc.shape[1])
-n = np.max(work)
 for nt, typename in enumerate(types):
-    for iWf, (wn, dd) in enumerate(Results.items()):
-        Col = Colors[iWf]
-        work = (work / n) * 100
-        xLab.append(typename)
-        xPos.append(nt)
-        g._BoxplotValsGroup(ax2, Col, nt, work)
+    Col = Colors[nt]
+    xLab.append(typename)
+    xPos.append(nt)
+    plot = []
+    for item in resPerType[typename]:
+        plot.append((item.shape[1] / devs[typename]) * 100)
+    g._BoxplotValsGroup(ax2, Col, nt, plot)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Types', fontsize='large')
-ax2.set_title('Working gSGFETs ( {} x Probe)'.format(n), fontsize='large')
+ax2.set_title('Working gSGFETs ( {} x Wafers)'.format(len(Wafers2)), fontsize='large')
 # """
 #
 plt.show()
