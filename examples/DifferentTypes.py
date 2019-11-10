@@ -235,18 +235,23 @@ fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
 work = []
+types = []
 for iWf, (wn, dd) in enumerate(Results.items()):
     for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
         if len(Grc):
             work.append(Grc.shape[1])
+            types.append(iType)
 n = np.max(work)
+t = np.max(types)
 for iWf, (wn, dd) in enumerate(Results.items()):
     for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
         Col = Colors[iWf]
         work = (work / n) * 100
-        xLab.append(Grn)
-        xPos.append(iType)
-        g._BoxplotValsGroup(ax2, Col, iType, work)
+        pos = iType * t
+        if iWf == 0:
+            xLab.append(Grn)
+        xPos.append(pos)
+        g._BoxplotValsGroup(ax2, Col, pos, work)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Types', fontsize='large')
