@@ -20,7 +20,14 @@ qtyDebug = False  # True  # Set to false to print less debug info of the rescali
 
 plt.close('all')
 
-Wafers = (
+Wafers1 = (
+    'B12708W2',  # (in vivo Rob, slices Mavi) Very good
+    # 'B12142W46',  # (in vivo Rob) # High doping
+    # 'B12142W15',  # (in vivo Rob)
+    # 'B11870W8',  # (IDIBAPS implants)
+    # 'B11601W4',
+)
+Wafers2 = (
     'B12708W2',  # (in vivo Rob, slices Mavi) Very good
     'B12142W46',  # (in vivo Rob) # High doping
     # 'B12142W15',  # (in vivo Rob)
@@ -104,24 +111,36 @@ DataSelectionConfig = [
      }
 ]
 
-Conditions = {'Wafers.Name = ': Wafers,
+Conditions1 = {'Wafers.Name = ': Wafers1,
               'Devices.Name != ': ('B12708W2-M6',),
               'Devices.Name  != ': ('B12142W15-DUT',),
-              }
+               }
+
+Conditions2 = {'Wafers.Name = ': Wafers2,
+               'Devices.Name != ': ('B12708W2-M6',),
+               'Devices.Name  != ': ('B12142W15-DUT',),
+               }
+
 CharTable = 'ACcharacts'
 
-GrBase = {'Conditions': Conditions,
+GrBase1 = {'Conditions': Conditions1,
           'Table': CharTable,
           'Last': True,
           'DataSelectionConfig': DataSelectionConfig
-          }
+           }
+
+GrBase2 = {'Conditions': Conditions2,
+           'Table': CharTable,
+           'Last': True,
+           'DataSelectionConfig': DataSelectionConfig
+           }
 
 Devices = DbSe.FindCommonValues(Parameter='Devices.Name',
-                                Conditions=Conditions)
+                                Conditions=Conditions1)
 
-GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
-GrDevs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
-GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
+GrWs = DbSe.GenGroups(GrBase1, 'Wafers.Name', LongName=False)
+GrDevs = DbSe.GenGroups(GrBase1, 'Devices.Name', LongName=False)
+GrTypes = DbSe.GenGroups(GrBase1, 'TrtTypes.Name', LongName=False)
 
 arguments = {
     'arg0': {
@@ -182,7 +201,7 @@ args = {'0': {
     'Ud0Norm': True,
     'Units': 'uV',
 }}
-GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
+GrWs = DbSe.GenGroups(GrBase2, 'Wafers.Name', LongName=False)
 Results = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
