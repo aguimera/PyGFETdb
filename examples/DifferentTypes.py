@@ -22,7 +22,7 @@ plt.close('all')
 
 Wafers = (
     'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-    # 'B12142W46',  # (in vivo Rob) # High doping
+    'B12142W46',  # (in vivo Rob) # High doping
     # 'B12142W15',  # (in vivo Rob)
     # 'B11870W8',  # (IDIBAPS implants)
     # 'B11601W4',
@@ -223,7 +223,7 @@ for iWf, (wn, dd) in enumerate(Results.items()):
 n = np.max(work)
 for iWf, (wn, dd) in enumerate(Results.items()):
     for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-        Col = Colors[iType]
+        Col = Colors[iWf]
         work = (work / n) * 100
         xLab.append(Grn)
         xPos.append(iType)
