@@ -5,6 +5,7 @@
 @author: dragc
 
 """
+import os
 
 import matplotlib.pyplot as plt
 import quantities as pq
@@ -271,7 +272,7 @@ ax2.set_title('Working gSGFETs ( {} x Wafers)'.format(len(Wafers2)), fontsize='l
 # """
 #
 plt.show()
-# os.system("read")
+os.system("read")
 #
 #
 #

@@ -5,6 +5,7 @@
 @author: dragc
 
 """
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,60 +35,11 @@ Wafers2 = (
     'B11870W8',  # (IDIBAPS implants)
     'B11601W4',
 )
-""" 
-DataSelectionConfig = [
-    {'Param': 'Ud0',  # Parameter to evaluate
-     'Range': (200, 500),  # Range of allowed values, (Min, Max)
-     'Name': 'UD0y',
-     'ParArgs': {'Units': 'mV'}
-     },
-
-    #                            {'Param': 'Rds', # Parameter to evaluate
-    #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
-    #                              'Function': np.max, # Funtion to apply into given results
-    #                              'InSide': True,  # Inside or outside the range, Default True
-    #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
-    #                                          'Vds': None,
-    #                                          'Ud0Norm': False},
-    #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
-
-    {'Param': 'GMV',  # Parameter to evaluate
-     'Range': (100, 10000),  # Range of allowed values, (Min, Max)
-     'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
-                 'Vds': None,
-                 'Ud0Norm': True,
-                 'Units': "uS/V"
-                 },
-     'Name': 'GMVy'},
-
-    {'Param': 'Vrms',  # Parameter to evaluate
-     'ParArgs': {
-         'Vgs': -0.1,  # Bias point to evaluate
-         'Vds': None,
-         'Ud0Norm': True,
-         'NFmin': 10,
-         'NFmax': 1000,
-         'Units': 'V'
-     },
-     'Range': (5e-6, 0.6e-4), '# Range of allowed values, (Min, Max)
-     #                              'Function': np.min, # Funtion to apply into given results
-     },
-]
-"""
 
 DataSelectionConfig = [
     {'Param': 'Ud0',  # Parameter to evaluate
      'Range': (0.2, 0.5),  # Range of allowed values, (Min, Max)
      'Name': 'UD0y'},
-
-    #                            {'Param': 'Rds', # Parameter to evaluate
-    #                              'Range': (1e3, 11e3), # Range of allowed values, (Min, Max)
-    #                              'Function': np.max, # Funtion to apply into given results
-    #                              'InSide': True,  # Inside or outside the range, Default True
-    #                              'ParArgs': {'Vgs': None, # Bias point to evaluate
-    #                                          'Vds': None,
-    #                                          'Ud0Norm': False},
-    #                              'Name': 'RDSy'}, # OPTIONAL name to the selection group
 
     {'Param': 'GMV',  # Parameter to evaluate
      'Range': (1e-4, 1e-2),  # Range of allowed values, (Min, Max)
@@ -106,7 +58,6 @@ DataSelectionConfig = [
          'NFmax': 1000,
      },
      'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
-     #                              'Function': np.min, # Funtion to apply into given results
 
      }
 ]
@@ -150,32 +101,38 @@ arguments = {
         'yscale': 'log',
         'NFmin': 10,
         'NFmax': 1000,
-        'Units': 'uV'
+        'Units': 'uV',
+        'title': 'Vrms of Waffer {}'.format(Wafers1[0]),
     },
     'arg1': {
         'Param': 'Rds',
         'Vgs': 0,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uV/A'
+        'Units': 'uV/A',
+        'title': 'Rds of Waffer {}'.format(Wafers1[0]),
     },
     'arg2': {
         'Param': 'GMV',
         'Vgs': -0.1,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uS/V'
+        'Units': 'uS/V',
+        'title': 'GMV of Waffer {}'.format(Wafers1[0]),
     },
     'arg3': {
         'Param': 'Ud0',
-        'Units': 'uV'
+        'Units': 'uV',
+        'title': 'Ud0 of Waffer {}'.format(Wafers1[0]),
+
     },
     'arg4': {
         'Param': 'Ids',
         'Vgs=': -0.1,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uA'
+        'Units': 'uA',
+        'title': 'Ids of Waffer {}'.format(Wafers1[0]),
     }
 }
 
@@ -201,57 +158,66 @@ args = {'0': {
     'Ud0Norm': True,
     'Units': 'uV',
 }}
+
+# DATABASE SEARCH:
 GrWs = DbSe.GenGroups(GrBase2, 'Wafers.Name', LongName=False)
-Results = {}
 for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
     GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
-    Results[Grwn] = {}
     ResultsDB = search(GrTypes)
-    xLab = []
-    xPos = []
-    ResultsParams = getparams(ResultsDB, GrTypes, args)
-    for iType, (Grn, Grc) in enumerate(sorted(ResultsParams['0'].items())):  # Param 0
+    ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
+
+# DATA CLASSIFICATION
+Results = {}
+types = []
+for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+    Results[Grwn] = {}
+    for iGr, (Grn, Grc) in enumerate(sorted(ResultsParams.get(Grwn).items())):  # Param 0
+        for iType, (TGrn, TGrc) in enumerate(Grc.items()):
+            quantities = TGrc  # Param 0
+            if qty.isActive():
+                Vals = pq.Quantity(quantities)  # np.array also works fine
+            else:
+                Vals = quantities * 1e6
+            if Vals is not None:
+                Results[Grwn][TGrn] = Vals
+                if not TGrn in types:
+                    types.append(TGrn)
+# PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+xLab = []
+xPos = []
+pos = 0
+for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+    for nt, typename in enumerate(types):
         Col = Colors[iWf]
-        quantities = Grc  # Param 0
-        if qty.isActive():
-            Vals = pq.Quantity(quantities)  # np.array also works fine
-        else:
-            Vals = quantities * 1e6
-
-        Results[Grwn][Grn] = Vals
-        xLab.append(Grn)
-        xPos.append(iType)
-        g._BoxplotValsGroup(ax, Col, iType, Vals.transpose())
-
+        vals = Results[Grwn].get(typename)
+        if vals is not None:
+            xPos.append(pos)
+            xLab.append(typename)
+            g._BoxplotValsGroup(ax, Col, pos, vals.transpose())
+            pos += 1
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax.set_ylabel('[uVrms]', fontsize='large')
 ax.set_xlabel('Probes', fontsize='large')
 ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
 
-# %%
+# PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
 work = []
-types = []
 for iWf, (wn, dd) in enumerate(Results.items()):
     for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
         if len(Grc):
             work.append(Grc.shape[1])
-            types.append(iType)
 n = np.max(work)
-t = np.max(types)
-for iWf, (wn, dd) in enumerate(Results.items()):
-    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
+for nt, typename in enumerate(types):
+    for iWf, (wn, dd) in enumerate(Results.items()):
         Col = Colors[iWf]
         work = (work / n) * 100
-        pos = iType * t
-        if iWf == 0:
-            xLab.append(Grn)
-        xPos.append(pos)
-        g._BoxplotValsGroup(ax2, Col, pos, work)
+        xLab.append(typename)
+        xPos.append(nt)
+        g._BoxplotValsGroup(ax2, Col, nt, work)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Types', fontsize='large')
@@ -259,7 +225,7 @@ ax2.set_title('Working gSGFETs ( {} x Probe)'.format(n), fontsize='large')
 # """
 #
 plt.show()
-# os.system("read")
+os.system("read")
 #
 #
 #
