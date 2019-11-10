@@ -7,6 +7,7 @@
 """
 
 import matplotlib.pyplot as plt
+import numpy as np
 import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
@@ -214,19 +215,23 @@ Colors = ('r', 'g', 'b', 'm', 'y', 'k')
 fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
+work = []
 for iWf, (wn, dd) in enumerate(Results.items()):
     for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-        work = []
-        Col = Colors[iType]
         if len(Grc):
-            work.append((Grc.shape[1] / 160) * 100)
+            work.append(Grc.shape[1])
+n = np.max(work)
+for iWf, (wn, dd) in enumerate(Results.items()):
+    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
+        Col = Colors[iType]
+        work = (work / n) * 100
         xLab.append(Grn)
         xPos.append(iType)
         g._BoxplotValsGroup(ax2, Col, iType, work)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 ax2.set_xlabel('Types', fontsize='large')
-ax2.set_title('Working gSGFETs (160 x Probe)', fontsize='large')
+ax2.set_title('Working gSGFETs ( {} x Probe)'.format(n), fontsize='large')
 # """
 #
 plt.show()
