@@ -8,6 +8,7 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import quantities as pq
 from matplotlib.patches import Patch
 
@@ -237,14 +238,24 @@ g.Legend(ax, legendtitle, handles)
 fig, ax2 = plt.subplots()
 xLab = []
 xPos = []
-for nt, typename in enumerate(types):
-    Col = Colors[nt]
-    xLab.append(typename)
-    xPos.append(nt)
-    plot = []
-    for item in resPerType[typename]:
-        plot.append((item.shape[1] / devs[typename]) * 100)
-    g._BoxplotValsGroup(ax2, Col, nt, plot)
+work = []
+types = []
+for iWf, (wn, dd) in enumerate(ResultsPer_Wf_Type.items()):
+    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
+        if len(Grc):
+            work.append(Grc.shape[1])
+            types.append(iType)
+n = np.max(work)
+t = np.max(types)
+for iWf, (wn, dd) in enumerate(ResultsPer_Wf_Type.items()):
+    for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
+        Col = Colors[iWf]
+        work = (work / n) * 100
+        pos = iType * t
+        if iWf == 0:
+            xLab.append(Grn)
+        xPos.append(pos)
+        g._BoxplotValsGroup(ax2, Col, pos, work)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
 
