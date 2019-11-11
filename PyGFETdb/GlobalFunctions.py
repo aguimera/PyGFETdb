@@ -36,7 +36,7 @@ def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
                       #                      notch=True,
                       )
 
-    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps'):
+    for element in ('boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps',):
         plt.setp(bplt[element], color=Col)
 
     for fl in bplt['fliers']:
@@ -46,14 +46,18 @@ def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
         patch.set(facecolor=Col)
         patch.set(alpha=0.5)
 
+    return bplt
 
-def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=None, **kwargs):
+
+def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
+                   Boxplot=False, ParamUnits=None, **kwargs):
+
     if vals is not None:  # and len(vals) >0:
         if Boxplot:
             Ax.boxplot(vals.transpose(), positions=(iGr + 1,))
             xPos.append(iGr + 1)
         else:
-            Ax.plot(np.ones(len(vals)) * iGr, vals, '*')
+            Ax.plot(np.ones(len(vals)) * iGr, vals, '.', label=(Grn,))
             xPos.append(iGr)
             xLab.append(Grn)
     else:
@@ -61,9 +65,11 @@ def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals, Boxplot=False, ParamUnits=Non
 
 
 def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
-                        title=None, **kwargs):
+                        title=None, legendTitle=None, handles=None, xlabel='', **kwargs):
     units = kwargs.get('Units')
-    plt.xticks(xPos, xLab, rotation=45)
+    plt.xticks(xPos, xLab, rotation=45, fontsize='small')
+
+    Ax.set_xlabel(xlabel, fontsize='large')
 
     if ParamUnits is not None:
         Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
@@ -91,6 +97,23 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
         Ax.set_yscale(kwargs['yscale'])
 
     Ax.set_title(title, fontsize='large')
+    if legendTitle or handles:
+        if legendTitle:
+            legend = legendTitle
+        else:
+            legend = ''
+        if handles:
+            colors = handles
+        else:
+            colors = None
+        Legend(Ax, legend, colors)
+
+
+def Legend(Ax, legend, handles):
+    chartBox = Ax.get_position()
+    Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
+    Ax.legend(title=legend, handles=handles, markerscale=10, loc='upper right',
+              bbox_to_anchor=(0.89, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
 def PlotGroup(ResultsParams, Group, args, **kwargs):

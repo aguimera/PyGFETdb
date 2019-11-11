@@ -9,6 +9,7 @@ import os
 
 import matplotlib.pyplot as plt
 import quantities as pq
+from matplotlib.patches import Patch
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
@@ -20,6 +21,8 @@ qtyDebug = False  # True  # Set to false to print less debug info of the rescali
 
 plt.close('all')
 
+Colors = ('r', 'g', 'b', 'm', 'y', 'k')
+
 Wafers1 = (
     'B12708W2',  # (in vivo Rob, slices Mavi) Very good
     # 'B12142W46',  # (in vivo Rob) # High doping
@@ -29,10 +32,10 @@ Wafers1 = (
 )
 Wafers2 = (
     'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-    'B12142W46',  # (in vivo Rob) # High doping
-    'B12142W15',  # (in vivo Rob)
-    'B11870W8',  # (IDIBAPS implants)
-    'B11601W4',
+    # 'B12142W46',  # (in vivo Rob) # High doping
+    # 'B12142W15',  # (in vivo Rob)
+    # 'B11870W8',  # (IDIBAPS implants)
+    #'B11601W4',
 )
 
 DataSelectionConfig = [
@@ -92,6 +95,10 @@ GrWs = DbSe.GenGroups(GrBase1, 'Wafers.Name', LongName=False)
 GrDevs = DbSe.GenGroups(GrBase1, 'Devices.Name', LongName=False)
 GrTypes = DbSe.GenGroups(GrBase1, 'TrtTypes.Name', LongName=False)
 
+legendtitle = 'Wafers'
+xlabel = 'Types'
+handles = list((Patch(color=Colors[i], label=Wafers2[i]) for i in range(0, len(Wafers2))))
+
 arguments = {
     'arg0': {
         'Param': 'Vrms',
@@ -101,7 +108,10 @@ arguments = {
         'NFmin': 10,
         'NFmax': 1000,
         'Units': 'uV',
-        'title': 'Vrms of Waffer {}'.format(Wafers1[0]),
+        'title': 'Vrms',
+        'legendTitle': legendtitle,
+        'xlabel': xlabel,
+        'handles': handles,
     },
     'arg1': {
         'Param': 'Rds',
@@ -109,7 +119,10 @@ arguments = {
         'Ud0Norm': True,
         'yscale': 'log',
         'Units': 'uV/A',
-        'title': 'Rds of Waffer {}'.format(Wafers1[0]),
+        'title': 'Rds',
+        'legendTitle': legendtitle,
+        'xlabel': xlabel,
+        'handles': handles,
     },
     'arg2': {
         'Param': 'GMV',
@@ -117,13 +130,18 @@ arguments = {
         'Ud0Norm': True,
         'yscale': 'log',
         'Units': 'uS/V',
-        'title': 'GMV of Waffer {}'.format(Wafers1[0]),
+        'title': 'GMV',
+        'legendTitle': legendtitle,
+        'xlabel': xlabel,
+        'handles': handles,
     },
     'arg3': {
         'Param': 'Ud0',
         'Units': 'uV',
-        'title': 'Ud0 of Waffer {}'.format(Wafers1[0]),
-
+        'title': 'Ud0',
+        'legendTitle': legendtitle,
+        'xlabel': xlabel,
+        'handles': handles,
     },
     'arg4': {
         'Param': 'Ids',
@@ -131,9 +149,13 @@ arguments = {
         'Ud0Norm': True,
         'yscale': 'log',
         'Units': 'uA',
-        'title': 'Ids of Waffer {}'.format(Wafers1[0]),
+        'title': 'Ids',
+        'legendTitle': legendtitle,
+        'xlabel': xlabel,
+        'handles': handles,
     }
 }
+
 
 if multithrds:
     search = mp.SearchDB_MP
@@ -147,11 +169,7 @@ argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': argume
 ResultsParams = getparams(**argParams)
 Vals = g.PlotGroup(ResultsParams, GrTypes, arguments)
 
-fig, ax = plt.subplots()
-
-Colors = ('r', 'g', 'b', 'm', 'y', 'k')
-
-args = {'0': {
+args = {'arg1': {
     'Param': 'Vrms',
     'Vgs': -0.1,
     'Ud0Norm': True,
@@ -193,6 +211,8 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
 
                 if TGrn not in types:
                     types.append(TGrn)
+
+fig, ax = plt.subplots()
 # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xLab = []
 xPos = []
@@ -208,8 +228,9 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
             pos += 1
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax.set_ylabel('[uVrms]', fontsize='large')
-ax.set_xlabel('Probes', fontsize='large')
+ax.set_xlabel(xlabel, fontsize='large')
 ax.set_title('Noise (10Hz-1kHz)', fontsize='large')
+g.Legend(ax, legendtitle, handles)
 
 # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -226,8 +247,11 @@ for nt, typename in enumerate(types):
     g._BoxplotValsGroup(ax2, Col, nt, plot)
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')
-ax2.set_xlabel('Types', fontsize='large')
-ax2.set_title('Working gSGFETs ( {} x Wafers)'.format(len(Wafers2)), fontsize='large')
+
+ax2.set_xlabel(xlabel, fontsize='large')
+ax2.set_title('Working gSGFETs', fontsize='large')
+g.Legend(ax2, legendtitle, handles)
+
 # """
 #
 plt.show()
