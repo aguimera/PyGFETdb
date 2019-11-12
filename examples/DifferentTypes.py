@@ -120,8 +120,8 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
 
     work = []
     for nt, (typename, vtype) in enumerate(Results.items()):
+        Col = Colors[nt]
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
-            Col = Colors[nt]
             xLab.append(typename)
             xPos.append(nt)
             work.append((cWf.shape[1] / total) * 100)
@@ -163,10 +163,13 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     # Plot Params
     g.PlotResults(Results, arguments, Colors, handles=handles,
                   legendTitle=legendTitle, xlabel=xlabel, **kwargs)
-
-    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     data = Results['arg5']
+    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
+    # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
+    # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
 
 
 def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
@@ -181,12 +184,11 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
     # Plot Params
     g.PlotResults(Results, arguments, Colors, handles=handles, **kwargs)
 
-    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     PlotPerTypeNoise(data, Colors=Colors, handles=handles, perType="x Type", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
+    PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Type", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Type", handles=handles, **kwargs)
 
