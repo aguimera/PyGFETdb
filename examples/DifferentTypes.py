@@ -29,15 +29,12 @@ else:
 ############################
 
 
-def PlotsParams(GrBase, **arguments):
-    ## Devices = DbSe.FindCommonValues(Parameter='Devices.Name', Conditions=Conditions)
-    ##GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
-    ### GrDevs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
+def PlotsParams(GrBase, arguments, **kwargs):
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
     ResultsDB = search(GrTypes)
     argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': arguments, 'args': arguments}
     ResultsParams = getparams(**argParams)
-    Vals = plot.PlotGroup(ResultsParams, GrTypes, arguments)
+    Vals = plot.PlotGroup(ResultsParams, GrTypes, arguments, **kwargs)
     return Vals
 
 
@@ -61,9 +58,11 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
+    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer",
+                          perType=" x Wafer", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
+    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer",
+                               perType="x Wafer", handles=handles, **kwargs)
 
 
 ############################
@@ -85,9 +84,11 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeNoise(data, Colors=Colors, handles=handles, perType="x Type", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Type", handles=handles, **kwargs)
+    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Type",
+                          perType="x Type", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Type", handles=handles, **kwargs)
+    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Type",
+                               perType="x Type", handles=handles, **kwargs)
 
 
 def main():
@@ -251,7 +252,7 @@ def main():
     # PlotsPerTypes(GrBase2, **kwargs2)
     PlotsPerTypes(GrBase3, **kwargs2)
 
-    #PlotsParams(GrBase3,arguments1)
+    # PlotsParams(GrBase3,**kwargs2)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

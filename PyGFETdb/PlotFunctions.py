@@ -105,11 +105,11 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 def Legend(Ax, legend, handles):
     chartBox = Ax.get_position()
     Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
-    Ax.legend(title=legend, handles=handles, markerscale=10, loc='upper right', fontsize='small',
+    Ax.legend(title=legend, handles=handles, loc='upper right', fontsize='x-small',
               bbox_to_anchor=(0.89, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
-def PlotGroup(ResultsParams, Group, arguments):
+def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
     """
 
     :param ResultsParams: The results of a search in the database
@@ -135,8 +135,8 @@ def PlotGroup(ResultsParams, Group, arguments):
                         qtys = np.array(ParamData)
                         ParamData = qty.flatten(ParamData)
                     ParamData = np.array(ParamData)
-                    _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg)
-        _closePlotValsGroup(Ax, xLab, xPos, qtys, **arg)
+                    _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg, **kwargs)
+        _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, **arg, **kwargs)
     return Results
 
 
@@ -189,7 +189,8 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
     Legend(ax, legendTitle, handles)
 
 
-def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, Colors=None, legendTitle=None, **kwargs):
+def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=None, Colors=None, legendTitle=None,
+                     **kwargs):
     # PLOTS 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     fig, ax2 = plt.subplots()
@@ -211,7 +212,7 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, Colors=None
             xPos.append(pos)
             _BoxplotValsGroup(ax2, Col, pos, work)
             pos += 1
-    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Wafer]", title, **kwargs)
+    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [%{}]", format(perType), title, **kwargs)
     Legend(ax2, legendTitle, handles)
 
 
