@@ -7,6 +7,10 @@ from PyGFETdb import multithrds
 
 class Thread(pool.ThreadPool):
     def __init__(self, package):  # , host=DBhost, user=DBuser, passwd=DBpasswd, db=DBdb, Update=True):
+        """
+
+        :param package: Module where the function to process is
+        """
         pool.ThreadPool.__init__(self)
         self.pool = self
         self.parent = package
@@ -16,6 +20,14 @@ class Thread(pool.ThreadPool):
         self.args = None
 
     def call(self, funcname, arguments, **kwargs):
+        """
+            Calls a function for the Thread to process
+
+        :param funcname: Name of the function to call
+        :param arguments: Arguments of the call
+        :param kwargs:
+        :return: None
+        """
         ret = None
         if self.parent is not None:
             func = getattr(self.parent, funcname)
@@ -59,17 +71,32 @@ class Thread(pool.ThreadPool):
 
 
     def getResults(self):
+        """
+            Finalise the processing and get the results
+        :return:
+        """
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
         return self._rets
 
     def addResult(self, result):
+        """
+        This function is used by the threads to return results
+
+        :param result: The result to add
+        :return: None
+        """
         self.lock.acquire()
         self._rets.append(result)
         self.lock.release()
 
     def errorlog(self, e):
+        """
+
+        :param e: Error in multiprocessing
+        :return: None
+        """
         print(e)
 
 
@@ -79,13 +106,28 @@ lock = Lock()
 
 
 class MultiProcess():
-    def __init__(self, klass):
+    def __init__(self):
         self.pool = {}
 
     def initcall(self, key, klass):
+        """
+            Initialises the Multi-processing
+        :param key: A unique-key to each calculation
+        :param klass: Calls where the function to call is
+        :return:
+        """
         self.pool[key] = Thread(klass)
 
     def call(self, key, klass, function, arguments, **kwargs):
+        """
+            Calls a function for multi-processing
+        :param key: The unique-key of the calculation
+        :param klass: Calls where the function to call is
+        :param function: Name of the function to call
+        :param arguments: Arguments of the function to call
+        :param kwargs: Keyword arguments passed to the function to call
+        :return: None if multi-processing support is activated, or the result of the call otherwise
+        """
         res = None
         if multithrds:  # is not None:
             self.pool[key].call(function, arguments, **kwargs)
@@ -99,6 +141,11 @@ class MultiProcess():
         return res
 
     def getResults(self, key):
+        """
+            Obtains the results for a calculation.
+        :param key: A unique-key identifying the calculation
+        :return: The results of the previous call
+        """
         ret = {}
         pool = self.pool.get(key)
         if pool is not None:
@@ -110,6 +157,17 @@ class MultiProcess():
 
 
 def call(klass, function, arguments, **kwargs):
+    """
+        Auxiliary function for calling a function with a single Thread
+        The use of Multiprocessing class is preferred, as its faster
+
+    :param klass: Calls where the function to call is
+    :param function: Name of the function to call
+    :param arguments: Arguments of the function to call
+    :param kwargs: Keyword arguments passed to the function to call
+    :return: None if multi-processing support is activated, or the result of the call otherwise
+    """
+
     if multithrds:  # is not None:
         pool = Thread(klass)
         pool.call(function, arguments, **kwargs)

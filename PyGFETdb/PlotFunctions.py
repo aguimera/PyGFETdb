@@ -14,10 +14,10 @@ def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
     """
 
     :param ax:
-    :param Col:
-    :param iGroup:
+    :param Col: Color
+    :param iGroup: Position to plot
     :param Vals: Values to plot
-    :param kwargs:
+    :param kwargs: Aesthetics arguments for the plot
     :return: None
     """
     bplt = ax.boxplot(Vals,
@@ -53,7 +53,8 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
     :param title:
     :param legendtitle:
     :param handles:
-    :param kargs:
+    :param kargs: Aesthetics arguments for the plot
+
     :return: None
     """
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
@@ -66,17 +67,17 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
                    Col=None, Boxplot=False, ParamUnits=None, **kwargs):
     """
-
+        Auxiliary function to plot the values of a group.
     :param Ax:
     :param xLab:
     :param xPos:
-    :param iGr:
-    :param Grn:
+    :param iGr: Number of the group
+    :param Grn: Name of the group
     :param vals: The values to plot
-    :param Col:
-    :param Boxplot:
-    :param ParamUnits:
-    :param kwargs:
+    :param Col: Color
+    :param Boxplot: if True plots a Boxplot
+    :param ParamUnits: Units of the parameters to plot
+    :param kwargs:Aesthetics arguments for the plot
     :return: None
     """
     if vals is not None:  # and len(vals) >0:
@@ -98,13 +99,13 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     :param Ax:
     :param xLab:
     :param xPos:
-    :param qtys:
-    :param ParamUnits:
-    :param title:
-    :param legendTitle:
-    :param handles:
-    :param xlabel:
-    :param kwargs:
+    :param qtys: Quantities to extract the units automatically
+    :param ParamUnits: Units of the parameters to plot
+    :param title: Title of the plot
+    :param legendTitle: Title of the Legend
+    :param handles: Matplotlib handles to plot the Legend
+    :param xlabel: String of the title for the x axis
+    :param kwargs: Aesthetics arguments for the plot
     :return: None
     """
     units = kwargs.get('Units')
@@ -156,9 +157,9 @@ def Legend(Ax, legend, handles):
     """
 
     :param Ax:
-    :param legend:
-    :param handles:
-    :return:
+    :param legend: Title of the Legend
+    :param handles: Matplotlib handles to plot the Legend
+    :return: None
     """
     chartBox = Ax.get_position()
     Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
@@ -230,14 +231,15 @@ def PlotResults(Results, arguments, Colors=None, handles=None, legendTitle=None,
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
     """
+        Plots the noise analysis
 
     :param Results: The values to plot
-    :param handles:
-    :param xlabel:
-    :param legendTitle:
-    :param Colors:
-    :param perType:
-    :param kwargs:
+    :param handles: Matplotlib handles to plot the Legend
+    :param xlabel: The title for the x axis
+    :param legendTitle: The title for the Legend
+    :param Colors: Colors to use in the plot
+    :param perType: String to adjust the title of the plot
+    :param kwargs: Keyword arguments
     :return: None
     """
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,17 +262,19 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
 def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=None, Colors=None, legendTitle=None,
                      **kwargs):
     """
+           Plots the percentage of transistors yield per secondary group
 
     :param Results: The values to plot
-    :param title:
-    :param handles:
-    :param xlabel:
-    :param perType:
-    :param Colors:
-    :param legendTitle:
-    :param kwargs:
+    :param title: The title of the plot
+    :param handles: Matplotlib handles to plot the Legend
+    :param xlabel: The title for the x axis
+    :param perType: String to adjust the title of the plot
+    :param Colors: Colors to use in the plot
+    :param legendTitle: The title for the Legend
+    :param kwargs: Keyword arguments
     :return: None
     """
+
     # PLOTS 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     fig, ax2 = plt.subplots()
@@ -300,13 +304,16 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
                           **kwargs):
     """
 
+           Plots the percentage of transistors yield per primary group
+
     :param Results: The values to plot
-    :param title:
-    :param Colors:
-    :param xlabel:
-    :param kwargs:
+    :param title: The title of the plot
+    :param Colors: Colors to use in the plot
+    :param xlabel: The title for the x axis
+    :param kwargs: Keyword arguments
     :return: None
     """
+
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fig, ax2 = plt.subplots()
     xLab = []
