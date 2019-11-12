@@ -61,7 +61,7 @@ def DataClassification(GrWs, ResultsParams):
     return clssfResults
 
 
-def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendtitle=None, Colors=None, perType="", **kwargs):
+def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fig, ax = plt.subplots()
     xLab = []
@@ -76,10 +76,10 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendtitle=None, Color
                 g._BoxplotValsGroup(ax, Col, pos, vals.transpose())
                 pos += 1
     g._closeBoxplotValsGroup(ax, xPos, xLab, xlabel, "[uVrms]", "Noise (10Hz-1kHz) " + perType, **kwargs)
-    g.Legend(ax, legendtitle, handles)
+    g.Legend(ax, legendTitle, handles)
 
 
-def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, Colors=None, legendtitle=None, **kwargs):
+def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, Colors=None, legendTitle=None, **kwargs):
     # PLOTS 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     fig, ax2 = plt.subplots()
@@ -101,8 +101,8 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, Colors=None
             xPos.append(pos)
             g._BoxplotValsGroup(ax2, Col, pos, work)
             pos += 1
-    g._closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [%]", title, **kwargs)
-    g.Legend(ax2, legendtitle, handles)
+    g._closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Wafer]", title, **kwargs)
+    g.Legend(ax2, legendTitle, handles)
 
 
 def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
@@ -126,16 +126,18 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
             xPos.append(nt)
             work.append((cWf.shape[1] / total) * 100)
         g._BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
-    g._closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [%]", title, **kwargs)
+    g._closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Type]", title, **kwargs)
 
 
 #############################
 # PLOTS PER WAFER AND TYPE
 ############################
-def PlotsPerWaferAnType(GrBase, **arguments):
-    # Devices = DbSe.FindCommonValues(Parameter='Devices.Name', Conditions=Conditions)
-    # GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
-    # GrDevs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
+
+
+def PlotsParams(GrBase, **arguments):
+    ## Devices = DbSe.FindCommonValues(Parameter='Devices.Name', Conditions=Conditions)
+    ##GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
+    ### GrDevs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
     ResultsDB = search(GrTypes)
     argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': arguments, 'args': arguments}
@@ -151,48 +153,42 @@ def PlotsPerWaferAnType(GrBase, **arguments):
 ############################
 # PLOTS PER 1 WAFER AND TYPES
 ###########################
-def PlotsPer1WaferAndTypes(GrBase, **kwargs):
+def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrWs, ResultsParams = DBSearchPerWaferAndType(GrBase, kwargs)
+    GrWs, ResultsParams = DBSearchPerWaferAndType(GrBase, arguments)
     # DATA CLASSIFICATION ################################################################################
     Results = DataClassification(GrWs, ResultsParams)
+    handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
+                    for i in range(0, len(list(GrWs.keys())))))
+    # Plot Params
+    g.PlotResults(Results, arguments, Colors, handles=handles,
+                  legendTitle=legendTitle, xlabel=xlabel, **kwargs)
 
-    #######
-    arg = kwargs['arg1']
-    data = Results['arg1']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeNoise(data, perType="x Wafer", **arg)
-    # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeYield(data, title="Working SGFETs x Wafer", **arg)
-    # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeYieldTotal(data, title="Working SGFETs x Type", **arg)
+    data = Results['arg5']
+    PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
 
 
-def PlotsPerTypes(GrBase, Colors=None, **kwargs):
-    # ARGUMENT SPECIFICATION #############################################################################
-
+def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrTypes, ResultsParams = DBSearchPerType(GrBase, kwargs)
-
-    types = []
-    for item in GrTypes.items():
-        types.append(item)
-
+    GrTypes, ResultsParams = DBSearchPerType(GrBase, arguments)
+    # DATA CLASSIFICATION ################################################################################
+    Results = DataClassification(GrTypes, ResultsParams)
+    # PLOTTING ######
     handles = list((Patch(color=Colors[i], label=sorted(list(GrTypes.keys()))[i])
                     for i in range(0, len(list(GrTypes.keys())))))
 
-    # DATA CLASSIFICATION ################################################################################
-    Results = DataClassification(GrTypes, ResultsParams)
+    # Plot Params
+    g.PlotResults(Results, arguments, Colors, handles=handles, **kwargs)
 
-    #######
-    arg = kwargs['arg1']
-    data = Results['arg1']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeNoise(data, handles=handles, perType="x Type", **arg)
+    data = Results['arg5']
+    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    PlotPerTypeNoise(data, Colors=Colors, handles=handles, perType="x Type", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeYield(data, title="Working SGFETs x Wafer", handles=handles, **arg)
+    PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotPerTypeYieldTotal(data, title="Working SGFETs x Type", handles=handles, **arg)
+    PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Type", handles=handles, **kwargs)
 
 
 def main():
@@ -200,14 +196,14 @@ def main():
 
     Wafers1 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-        # 'B12142W46',  # (in vivo Rob) # High doping
+        #'B12142W46',  # (in vivo Rob) # High doping
         # 'B12142W15',  # (in vivo Rob)
         # 'B11870W8',  # (IDIBAPS implants)
         # 'B11601W4',
     )
     Wafers2 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-        # 'B12142W46',  # (in vivo Rob) # High doping
+        'B12142W46',  # (in vivo Rob) # High doping
         # 'B12142W15',  # (in vivo Rob)
         # 'B11870W8',  # (IDIBAPS implants)
         # 'B11601W4',
@@ -284,10 +280,7 @@ def main():
 
     # PLOT GLOBALS ####################################################################
     Colors = ('r', 'g', 'b', 'm', 'y', 'k')
-    legendtitle = 'Wafers'
-    xlabel = 'Types'
-    handles1 = list((Patch(color=Colors[i], label=sorted(Wafers1)[i]) for i in range(0, len(Wafers1))))
-    handles2 = list((Patch(color=Colors[i], label=sorted(Wafers2)[i]) for i in range(0, len(Wafers2))))
+
     arguments1 = {
         'arg0': {
             'Param': 'Vrms',
@@ -298,9 +291,6 @@ def main():
             'NFmax': 1000,
             'Units': 'uV',
             'title': 'Vrms',
-            'legendTitle': legendtitle,
-            'xlabel': xlabel,
-            'handles': handles1,
         },
         'arg1': {
             'Param': 'Rds',
@@ -309,9 +299,6 @@ def main():
             'yscale': 'log',
             'Units': 'uV/A',
             'title': 'Rds',
-            'legendTitle': legendtitle,
-            'xlabel': xlabel,
-            'handles': handles1,
         },
         'arg2': {
             'Param': 'GMV',
@@ -320,17 +307,11 @@ def main():
             'yscale': 'log',
             'Units': 'uS/V',
             'title': 'GMV',
-            'legendTitle': legendtitle,
-            'xlabel': xlabel,
-            'handles': handles1,
         },
         'arg3': {
             'Param': 'Ud0',
             'Units': 'uV',
             'title': 'Ud0',
-            'legendTitle': legendtitle,
-            'xlabel': xlabel,
-            'handles': handles1,
         },
         'arg4': {
             'Param': 'Ids',
@@ -339,39 +320,38 @@ def main():
             'yscale': 'log',
             'Units': 'uA',
             'title': 'Ids',
-            'legendTitle': legendtitle,
-            'xlabel': xlabel,
-            'handles': handles1,
-        }
-    }
-
-    arguments2 = {
-        'arg1': {
-            'Param': 'Vrms',
-            'Vgs': -0.1,
-            'Ud0Norm': True,
-            'Units': 'uV',
-            'legendTitle': legendtitle,
-            'handles': handles2,
-            'Colors': Colors
-        }
-    }
-
-    arguments3 = {
-        'arg1': {
-            'Param': 'Vrms',
-            'Vgs': -0.1,
-            'Ud0Norm': True,
-            'Units': 'uV',
-            'legendTitle': 'Types',
-            'Colors': Colors
         },
-        'Colors': Colors
+        'arg5': {
+            'Param': 'Vrms',
+            'Vgs': -0.1,
+            'Ud0Norm': True,
+            'Units': 'uV',
+            'title': 'Vrms',
+        },
     }
 
-    PlotsPerWaferAnType(GrBase1, **arguments1)
-    PlotsPer1WaferAndTypes(GrBase2, **arguments2)
-    PlotsPerTypes(GrBase3, **arguments3)
+    kwargs1 = {
+        'arguments': arguments1,
+        'Colors': Colors,
+        'legendTitle': "Wafers",
+        'xlabel': "Types",
+    }
+    kwargs2 = {
+        'arguments': arguments1,
+        'Colors': Colors,
+        'legendTitle': "Types",
+        'xlabel': "Wafers",
+    }
+
+    # PLOTS ####################################################################
+    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
+    # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
+    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+
+    # PlotsPerTypes(GrBase1, **kwargs2)
+    # PlotsPerTypes(GrBase2, **kwargs2)
+    PlotsPerTypes(GrBase3, **kwargs2)
+
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

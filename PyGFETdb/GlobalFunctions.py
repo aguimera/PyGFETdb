@@ -74,14 +74,14 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
 
 
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
-                   Boxplot=False, ParamUnits=None, **kwargs):
+                   Col=None, Boxplot=False, ParamUnits=None, **kwargs):
 
     if vals is not None:  # and len(vals) >0:
         if Boxplot:
             Ax.boxplot(vals.transpose(), positions=(iGr + 1,))
             xPos.append(iGr + 1)
         else:
-            Ax.plot(np.ones(len(vals)) * iGr, vals, '.', label=(Grn,))
+            Ax.plot(np.ones(len(vals)) * iGr, vals, '.', label=(Grn,), color=Col)
             xPos.append(iGr)
             xLab.append(Grn)
     else:
@@ -95,17 +95,19 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 
     Ax.set_xlabel(xlabel, fontsize='large')
 
+    param = kwargs.get('Param')
+
     if ParamUnits is not None:
-        Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
+        Ax.set_ylabel(param + '[' + ParamUnits + ']')
     else:
-        Ax.set_ylabel(kwargs['Param'])
+        Ax.set_ylabel(param)
 
     if qty.isActive() and qtys is not None:
         qtyunits = qty.getQuantityUnits(qtys)
         if qtyunits:
-            Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')
+            Ax.set_ylabel(param + '[' + qtyunits + ']')
         elif units is not None:
-            Ax.set_ylabel(kwargs['Param'] + '[' + units + ']')
+            Ax.set_ylabel(param + '[' + units + ']')
 
     Ax.grid()
     Ax.ticklabel_format(axis='y', style='sci', scilimits=(2, 2))
@@ -140,7 +142,7 @@ def Legend(Ax, legend, handles):
               bbox_to_anchor=(0.89, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
-def PlotGroup(ResultsParams, Group, args, **kwargs):
+def PlotGroup(ResultsParams, Group, arguments):
     """
 
     :param ResultsParams: The results of a search in the database
@@ -150,7 +152,7 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
     Results = {}
-    for iarg, (karg, arg) in enumerate(args.items()):
+    for iarg, (karg, arg) in enumerate(arguments.items()):
         Results[karg] = {}
         fig, Ax = plt.subplots()
         xLab = []
@@ -171,3 +173,32 @@ def PlotGroup(ResultsParams, Group, args, **kwargs):
     return Results
 
 
+def PlotResults(Results, arguments, Colors=None, handles=None, legendTitle=None, xlabel=None, **kwargs):
+    """
+
+    :param Results: The results of a search in the database
+    :param Group: A group of conditions to analyse
+    :param args: Arguments for getting the parameters
+    :param kwargs:
+    :return: A dict of args of dicts of groupnames and parameter found in a previous search
+    """
+    for iarg, (karg, arg) in enumerate(Results.items()):
+        fig, Ax = plt.subplots()
+        xLab = []
+        xPos = []
+        qtys = None
+        icolor = 0
+        pos = 0
+        for iGr, (Grn, Grc) in enumerate(sorted(arg.items())):
+            for iGr2, (Grn2, ParamData) in enumerate(sorted(Grc.items())):
+                if ParamData is not None:
+                    if qty.isActive():
+                        qtys = np.array(ParamData)
+                        ParamData = qty.flatten(ParamData)
+                        ParamData = np.array(ParamData)
+                        _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
+                        pos += 1
+            icolor += 1
+        _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, legendTitle=legendTitle,
+                            xlabel=xlabel, **arguments[karg])
+    return Results
