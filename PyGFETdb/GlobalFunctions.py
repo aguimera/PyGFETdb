@@ -21,10 +21,26 @@ def updateDictOfLists(dict, key, value):
     """
     k = dict.get(key)
     if k is None:
-        dict[key] = value
+        dict[key] = [value]
     else:
         k.append(value)
 
+
+def updateDictOfDicts(dict, key1, key2, value):
+    """
+    Modifies a dictionary of dictionaries, updating the value at the dictionary obtained
+    of applying the key to the dictionary
+    :param dict: A dictionary to update
+    :param key1: The key to search in the dictionary
+    :param key2: The key to update in the result of searching the first key
+    :param value: The value to update
+    :return: None
+    """
+    k = dict.get(key1)
+    if k is None:
+        dict[key1] = {key2: value}
+    else:
+        k[key2] = value
 
 def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
     bplt = ax.boxplot(Vals,
@@ -47,6 +63,14 @@ def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
         patch.set(alpha=0.5)
 
     return bplt
+
+
+def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', legendtitle='', handles=None, **kargs):
+    plt.xticks(xPos, xLab, rotation=45, fontsize='small')
+    ax.set_ylabel(ylabel=ylabel, fontsize='large')
+
+    ax.set_xlabel(xlabel, fontsize='large')
+    ax.set_title(label=title, fontsize='large')
 
 
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
