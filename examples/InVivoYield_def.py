@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 import quantities as pq
 
 import PyGFETdb.DBSearch as DbSe
-import PyGFETdb.GlobalFunctions as g
-from PyGFETdb import qty, multithrds, Multiprocessing as mp
+from PyGFETdb import qty, multithrds, PlotFunctions as plot, Multiprocessing as mp
 
 qtyDebug = False  # True  # Set to false to print less debug info of the rescaling examples
 
@@ -129,7 +128,7 @@ else:
 ResultsDB = search(GrWs)
 argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrWs, 'arguments': arguments, 'args': arguments}
 ResultsParams = getparams(**argParams)
-Vals = g.PlotGroup(ResultsParams, GrWs, arguments)
+Vals = plot.PlotGroup(ResultsParams, GrWs, arguments)
 
 fig, ax = plt.subplots()
 
@@ -157,7 +156,7 @@ for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
             Vals = quantities * 1e6
 
         Results[Grwn][Grn] = Vals
-    g._BoxplotValsGroup(ax, Col, iWf, Vals.transpose())
+    plot._BoxplotValsGroup(ax, Col, iWf, Vals.transpose())
 
 ax.set_ylabel('[uVrms]', fontsize='large')
 ax.set_xlabel('Probes', fontsize='large')
@@ -178,7 +177,7 @@ for iWf, (wn, dd) in enumerate(Results.items()):
 
     xLab.append(wn)
     xPos.append(iWf)
-    g._BoxplotValsGroup(ax2, Col, iWf, work)
+    plot._BoxplotValsGroup(ax2, Col, iWf, work)
 
 plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 ax2.set_ylabel('Yield [%]', fontsize='large')

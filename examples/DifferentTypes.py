@@ -251,6 +251,7 @@ def main():
     # PlotsPerTypes(GrBase2, **kwargs2)
     PlotsPerTypes(GrBase3, **kwargs2)
 
+    #PlotsParams(GrBase3,arguments1)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
