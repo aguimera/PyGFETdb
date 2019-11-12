@@ -11,6 +11,15 @@ from PyGFETdb import qty
 
 
 def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
+    """
+
+    :param ax:
+    :param Col:
+    :param iGroup:
+    :param Vals: Values to plot
+    :param kwargs:
+    :return: None
+    """
     bplt = ax.boxplot(Vals,
                       positions=(iGroup,),
                       patch_artist=True,  # fill with color
@@ -34,6 +43,19 @@ def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
 
 
 def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', legendtitle='', handles=None, **kargs):
+    """
+
+    :param ax:
+    :param xPos:
+    :param xLab:
+    :param xlabel:
+    :param ylabel:
+    :param title:
+    :param legendtitle:
+    :param handles:
+    :param kargs:
+    :return: None
+    """
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
     ax.set_ylabel(ylabel=ylabel, fontsize='large')
 
@@ -43,6 +65,20 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
 
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
                    Col=None, Boxplot=False, ParamUnits=None, **kwargs):
+    """
+
+    :param Ax:
+    :param xLab:
+    :param xPos:
+    :param iGr:
+    :param Grn:
+    :param vals: The values to plot
+    :param Col:
+    :param Boxplot:
+    :param ParamUnits:
+    :param kwargs:
+    :return: None
+    """
     if vals is not None:  # and len(vals) >0:
         if Boxplot:
             Ax.boxplot(vals.transpose(), positions=(iGr + 1,))
@@ -57,6 +93,20 @@ def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
 
 def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
                         title=None, legendTitle=None, handles=None, xlabel='', **kwargs):
+    """
+
+    :param Ax:
+    :param xLab:
+    :param xPos:
+    :param qtys:
+    :param ParamUnits:
+    :param title:
+    :param legendTitle:
+    :param handles:
+    :param xlabel:
+    :param kwargs:
+    :return: None
+    """
     units = kwargs.get('Units')
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 
@@ -103,6 +153,13 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 
 
 def Legend(Ax, legend, handles):
+    """
+
+    :param Ax:
+    :param legend:
+    :param handles:
+    :return:
+    """
     chartBox = Ax.get_position()
     Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
     Ax.legend(title=legend, handles=handles, loc='upper right', fontsize='x-small',
@@ -172,6 +229,17 @@ def PlotResults(Results, arguments, Colors=None, handles=None, legendTitle=None,
 
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
+    """
+
+    :param Results: The values to plot
+    :param handles:
+    :param xlabel:
+    :param legendTitle:
+    :param Colors:
+    :param perType:
+    :param kwargs:
+    :return: None
+    """
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fig, ax = plt.subplots()
     xLab = []
@@ -191,6 +259,18 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
 
 def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=None, Colors=None, legendTitle=None,
                      **kwargs):
+    """
+
+    :param Results: The values to plot
+    :param title:
+    :param handles:
+    :param xlabel:
+    :param perType:
+    :param Colors:
+    :param legendTitle:
+    :param kwargs:
+    :return: None
+    """
     # PLOTS 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     fig, ax2 = plt.subplots()
@@ -218,6 +298,15 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=Non
 
 def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
                           **kwargs):
+    """
+
+    :param Results: The values to plot
+    :param title:
+    :param Colors:
+    :param xlabel:
+    :param kwargs:
+    :return: None
+    """
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fig, ax2 = plt.subplots()
     xLab = []

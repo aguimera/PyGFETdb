@@ -191,6 +191,13 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
 
 
 def processGetParams(GrWfs, Results, args):
+    """
+
+    :param GrWfs:
+    :param Results:
+    :param args:
+    :return:
+    """
     Ret = {}
     if args is not None:
         for karg, arg in args.items():
@@ -204,6 +211,14 @@ def processGetParams(GrWfs, Results, args):
 
 
 def processOneArg(GrWfs, Results, Ret, karg):
+    """
+
+    :param GrWfs:
+    :param Results:
+    :param Ret:
+    :param karg:
+    :return: None
+    """
     for iWf, (Wfn, Wfc) in enumerate(GrWfs.items()):
         Ret[karg][Wfn] = {}
         if type(Wfc) is dict and Wfc.get('Conditions') is None:

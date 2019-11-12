@@ -629,6 +629,15 @@ class PyFETdb(_PyFETdb):
         if multithrds is None: pass
 
     def _execute(self, query, values, LastRowID=False):
+        """
+            This function locks the execution of a query
+            for multiprocessing support
+
+        :param query:
+        :param values:
+        :param LastRowID:
+        :return:
+        """
         # if not multithrds:
         Thread.lock.acquire()
         ret = _PyFETdb._execute(self, query, values, LastRowID)
