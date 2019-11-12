@@ -136,7 +136,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 def Legend(Ax, legend, handles):
     chartBox = Ax.get_position()
     Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
-    Ax.legend(title=legend, handles=handles, markerscale=10, loc='upper right',
+    Ax.legend(title=legend, handles=handles, markerscale=10, loc='upper right', fontsize='small',
               bbox_to_anchor=(0.89, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
