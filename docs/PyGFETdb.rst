@@ -75,6 +75,14 @@ PyGFETdb.GlobalFunctions module
    :undoc-members:
    :show-inheritance:
 
+PyGFETdb.Multiprocessing module
+-------------------------------
+
+.. automodule:: PyGFETdb.Multiprocessing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PyGFETdb.NoiseModel module
 --------------------------
 
@@ -87,6 +95,14 @@ PyGFETdb.PlotDataClass module
 -----------------------------
 
 .. automodule:: PyGFETdb.PlotDataClass
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PyGFETdb.PlotFunctions module
+-----------------------------
+
+.. automodule:: PyGFETdb.PlotFunctions
    :members:
    :undoc-members:
    :show-inheritance:
