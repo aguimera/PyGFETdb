@@ -106,7 +106,7 @@ lock = Lock()
 
 
 class MultiProcess():
-    def __init__(self):
+    def __init__(self, klass):
         self.pool = {}
 
     def initcall(self, key, klass):

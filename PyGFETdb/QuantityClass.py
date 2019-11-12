@@ -25,7 +25,7 @@ class QuantityClass(object):
                     'Irms': pq.V,
                     'Vrms': pq.V / pq.S,
                     'Ids': pq.A,
-                    'Rds': pq.V / pq.A
+                    'Rds': pq.ohm
                     }
     """
     Dictionary with the association between PlotParameters and Units
