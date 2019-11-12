@@ -5,4 +5,4 @@ deepdish
 qtpy
 xlsxwriter
 PySide2
-PyGFETdb
+
