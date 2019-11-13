@@ -12,7 +12,7 @@ from PyGFETdb import multithrds
 
 
 class Thread(pool.ThreadPool):
-    def __init__(self, package):  # , host=DBhost, user=DBuser, passwd=DBpasswd, db=DBdb, Update=True):
+    def __init__(self, package):
         """
 
         :param package: Module where the function to process is
@@ -61,15 +61,6 @@ class Thread(pool.ThreadPool):
                     ret = self.pool.apply_async(func, [], args, error_callback=self.errorlog, callback=self.addResult)
                 else:
                     ret = self.pool.apply_async(func, arguments, error_callback=self.errorlog, callback=self.addResult)
-                """
-                for karg, varg in i.items():
-                    args = []
-                    for kargument, vargument in arguments.items():
-                        if kargument != "args":
-                            args.append(vargument)
-                    args.append(dict({karg: varg}))
-                    ret = self.pool.apply_async(func,args, error_callback=self.errorlog, callback=self.addResult)
-                #"""
             else:
                 ret = self.pool.apply_async(func, [], kwargs, error_callback=self.errorlog, callback=self.addResult)
         return ret
@@ -177,6 +168,10 @@ class MultiProcess():
 
 
 def key():
+    """
+
+    :return: a random number to be used as key for multiprocessing
+    """
     return random.randint(0, 10000000)
 
 
@@ -206,17 +201,16 @@ def callThread(klass, function, arguments, **kwargs):
 
 def call(klass, function, arguments, **kwargs):
     """
-        Auxiliary function for calling a function with a single Thread
-        The use of Multiprocessing class is preferred, as its faster
+        Auxiliary function for calling a function with a Multiprocessing
+
 
     :param klass: Calls where the function to call is
     :param function: Name of the function to call
     :param arguments: Arguments of the function to call
     :param kwargs: Keyword arguments passed to the function to call
-    :return: None if multi-processing support is activated, or the result of the call otherwise
+    :return: the keyid and a pool for getting the results
     """
     pool = MultiProcess(klass)
     k = pool.initcall(key(), klass)
     pool.call(k, klass, function, arguments, **kwargs)
     return k, pool
-

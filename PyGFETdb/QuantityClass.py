@@ -55,7 +55,7 @@ class QuantityClass(object):
         """
         self._Active = Active
 
-    def isDefaultQuantityKey(self, key: str) -> bool:
+    def isDefaultQuantityKey(self, key):
         """
 
         :param key: string indicating the plot parameter to check

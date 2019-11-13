@@ -68,6 +68,12 @@ def SearchDB(GrWfs, **kwargs):
 
 
 def processGetFromDB(results):
+    """
+        Gathers the results of different processes after a search in the database
+
+    :param results: Results obtained with multi-processing from the database
+    :return: All the results from the search gathered in a tuple
+    """
     ret = (None, None)
     if not multithrds:
         ret = results
@@ -97,6 +103,12 @@ def processGetFromDB(results):
 
 
 def processResults(Results, args):
+    """
+
+    :param Results: results to classify
+    :param args: arguments to search
+    :return: A dict of arguments with each corresponding result
+    """
     Ret = {}
     if args is not None:
         for karg, arg in args.items():
@@ -200,10 +212,10 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
 def processGetParams_MP(GrWfs, Results, args):
     """
 
-    :param GrWfs:
-    :param Results:
-    :param args:
-    :return:
+    :param GrWfs: A group of conditions
+    :param Results: The results of the parameter search
+    :param args: a dict with the parameters to be searched
+    :return: The results ordered by parameter
     """
     Ret = {}
     if args is not None:
@@ -220,11 +232,11 @@ def processGetParams_MP(GrWfs, Results, args):
 def processOneArg(GrWfs, Results, Ret, karg):
     """
 
-    :param GrWfs:
-    :param Results:
-    :param Ret:
-    :param karg:
-    :return: None
+    :param GrWfs: A group of conditions
+    :param Results: Results of the parameter search
+    :param Ret: A dict to update with Eesults
+    :param karg: Key-name of the argument to process
+    :return: None but modifies Ret dict
     """
     for iWf, (Wfn, Wfc) in enumerate(GrWfs.items()):
         Ret[karg][Wfn] = {}

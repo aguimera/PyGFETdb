@@ -36,8 +36,8 @@ def updateDictOfLists(dict, key, value):
 def DBSearchPerWaferAndType(GrBase, args):
     """
 
-    :param GrBase:
-    :param args:
+    :param GrBase: A group of conditions
+    :param args: a dict with the parameters to search
     :return: a group of conditions and the results of the search
     """
     GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
@@ -52,8 +52,8 @@ def DBSearchPerWaferAndType(GrBase, args):
 def DBSearchPerType(GrBase, args):
     """
 
-    :param GrBase:
-    :param args:
+    :param GrBase: a group of conditions
+    :param args: a dict with the parameters to search
     :return: a group of conditions and the results of the search
     """
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
@@ -68,7 +68,7 @@ def DBSearchPerType(GrBase, args):
 def DataClassification(GrWs, arguments, ResultsParams):
     """
 
-    :param GrWs:
+    :param GrWs: A group of conditions
     :param ResultsParams: the results obtained of a search of parameters
     :return: A dict with the results classified by argument to plot
     """
@@ -88,4 +88,3 @@ def DataClassification(GrWs, arguments, ResultsParams):
                     updateDictOfLists(Results[Grwn], TGrn, TGrc)
         clssfResults[narg].update(Results)
     return clssfResults
-

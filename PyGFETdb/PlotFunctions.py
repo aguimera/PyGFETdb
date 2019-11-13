@@ -5,6 +5,7 @@
 Plot Functions that do not fit in the previous files.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import quantities as pq
@@ -50,11 +51,11 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
     :param ax:
     :param xPos:
     :param xLab:
-    :param xlabel:
-    :param ylabel:
-    :param title:
-    :param legendtitle:
-    :param handles:
+    :param xlabel: a label for the x axis
+    :param ylabel: a label for the y axis
+    :param title: a label for the title of the plot
+    :param legendtitle: a label for the title of the legend
+    :param handles: handles to update the legend
     :param kargs: Aesthetics arguments for the plot
 
     :return: None
