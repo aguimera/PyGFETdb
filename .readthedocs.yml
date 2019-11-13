@@ -25,7 +25,7 @@ python:
     - requirements: [docs/requirements.txt, setup.py]
 
 build:
-  image: pygfetdbv2
+  image: stable
 
 submodules:
   include: all
