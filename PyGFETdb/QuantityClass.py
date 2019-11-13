@@ -146,7 +146,7 @@ class QuantityClass(object):
         """
         ret = None
         if self.isActive() and qtylist is not None:
-            if type(qtylist) is pq.Quantity:
+            if type(qtylist) is pq.Quantity or type(qtylist) is pq.UnitQuantity:
                 return qtylist.dimensionality.latex
             elif type(qtylist) is list:
                 if len(qtylist):

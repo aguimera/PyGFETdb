@@ -7,6 +7,7 @@
 """
 
 import matplotlib.pyplot as plt
+import quantities as pq
 from matplotlib.patches import Patch
 
 import PyGFETdb.DBSearch as DbSe
@@ -189,7 +190,7 @@ def main():
             'yscale': 'log',
             'NFmin': 10,
             'NFmax': 1000,
-            'Units': 'uV',
+            'Units': pq.microvolt,
             'title': 'Vrms',
         },
         'arg1': {
@@ -197,7 +198,7 @@ def main():
             'Vgs': 0,
             'Ud0Norm': True,
             'yscale': 'log',
-            'Units': 'uV/A',
+            'Units': pq.ohm,
             'title': 'Rds',
         },
         'arg2': {

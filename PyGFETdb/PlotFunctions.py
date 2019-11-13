@@ -6,6 +6,7 @@ Plot Functions that do not fit in the previous files.
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import quantities as pq
 
 from PyGFETdb import qty
 
@@ -109,23 +110,26 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     :return: None
     """
     units = kwargs.get('Units')
+    if type(units) is pq.UnitQuantity:
+        units = qty.getQuantityUnits(units)
+
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 
     Ax.set_xlabel(xlabel, fontsize='large')
 
     param = kwargs.get('Param')
 
-    if ParamUnits is not None:
+    if qty.isActive() and qtys is not None:
+        qtyunits = qty.getQuantityUnits(qtys)
+
+    if qtyunits is not None:
+        Ax.set_ylabel(param + '[' + qtyunits + ']')
+    elif units is not None:
+            Ax.set_ylabel(param + '[' + units + ']')
+    elif ParamUnits is not None:
         Ax.set_ylabel(param + '[' + ParamUnits + ']')
     else:
         Ax.set_ylabel(param)
-
-    if qty.isActive() and qtys is not None:
-        qtyunits = qty.getQuantityUnits(qtys)
-        if qtyunits:
-            Ax.set_ylabel(param + '[' + qtyunits + ']')
-        elif units is not None:
-            Ax.set_ylabel(param + '[' + units + ']')
 
     Ax.grid()
     Ax.ticklabel_format(axis='y', style='sci', scilimits=(2, 2))
@@ -190,7 +194,7 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
                 if ParamData is not None:
                     Results[karg][Grn] = ParamData
                     if qty.isActive():
-                        qtys = np.array(ParamData)
+                        qtys = ParamData
                         ParamData = qty.flatten(ParamData)
                     ParamData = np.array(ParamData)
                     _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg, **kwargs)
@@ -218,7 +222,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, legendTitle=None,
             for iGr2, (Grn2, ParamData) in enumerate(sorted(Grc.items())):
                 if ParamData is not None:
                     if qty.isActive():
-                        qtys = np.array(ParamData)
+                        qtys = ParamData
                         ParamData = qty.flatten(ParamData)
                         ParamData = np.array(ParamData)
                         _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
@@ -253,7 +257,7 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
             if vals is not None:
                 xPos.append(pos)
                 xLab.append(typename)
-                _BoxplotValsGroup(ax, Col, pos, vals.transpose())
+                _BoxplotValsGroup(ax, Col, pos, np.array(vals).transpose())
                 pos += 1
     _closeBoxplotValsGroup(ax, xPos, xLab, xlabel, "[uVrms]", "Noise (10Hz-1kHz) " + perType, **kwargs)
     Legend(ax, legendTitle, handles)
@@ -286,17 +290,17 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=Non
         Col = Colors[iWf]
         temp = []
         for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-            temp.append(Grc.shape[1])
+            temp.append((np.array(Grc)).shape[1])
         totalWf = np.sum(temp)
 
         work = []
         for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-            work.append((Grc.shape[1] / totalWf) * 100)
+            work.append((np.array(Grc).shape[1] / totalWf) * 100)
             xLab.append(Grn)
             xPos.append(pos)
             _BoxplotValsGroup(ax2, Col, pos, work)
             pos += 1
-    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [%{}]", format(perType), title, **kwargs)
+    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [%{}]".format(perType), title, **kwargs)
     Legend(ax2, legendTitle, handles)
 
 
@@ -322,7 +326,7 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
     temp = []
     for nt, (typename, vtype) in enumerate(Results.items()):
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
-            temp.append(cWf.shape[1])
+            temp.append((np.array(cWf)).shape[1])
     total = np.sum(temp)
 
     work = []
@@ -331,6 +335,6 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
             xLab.append(typename)
             xPos.append(nt)
-            work.append((cWf.shape[1] / total) * 100)
+            work.append(((np.array(cWf)).shape[1] / total) * 100)
         _BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Type]", title, **kwargs)

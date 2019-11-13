@@ -5,10 +5,8 @@
 Global Functions that do not fit in the previous files.
 """
 
-import quantities as pq
-
 import PyGFETdb.DBSearch as DbSe
-from PyGFETdb import qty, multithrds, Multiprocessing as mp
+from PyGFETdb import multithrds, Multiprocessing as mp
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -95,12 +93,7 @@ def DataClassification(GrWs, ResultsParams):
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
         for iarg, (narg, arg) in enumerate(sorted(ResultsParams.get(Grwn).items())):  # Params
             for iType, (TGrn, TGrc) in enumerate(arg.items()):
-                quantities = TGrc  # Param 0
-                if qty.isActive():
-                    Vals = pq.Quantity(quantities)  # np.array also works fine
-                else:
-                    Vals = quantities * 1e6
-                if Vals is not None:
-                    updateDictOfDicts(Results, Grwn, TGrn, Vals)
+                if TGrc is not None:
+                    updateDictOfDicts(Results, Grwn, TGrn, TGrc)
             clssfResults[narg] = Results
     return clssfResults
