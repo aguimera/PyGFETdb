@@ -126,25 +126,24 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                 'CharTable.IsOK > ':(0,)}
 
     :param: Table : string, optional. Posible values 'ACcharacts' or 'DCcharacts'.
-                The default value is 'ACcharacts'. Characterization table to get data
+    The default value is 'ACcharacts'. Characterization table to get data
 
-                The characterization table of Conditions dictionary can be indicated
-                as 'CharTable'. In that case 'CharTable' will be replaced by Table
-                value.
+    The characterization table of Conditions dictionary can be indicated
+    as 'CharTable'. In that case 'CharTable' will be replaced by Table value.
 
     :param: Last : bolean, optional. If True (default value) just the last measured
-                data for each transistor is returned. If False, all measured data is
-                returned
+    data for each transistor is returned. If False, all measured data is
+    returned
     :param: Last : bolean, optional. If True (default value) the gate measured data
-                is also obtained
+    is also obtained
     :param: OutilerFilter : dictionary, optional. (default 'None'),
-                If defined, dictionary to perform a statistical pre-evaluation of the
-                data. The data that are not between the p25 and p75 percentile are
-                not returned. The dictionary should follow this structure:
-                {'Param':Value, --> Characterization parameter, ie. 'Ids', 'Vrms'...
-                'Vgs':Value,   --> Vgs evaluation point
-                'Vds':Value,   --> Vds evaluationd point
-                'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
+    If defined, dictionary to perform a statistical pre-evaluation of the
+    data. The data that are not between the p25 and p75 percentile are
+    not returned. The dictionary should follow this structure:
+    {'Param':Value, --> Characterization parameter, ie. 'Ids', 'Vrms'...
+    'Vgs':Value,   --> Vgs evaluation point
+    'Vds':Value,   --> Vds evaluationd point
+    'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
 
 
     :return: Data: Dictionary with the data arranged as follows:
