@@ -55,7 +55,7 @@ html_theme = 'pyramid'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-master_doc = ['index']
+master_doc = 'index'
 
 extensions.append('sphinx.ext.todo')
 extensions.append('sphinx.ext.autodoc')
