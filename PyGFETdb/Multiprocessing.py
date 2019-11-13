@@ -235,3 +235,4 @@ def processOneArg(GrWfs, Results, Ret, karg):
                     if k is not None:
                         l = list(itertools.chain(k))
                         Ret[karg][Wfn] = l
+

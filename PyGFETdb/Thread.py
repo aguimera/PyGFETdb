@@ -1,9 +1,9 @@
 # import threading as th
+import random
 from multiprocessing import pool, Lock
 
 # import numpy as np
 from PyGFETdb import multithrds
-import random
 
 
 class Thread(pool.ThreadPool):
@@ -214,3 +214,4 @@ def call(klass, function, arguments, **kwargs):
     k = pool.initcall(key(), klass)
     pool.call(k, klass, function, arguments, **kwargs)
     return k, pool
+
