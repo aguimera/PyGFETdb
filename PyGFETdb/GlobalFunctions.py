@@ -19,8 +19,9 @@ else:
 
 def updateDictOfLists(dict, key, value):
     """
-    Modifies a dictionary of lists, appending the value at the list obtained
-    of applying the key to the dictionary
+        Modifies a dictionary of lists, appending the value at the list obtained
+        of applying the key to the dictionary
+
     :param dict: A dictionary to update
     :param key: The key to update
     :param value: The value to append
