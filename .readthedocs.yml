@@ -22,7 +22,7 @@ formats: [htmlzip]
 python:
   version: 3.7
   install:
-    - requirements: "setup.py"
+    - requirements: "docs/requirements.txt"
 
 build:
   image: stable
