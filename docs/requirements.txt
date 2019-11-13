@@ -1,5 +1,7 @@
+PyGFETdbV2
+PyGFETdbV2.GuiDBView
 PyGFETdb
-PyGFET.GuiDBView
+PyGFETdb.GuiDBView
 pymysql
 sphinx-autoapi
 statsmodels
