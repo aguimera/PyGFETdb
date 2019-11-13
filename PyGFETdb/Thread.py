@@ -10,7 +10,9 @@ class Thread(pool.ThreadPool):
         """
 
         :param package: Module where the function to process is
+
         """
+
         pool.ThreadPool.__init__(self)
         self.pool = self
         self.parent = package
@@ -27,7 +29,9 @@ class Thread(pool.ThreadPool):
         :param arguments: Arguments of the call
         :param kwargs:
         :return: None
+
         """
+
         ret = None
         if self.parent is not None:
             func = getattr(self.parent, funcname)
@@ -72,9 +76,11 @@ class Thread(pool.ThreadPool):
 
     def getResults(self):
         """
-            Finalise the processing and get the results
+        Finalise the processing and get the results
+
         :return:
         """
+
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
@@ -87,6 +93,7 @@ class Thread(pool.ThreadPool):
         :param result: The result to add
         :return: None
         """
+
         self.lock.acquire()
         self._rets.append(result)
         self.lock.release()
@@ -97,6 +104,7 @@ class Thread(pool.ThreadPool):
         :param e: Error in multiprocessing
         :return: None
         """
+
         print(e)
 
 
@@ -112,15 +120,18 @@ class MultiProcess():
     def initcall(self, key, klass):
         """
             Initialises the Multi-processing
+
         :param key: A unique-key to each calculation
         :param klass: Calls where the function to call is
         :return:
         """
+
         self.pool[key] = Thread(klass)
 
     def call(self, key, klass, function, arguments, **kwargs):
         """
             Calls a function for multi-processing
+
         :param key: The unique-key of the calculation
         :param klass: Calls where the function to call is
         :param function: Name of the function to call
@@ -128,6 +139,7 @@ class MultiProcess():
         :param kwargs: Keyword arguments passed to the function to call
         :return: None if multi-processing support is activated, or the result of the call otherwise
         """
+
         res = None
         if multithrds:  # is not None:
             self.pool[key].call(function, arguments, **kwargs)
@@ -143,9 +155,12 @@ class MultiProcess():
     def getResults(self, key):
         """
             Obtains the results for a calculation.
+
         :param key: A unique-key identifying the calculation
         :return: The results of the previous call
+
         """
+
         ret = {}
         pool = self.pool.get(key)
         if pool is not None:
