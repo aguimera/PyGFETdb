@@ -112,6 +112,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     units = kwargs.get('Units')
     if type(units) is pq.UnitQuantity:
         units = qty.getQuantityUnits(units)
+        units = units.dimensionality.latex
 
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 
@@ -121,7 +122,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 
     if qty.isActive() and qtys is not None:
         qtyunits = qty.getQuantityUnits(qtys)
-
+        qtyunits = qtyunits.dimensionality.latex
     if qtyunits is not None:
         Ax.set_ylabel(param + '[' + qtyunits + ']')
     elif units is not None:
@@ -186,7 +187,7 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
         fig, Ax = plt.subplots()
         xLab = []
         xPos = []
-        qtys = None
+        qtys = []
         for iGr, (Grn, Grc) in enumerate(sorted(Group.items())):
             argRes = ResultsParams.get(karg)
             if argRes is not None:
@@ -194,7 +195,7 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
                 if ParamData is not None:
                     Results[karg][Grn] = ParamData
                     if qty.isActive():
-                        qtys = ParamData
+                        qtys.append(ParamData)
                         ParamData = qty.flatten(ParamData)
                     ParamData = np.array(ParamData)
                     _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg, **kwargs)
@@ -202,35 +203,34 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
     return Results
 
 
-def PlotResults(Results, arguments, Colors=None, handles=None, legendTitle=None, xlabel=None, **kwargs):
+def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, legendTitle=None, **kwargs):
     """
 
     :param Results: The results of a search in the database
     :param Group: A group of conditions to analyse
     :param args: Arguments for getting the parameters
     :param kwargs:
-    :return: A dict of args of dicts of groupnames and parameter found in a previous search
+    :return: None
     """
     for iarg, (karg, arg) in enumerate(Results.items()):
         fig, Ax = plt.subplots()
         xLab = []
         xPos = []
-        qtys = None
+        qtys = []
         icolor = 0
         pos = 0
         for iGr, (Grn, Grc) in enumerate(sorted(arg.items())):
             for iGr2, (Grn2, ParamData) in enumerate(sorted(Grc.items())):
                 if ParamData is not None:
                     if qty.isActive():
-                        qtys = ParamData
+                        qtys.append(ParamData)
                         ParamData = qty.flatten(ParamData)
-                        ParamData = np.array(ParamData)
-                        _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
-                        pos += 1
+                    ParamData = np.array(ParamData)
+                    _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
+                    pos += 1
             icolor += 1
         _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, legendTitle=legendTitle,
                             xlabel=xlabel, **arguments[karg])
-    return Results
 
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):

@@ -52,9 +52,6 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     Results = g.DataClassification(GrWs, ResultsParams)
     handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
                     for i in range(0, len(list(GrWs.keys())))))
-    # Plot Params
-    plot.PlotResults(Results, arguments, Colors, handles=handles,
-                     legendTitle=legendTitle, xlabel=xlabel, **kwargs)
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
@@ -77,9 +74,6 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
     # PLOTTING ######
     handles = list((Patch(color=Colors[i], label=sorted(list(GrTypes.keys()))[i])
                     for i in range(0, len(list(GrTypes.keys())))))
-
-    # Plot Params
-    plot.PlotResults(Results, arguments, Colors, handles=handles, **kwargs)
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -245,6 +239,7 @@ def main():
     }
 
     # PLOTS ####################################################################
+    PlotsParams(GrBase3, **kwargs2)
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     PlotsPerWaferAndTypes(GrBase3, **kwargs1)
@@ -253,7 +248,6 @@ def main():
     # PlotsPerTypes(GrBase2, **kwargs2)
     PlotsPerTypes(GrBase3, **kwargs2)
 
-    # PlotsParams(GrBase3,**kwargs2)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

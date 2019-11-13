@@ -121,7 +121,7 @@ class QuantityClass(object):
         :param units: The units to rescale
         :return: The input Quantity-like rescaled to the intented units
         """
-        if not self.isActive() or not units or qtylist is None: return qtylist
+        if not self.isActive() or units is None or qtylist is None: return qtylist
         if type(qtylist) is pq.Quantity:
             try:
                 return qtylist.rescale(units)
@@ -142,16 +142,16 @@ class QuantityClass(object):
         """
 
         :param qtylist: The Quantity-like to obtain the units from
-        :return: A string with the proper units in latex format for easy plotting
+        :return: The proper UnitQuantity
         """
         ret = None
         if self.isActive() and qtylist is not None:
             if type(qtylist) is pq.Quantity or type(qtylist) is pq.UnitQuantity:
-                return qtylist.dimensionality.latex
+                return qtylist.units
             elif type(qtylist) is list:
-                if len(qtylist):
-                    if len(qtylist[0]):
-                        return qtylist[0][0].dimensionality.latex
+                if len(qtylist) > 0:
+                    ret = self.getQuantityUnits(qtylist[0])
+
         return ret
 
     def toQuantity(self, value):
@@ -250,5 +250,5 @@ class QuantityClass(object):
             return pq.Quantity(ret, units)
         elif ret.ndim == 0:
             return ret.tolist()
-        else:
-            return ret
+
+        return ret

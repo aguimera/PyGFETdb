@@ -151,7 +151,6 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
     :param kwargs:
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
-    Results = {}
     thread = Thread.MultiProcess(DbAn)
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
@@ -184,13 +183,13 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                 key = karg + ' ' + Wfn
                 res[key] = thread.getResults(key)
 
-    Results = processGetParams(GrWfs, res, arguments)
+    Results = processGetParams_MP(GrWfs, res, arguments)
     # """
 
     return Results
 
 
-def processGetParams(GrWfs, Results, args):
+def processGetParams_MP(GrWfs, Results, args):
     """
 
     :param GrWfs:

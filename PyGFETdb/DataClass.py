@@ -351,7 +351,7 @@ class DataCharDC(object):
         if Param not in self.__dict__:
             print ('Not Data')
             return None
-        Par: np.ndarray = self.__getattribute__(Param)
+        Par = self.__getattribute__(Param)
 
 
         PAR = np.array([])

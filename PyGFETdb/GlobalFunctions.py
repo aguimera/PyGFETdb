@@ -46,7 +46,7 @@ def updateDictOfDicts(dict, key1, key2, value):
     if k is None:
         dict[key1] = {key2: value}
     else:
-        k[key2] = value
+        dict[key1][key2] = value
 
 
 def DBSearchPerWaferAndType(GrBase, args):
