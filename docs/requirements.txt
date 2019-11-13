@@ -1,5 +1,3 @@
-PyGFETdbV2
-PyGFETdbV2.GuiDBView
 PyGFETdb
 PyGFETdb.GuiDBView
 pymysql
