@@ -134,8 +134,10 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     :param: Last : bolean, optional. If True (default value) just the last measured
     data for each transistor is returned. If False, all measured data is
     returned
+
     :param: Last : bolean, optional. If True (default value) the gate measured data
     is also obtained
+
     :param: OutilerFilter : dictionary, optional. (default 'None'),
     If defined, dictionary to perform a statistical pre-evaluation of the
     data. The data that are not between the p25 and p75 percentile are
