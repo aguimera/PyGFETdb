@@ -179,7 +179,7 @@ def callThread(klass, function, arguments, **kwargs):
         Auxiliary function for calling a function with a single Thread
         The use of Multiprocessing class is preferred, as its faster
 
-    :param klass: Calls where the function to call is
+    :param klass: Class where the function to call is
     :param function: Name of the function to call
     :param arguments: Arguments of the function to call
     :param kwargs: Keyword arguments passed to the function to call
@@ -203,7 +203,7 @@ def call(klass, function, arguments, **kwargs):
         Auxiliary function for calling a function with a Multiprocessing
 
 
-    :param klass: Calls where the function to call is
+    :param klass: Class where the function to call is
     :param function: Name of the function to call
     :param arguments: Arguments of the function to call
     :param kwargs: Keyword arguments passed to the function to call
