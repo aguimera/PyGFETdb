@@ -4,16 +4,15 @@ Created on Fri Jan 12 13:12:37 2018
 
 @author: aguimera
 """
-
 import logging
+import sys
 
 import numpy as np
+import quantities as pq
 
 import PyGFETdb.DBCore as PyFETdb
 from PyGFETdb import qty
 from PyGFETdb.DataClass import DataCharAC
-
-# import PyGFETdb.GlobalFunctions as global
 
 # Log file
 log = 'pyGFETdb.log'
@@ -243,7 +242,7 @@ def RemoveOutilers(Data, OutilerFilter):
     return DataFilt
 
 
-def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None,
+def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
                   ParArgs={'Vgs': None,
                            'Vds': None,
                            'Ud0Norm': False,
@@ -263,8 +262,14 @@ def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None,
             # begin fix
             if Val is None:
                 continue
-            if not type(Val) is tuple:
+            if type(Val) is not tuple:
                 Val = (Val)
+            # Added Quantity Support for the Range
+            if qty.isActive() and Units is not None:
+                try:
+                    Range = pq.Quantity(Range, Units)
+                except TypeError as e:
+                    print("Range Units Error: ", sys.exc_info())
             # end fix
             if InSide:
                 if Range[0] is None:
