@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
 from PyGFETdb import PlotFunctions as plot
-from PyGFETdb import qty, multithrds, Multiprocessing as mp
+from PyGFETdb import multithrds, Multiprocessing as mp
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -118,14 +118,16 @@ def main():
 
     DataSelectionConfig = [
         {'Param': 'Ud0',  # Parameter to evaluate
-         'Range': (0.2, 0.5),  # Range of allowed values, (Min, Max)
-         'Name': 'UD0y'},
+         'Range': (200, 500),  # Range of allowed values, (Min, Max)
+         'Name': 'UD0y',
+         'Units': 'mV'},
 
         {'Param': 'GMV',  # Parameter to evaluate
-         'Range': (1e-4, 1e-2),  # Range of allowed values, (Min, Max)
+         'Range': (1e-1, 10),  # Range of allowed values, (Min, Max)
          'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
                      'Vds': None,
                      'Ud0Norm': True,
+                     'Units': "mS/V",
                      },
          'Name': 'GMVy'},
 
@@ -136,9 +138,10 @@ def main():
              'Ud0Norm': True,
              'NFmin': 10,
              'NFmax': 1000,
+             'Units': "uV",
          },
-         'Range': (5e-6, 0.6e-4),  # Range of allowed values, (Min, Max)
-
+         'Range': (5, 60),  # Range of allowed values, (Min, Max)
+         'Units': pq.microvolt / pq.S
          }
     ]
 
