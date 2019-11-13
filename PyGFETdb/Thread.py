@@ -1,8 +1,13 @@
-# import threading as th
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+
+@author: dragc
+
+"""
 import random
 from multiprocessing import pool, Lock
 
-# import numpy as np
 from PyGFETdb import multithrds
 
 
