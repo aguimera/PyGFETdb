@@ -112,18 +112,18 @@ def FindCommonValues(Parameter, Conditions, Table='ACcharacts', **kwargs):
 def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
               OutilerFilter=None, DataSelectionConfig=None):
     """
-        Get data from data base
+    Get data from data base
 
-        This function returns data which meets with "Conditions" dictionary for sql
-        select query constructor.
+    This function returns data which meets with "Conditions" dictionary for sql
+    select query constructor.
 
     :param: Conditions : dictionary, conditions to construct the sql select query.
-                The dictionary should follow this structure:\n
-                {'Table.Field <sql operator>' : iterable type of values}
-                Example:
+    The dictionary should follow this structure:\n
+    {'Table.Field <sql operator>' : iterable type of values}
+    Example:
 
-                {'Wafers.Name = ':(B10803W17, B10803W11),
-                'CharTable.IsOK > ':(0,)}
+    {'Wafers.Name = ':(B10803W17, B10803W11),
+    'CharTable.IsOK > ':(0,)}
 
     :param: Table : string, optional. Posible values 'ACcharacts' or 'DCcharacts'.
     The default value is 'ACcharacts'. Characterization table to get data
@@ -149,7 +149,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
 
     :return: Data: Dictionary with the data arranged as follows:
-                        {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
+    {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
 
     :return: Trts: List of transistors
 
