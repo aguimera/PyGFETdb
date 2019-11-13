@@ -638,7 +638,6 @@ class PyFETdb(_PyFETdb):
         :param LastRowID:
         :return:
         """
-        # if not multithrds:
         Thread.lock.acquire()
         ret = _PyFETdb._execute(self, query, values, LastRowID)
         Thread.lock.release()

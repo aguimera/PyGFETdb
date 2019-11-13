@@ -3,6 +3,7 @@ from multiprocessing import pool, Lock
 
 # import numpy as np
 from PyGFETdb import multithrds
+import random
 
 
 class Thread(pool.ThreadPool):
@@ -69,10 +70,7 @@ class Thread(pool.ThreadPool):
         return ret
 
     def __del__(self):
-        self.pool.close()
-        self.pool.join()
-        self.rets = {}
-
+        pass
 
     def getResults(self):
         """
@@ -116,6 +114,7 @@ lock = Lock()
 class MultiProcess():
     def __init__(self, klass):
         self.pool = {}
+        self.lock = None
 
     def initcall(self, key, klass):
         """
@@ -123,10 +122,12 @@ class MultiProcess():
 
         :param key: A unique-key to each calculation
         :param klass: Calls where the function to call is
-        :return:
+        :return: None
         """
-
         self.pool[key] = Thread(klass)
+        if self.lock is None:
+            self.lock = self.pool[key].lock
+        return key
 
     def call(self, key, klass, function, arguments, **kwargs):
         """
@@ -167,11 +168,14 @@ class MultiProcess():
             res = pool.getResults()
             for item in res:
                 ret.update({key: item})
-            del self.pool[key]
         return ret
 
 
-def call(klass, function, arguments, **kwargs):
+def key():
+    return random.randint(0, 10000000)
+
+
+def callThread(klass, function, arguments, **kwargs):
     """
         Auxiliary function for calling a function with a single Thread
         The use of Multiprocessing class is preferred, as its faster
@@ -193,3 +197,20 @@ def call(klass, function, arguments, **kwargs):
         func = klass.__getattribute__(function)
         res = func(**kwargs)
     return res
+
+
+def call(klass, function, arguments, **kwargs):
+    """
+        Auxiliary function for calling a function with a single Thread
+        The use of Multiprocessing class is preferred, as its faster
+
+    :param klass: Calls where the function to call is
+    :param function: Name of the function to call
+    :param arguments: Arguments of the function to call
+    :param kwargs: Keyword arguments passed to the function to call
+    :return: None if multi-processing support is activated, or the result of the call otherwise
+    """
+    pool = MultiProcess(klass)
+    k = pool.initcall(key(), klass)
+    pool.call(k, klass, function, arguments, **kwargs)
+    return k, pool

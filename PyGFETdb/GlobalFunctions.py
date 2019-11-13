@@ -31,27 +31,6 @@ def updateDictOfLists(dict, key, value):
     else:
         k.append(value)
 
-    # def updateDictOfDicts(dict, key1, key2, value):
-    """
-    Modifies a dictionary of dictionaries, updating the value at the dictionary obtained
-    of applying the key to the dictionary
-    :param dict: A dictionary to update
-    :param key1: The key to search in the dictionary
-    :param key2: The key to update in the result of searching the first key
-    :param value: The value to update
-    :return: None
-    """
-
-
-""""" 
-    k = dict.get(key1)
-    if k is None:
-        dict[key1] = {key2: value}
-    else:
-        dict[key1].update({key2:value})
-
-"""
-
 
 def DBSearchPerWaferAndType(GrBase, args):
     """
@@ -108,3 +87,4 @@ def DataClassification(GrWs, arguments, ResultsParams):
                     updateDictOfLists(Results[Grwn], TGrn, TGrc)
         clssfResults[narg].update(Results)
     return clssfResults
+
