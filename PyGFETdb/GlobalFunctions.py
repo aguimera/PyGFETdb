@@ -81,7 +81,7 @@ def DBSearchPerType(GrBase, args):
     return GrTypes, ResultsParams
 
 
-def DataClassification(GrWs, ResultsParams):
+def DataClassification(GrWs, arguments, ResultsParams):
     """
 
     :param GrWs:
@@ -90,10 +90,13 @@ def DataClassification(GrWs, ResultsParams):
     """
     clssfResults = {}
     Results = {}
-    for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
-        for iarg, (narg, arg) in enumerate(sorted(ResultsParams.get(Grwn).items())):  # Params
-            for iType, (TGrn, TGrc) in enumerate(arg.items()):
+    for iarg, (narg, carg) in enumerate(arguments.items()):
+        clssfResults[narg] = {}
+        for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+            k1 = ResultsParams.get(Grwn)
+            k2 = k1.get(narg)
+            for iType, (TGrn, TGrc) in enumerate(k2.items()):
                 if TGrc is not None:
                     updateDictOfDicts(Results, Grwn, TGrn, TGrc)
-            clssfResults[narg] = Results
+        clssfResults[narg] = Results
     return clssfResults

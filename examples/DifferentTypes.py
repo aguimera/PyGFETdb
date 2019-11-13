@@ -29,7 +29,6 @@ else:
 # PLOTS PER WAFER AND TYPE
 ############################
 
-
 def PlotsParams(GrBase, arguments, **kwargs):
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
     ResultsDB = search(GrTypes)
@@ -49,9 +48,13 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     # DATABASE SEARCH ####################################################################################
     GrWs, ResultsParams = g.DBSearchPerWaferAndType(GrBase, arguments)
     # DATA CLASSIFICATION ################################################################################
-    Results = g.DataClassification(GrWs, ResultsParams)
+    Results = g.DataClassification(GrWs, arguments, ResultsParams)
     handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
                     for i in range(0, len(list(GrWs.keys())))))
+
+    plot.PlotResults(Results, arguments, Colors=Colors, handles=handles, xlabel=xlabel,
+                     legendTitle=legendTitle, **kwargs)
+
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
@@ -66,14 +69,17 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 ############################
 # PLOTS PER TYPES
 ###########################
-def PlotsPerTypes(GrBase, arguments, Colors=None, **kwargs):
+def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
     GrTypes, ResultsParams = g.DBSearchPerType(GrBase, arguments)
     # DATA CLASSIFICATION ################################################################################
-    Results = g.DataClassification(GrTypes, ResultsParams)
+    Results = g.DataClassification(GrTypes, arguments, ResultsParams)
     # PLOTTING ######
     handles = list((Patch(color=Colors[i], label=sorted(list(GrTypes.keys()))[i])
                     for i in range(0, len(list(GrTypes.keys())))))
+
+    plot.PlotResults(Results, arguments, Colors=Colors, handles=handles, xlabel=xlabel,
+                     legendTitle=legendTitle, **kwargs)
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,7 +245,7 @@ def main():
     }
 
     # PLOTS ####################################################################
-    PlotsParams(GrBase3, **kwargs2)
+    # PlotsParams(GrBase3, **kwargs2)
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     PlotsPerWaferAndTypes(GrBase3, **kwargs1)
