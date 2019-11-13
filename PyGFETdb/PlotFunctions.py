@@ -110,6 +110,8 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     :return: None
     """
     units = kwargs.get('Units')
+    qtyunits = None
+
     if type(units) is pq.UnitQuantity:
         units = qty.getQuantityUnits(units)
         units = units.dimensionality.latex
@@ -224,7 +226,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                 if ParamData is not None:
                     if qty.isActive():
                         qtys.append(ParamData)
-                        ParamData = qty.flatten(ParamData)
+                    ParamData = qty.flatten(ParamData)
                     ParamData = np.array(ParamData)
                     _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
                     pos += 1

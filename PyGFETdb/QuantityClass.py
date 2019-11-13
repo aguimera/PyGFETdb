@@ -236,7 +236,10 @@ class QuantityClass(object):
         """
         units = self.getQuantityUnits(quantity)
         ret = self.flatten(quantity)
-        return pq.Quantity(ret, units)
+        if units is None or units == pq.dimensionless:
+            return ret
+        else:
+            return pq.Quantity(ret, units)
 
     def Divide(self, Dividend, Divisor):
         """
