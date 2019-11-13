@@ -1,7 +1,6 @@
 PyGFETdb
 pymysql
 sphinx-autoapi
-sphinx-napoleon
 statsmodels
 quantities
 deepdish
