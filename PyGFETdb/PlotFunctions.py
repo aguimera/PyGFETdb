@@ -3,6 +3,7 @@
 @author: dragc 25/10/19 22:48.
 
 Plot Functions that do not fit in the previous files.
+
 """
 import matplotlib.pyplot as plt
 import numpy as np
