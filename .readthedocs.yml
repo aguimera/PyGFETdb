@@ -9,7 +9,7 @@ version: 2
 sphinx:
   configuration: docs/conf.py
   builder: html
-  fail_on_warning: true
+  fail_on_warning: false
 
 # Build documentation with MkDocs
 #mkdocs:
@@ -23,6 +23,7 @@ python:
   version: 3.7
   install:
     - requirements: "docs/requirements.txt"
+    - requirements: "../../"
 
 build:
   image: stable
