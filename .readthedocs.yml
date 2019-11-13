@@ -22,8 +22,7 @@ formats: html
 python:
   version: 3.7
   install:
-    - requirements: docs/requirements.txt
-    - requirements: setup.py
+    - requirements: [docs/requirements.txt, setup.py]
 
 build:
   image: pygfetdbv2
