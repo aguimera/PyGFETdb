@@ -12,5 +12,6 @@ PySide2
 numpy
 matplotlib
 scipy
+setup.py
 
 
