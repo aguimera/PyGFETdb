@@ -1,3 +1,4 @@
+pymysql
 sphinx-autoapi
 statsmodels
 quantities
@@ -5,4 +6,8 @@ deepdish
 qtpy
 xlsxwriter
 PySide2
+numpy
+matplotlib
+scipy
+
 
