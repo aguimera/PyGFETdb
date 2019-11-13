@@ -257,6 +257,7 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
             if vals is not None:
                 xPos.append(pos)
                 xLab.append(typename)
+                vals = qty.flatten(vals)
                 _BoxplotValsGroup(ax, Col, pos, np.array(vals).transpose())
                 pos += 1
     _closeBoxplotValsGroup(ax, xPos, xLab, xlabel, "[uVrms]", "Noise (10Hz-1kHz) " + perType, **kwargs)
@@ -290,12 +291,12 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=Non
         Col = Colors[iWf]
         temp = []
         for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-            temp.append((np.array(Grc)).shape[1])
+            temp.append((np.array(Grc)).size)
         totalWf = np.sum(temp)
 
         work = []
         for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-            work.append((np.array(Grc).shape[1] / totalWf) * 100)
+            work.append((np.array(Grc).size / totalWf) * 100)
             xLab.append(Grn)
             xPos.append(pos)
             _BoxplotValsGroup(ax2, Col, pos, work)
@@ -326,7 +327,7 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
     temp = []
     for nt, (typename, vtype) in enumerate(Results.items()):
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
-            temp.append((np.array(cWf)).shape[1])
+            temp.append((np.array(cWf)).size)
     total = np.sum(temp)
 
     work = []
@@ -335,6 +336,6 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
             xLab.append(typename)
             xPos.append(nt)
-            work.append(((np.array(cWf)).shape[1] / total) * 100)
+            work.append(((np.array(cWf)).size / total) * 100)
         _BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Type]", title, **kwargs)

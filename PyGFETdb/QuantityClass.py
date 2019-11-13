@@ -219,7 +219,7 @@ class QuantityClass(object):
                 else:
                     if type(item) is list:
                         # if len(item)>0 and type(item[0]) is list:
-                        tvals.append(self.flatten(item))
+                        tvals = self.flatten(item)
                         # else:
                         #   tvals.append(item)
                     else:
@@ -227,6 +227,16 @@ class QuantityClass(object):
         else:
             tvals = quantity
         return tvals
+
+    def flattenQuantity(self, quantity):
+        """
+        Flattens a Quantity with the units
+        :param quantity: Quantity to flatten
+        :return: the Quantity flattened
+        """
+        units = self.getQuantityUnits(quantity)
+        ret = self.flatten(quantity)
+        return pq.Quantity(ret, units)
 
     def Divide(self, Dividend, Divisor):
         """

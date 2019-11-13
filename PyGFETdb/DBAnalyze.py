@@ -216,7 +216,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     if not qty.isActive():  # Quantities support
         return Vals
     else:
-        return [Vals]
+        return [qty.flattenQuantity(Vals)]
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):

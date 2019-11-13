@@ -31,8 +31,7 @@ def updateDictOfLists(dict, key, value):
     else:
         k.append(value)
 
-
-def updateDictOfDicts(dict, key1, key2, value):
+    # def updateDictOfDicts(dict, key1, key2, value):
     """
     Modifies a dictionary of dictionaries, updating the value at the dictionary obtained
     of applying the key to the dictionary
@@ -42,11 +41,16 @@ def updateDictOfDicts(dict, key1, key2, value):
     :param value: The value to update
     :return: None
     """
+
+
+""""" 
     k = dict.get(key1)
     if k is None:
         dict[key1] = {key2: value}
     else:
-        dict[key1][key2] = value
+        dict[key1].update({key2:value})
+
+"""
 
 
 def DBSearchPerWaferAndType(GrBase, args):
@@ -93,10 +97,14 @@ def DataClassification(GrWs, arguments, ResultsParams):
     for iarg, (narg, carg) in enumerate(arguments.items()):
         clssfResults[narg] = {}
         for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+            Results[Grwn] = {}
             k1 = ResultsParams.get(Grwn)
             k2 = k1.get(narg)
             for iType, (TGrn, TGrc) in enumerate(k2.items()):
                 if TGrc is not None:
-                    updateDictOfDicts(Results, Grwn, TGrn, TGrc)
-        clssfResults[narg] = Results
+                    k3 = Results[Grwn].get(TGrn)
+                    if k3 is None:
+                        Results[Grwn][TGrn] = []
+                    updateDictOfLists(Results[Grwn], TGrn, TGrc)
+        clssfResults[narg].update(Results)
     return clssfResults
