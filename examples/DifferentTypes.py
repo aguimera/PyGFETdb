@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
 from PyGFETdb import PlotFunctions as plot
-from PyGFETdb import multithrds, Multiprocessing as mp
+from PyGFETdb import qty, multithrds, Multiprocessing as mp
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -22,8 +22,6 @@ if multithrds:
 else:
     search = mp.SearchDB
     getparams = mp.GetParams
-
-
 
 #############################
 # PLOTS PER WAFER AND TYPE
@@ -211,7 +209,7 @@ def main():
         },
         'arg3': {
             'Param': 'Ud0',
-            'Units': 'uV',
+            'Units': pq.microvolt,
             'title': 'Ud0',
         },
         'arg4': {
@@ -219,14 +217,14 @@ def main():
             'Vgs=': -0.1,
             'Ud0Norm': True,
             'yscale': 'log',
-            'Units': 'uA',
+            'Units': pq.microampere,
             'title': 'Ids',
         },
         'arg5': {
             'Param': 'Vrms',
             'Vgs': -0.1,
             'Ud0Norm': True,
-            'Units': 'uV',
+            'Units': pq.microvolt,
             'title': 'Vrms',
         },
     }
@@ -258,6 +256,8 @@ def main():
 
 # """"""""""""""""""""""""""""""""""""""""""""""
 #
+
+# qty.setActive(False)
 main()
 plt.show()
 #os.system("read")
