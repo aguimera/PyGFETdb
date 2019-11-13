@@ -16,6 +16,7 @@ import sys
 sys.path.append(os.path.abspath('..'))
 sys.path.append(os.path.abspath('../../'))
 sys.path.append(os.path.abspath('../PyGFETdb'))
+sys.path.append(os.path.abspath('../../PyGFETdb'))
 sys.path.append(os.path.abspath('../examples'))
 
 # -- Project information -----------------------------------------------------
