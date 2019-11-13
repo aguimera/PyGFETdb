@@ -624,7 +624,7 @@ class PyFETdb(_PyFETdb):
         :param db:
         :param Update:
         """
-        _PyFETdb.__init__(_PyFETdb, host, user, passwd, db, Update)
+        super().__init__(host, user, passwd, db, Update)
         if type(Thread) is None: pass
         if multithrds is None: pass
 
@@ -639,6 +639,6 @@ class PyFETdb(_PyFETdb):
         :return:
         """
         Thread.lock.acquire()
-        ret = _PyFETdb._execute(self, query, values, LastRowID)
+        ret = super()._execute(query, values, LastRowID)
         Thread.lock.release()
         return ret
