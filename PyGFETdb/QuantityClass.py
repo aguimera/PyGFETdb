@@ -204,7 +204,7 @@ class QuantityClass(object):
         :return: A flatted list of values with the magnitudes of quantity
         """
         tvals = []
-        if self.isActive() and type(quantity) is list and len(quantity) > 0:
+        if type(quantity) is list and len(quantity) > 0:
             if type(quantity[0]) is list:
                 Dat = list(chain.from_iterable(quantity))
             else:

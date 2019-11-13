@@ -109,12 +109,15 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     :param kwargs: Aesthetics arguments for the plot
     :return: None
     """
-    units = kwargs.get('Units')
+    units = None
     qtyunits = None
+    if qty.isActive():
+        units = kwargs.get('Units')
 
-    if type(units) is pq.UnitQuantity:
+    if type(units) is pq.UnitQuantity or type(units) is pq.Quantity:
         units = qty.getQuantityUnits(units)
-        units = units.dimensionality.latex
+        if units is not None:
+            units = units.dimensionality.latex
 
     plt.xticks(xPos, xLab, rotation=45, fontsize='small')
 
@@ -124,7 +127,8 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 
     if qty.isActive() and qtys is not None:
         qtyunits = qty.getQuantityUnits(qtys)
-        qtyunits = qtyunits.dimensionality.latex
+        if qtyunits is not None:
+            qtyunits = qtyunits.dimensionality.latex
     if qtyunits is not None:
         Ax.set_ylabel(param + '[' + qtyunits + ']')
     elif units is not None:
