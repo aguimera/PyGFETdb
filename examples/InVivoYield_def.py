@@ -88,14 +88,14 @@ arguments = {
         'yscale': 'log',
         'NFmin': 10,
         'NFmax': 1000,
-        'Units': 'uV'
+        'Units': pq.microvolt
     },
     'arg1': {
         'Param': 'Rds',
         'Vgs': 0,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uV/A'
+        'Units': pq.ohm
     },
     'arg2': {
         'Param': 'GMV',
@@ -106,14 +106,14 @@ arguments = {
     },
     'arg3': {
         'Param': 'Ud0',
-        'Units': 'uV'
+        'Units': pq.microvolt
     },
     'arg4': {
         'Param': 'Ids',
         'Vgs=': -0.1,
         'Ud0Norm': True,
         'yscale': 'log',
-        'Units': 'uA'
+        'Units': pq.microampere
     }
 }
 

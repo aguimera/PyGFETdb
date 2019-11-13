@@ -270,9 +270,12 @@ def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwarg
         plt.xticks(xPos, xLab, rotation=45)
         if qty.isActive():
             qtyunits = qty.getQuantityUnits(qtys)
+            qtyunits = qtyunits.dimensionality.latex
+
             if qtyunits:
                 Ax.set_ylabel(kwargs['Param'] + '[' + qtyunits + ']')
             elif units is not None:
+                units = units.dimesionality.latex
                 Ax.set_ylabel(kwargs['Param'] + '[' + units + ']')
         elif ParamUnits is not None:
             Ax.set_ylabel(kwargs['Param'] + '[' + ParamUnits + ']')
