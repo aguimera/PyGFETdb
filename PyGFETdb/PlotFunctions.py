@@ -311,7 +311,7 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=Non
     Legend(ax2, legendTitle, handles)
 
 
-def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
+def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType=None,
                           **kwargs):
     """
 
@@ -344,4 +344,4 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None,
             xPos.append(nt)
             work.append(((np.array(cWf)).size / total) * 100)
         _BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
-    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% x Type]", title, **kwargs)
+    _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% {}]".format(perType), title, **kwargs)

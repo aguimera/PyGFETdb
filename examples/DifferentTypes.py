@@ -55,13 +55,13 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
+    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer",
-                          perType=" x Wafer", handles=handles, **kwargs)
+                          legendTitle=legendTitle, perType=" x Wafer", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer",
-                               perType="x Wafer", handles=handles, **kwargs)
+                               legendTitle=legendTitle, perType="Overall", handles=handles, **kwargs)
 
 
 ############################
@@ -81,13 +81,13 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, Colors=Colors, handles=handles, perType="x Type", **kwargs)
+    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, Colors=Colors, handles=handles, perType="x Type", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Type",
+    plot.PlotPerTypeYield(data, legendTitle=legendTitle, Colors=Colors, title="Working SGFETs x Type",
                           perType="x Type", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Type",
-                               perType="x Type", handles=handles, **kwargs)
+    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, title="Working SGFETs x Type",
+                               perType="Overall", handles=handles, **kwargs)
 
 
 def main():
