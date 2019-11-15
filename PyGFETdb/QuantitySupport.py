@@ -13,7 +13,7 @@ import numpy as np
 import quantities as pq
 
 
-class QuantityClass(object):
+class QuantitySupport(object):
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
                     'PSD': pq.A ** 2 / pq.Hz,

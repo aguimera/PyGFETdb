@@ -4,4 +4,7 @@ PyGFETdb
 .. toctree::
    :maxdepth: 4
 
-   PyGFETdb
+   .. automodule:: PyGFETdb
+   :members:
+   :undoc-members:
+   :show-inheritance:
