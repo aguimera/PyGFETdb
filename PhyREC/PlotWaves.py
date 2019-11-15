@@ -348,7 +348,8 @@ class WaveSlot():
             _Units = self.units
         else:
             _Units = Units
-        sig = self.Signal.GetSignal(Time, _Units)
+        sig = self.Signal.time_slice(Time[0], Time[1])
+        sig = sig.rescale(_Units)
         self.units = sig.units
         return sig
 
@@ -432,7 +433,7 @@ class ControlFigure():
         TMax = np.max([sl.Signal.t_stop.rescale('s') for sl in pltSL.Slots])
         TMin = np.min([sl.Signal.t_start.rescale('s') for sl in pltSL.Slots])
 
-        self.Fig, ax = plt.subplots(4, 1, figsize=figsize)
+        self.Fig, ax = plt.subplots(6, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
                               label='TStart [s]',
                               valmax=TMax,
@@ -461,6 +462,35 @@ class ControlFigure():
         self.Refresh = True
         self.OldStart = 0
         self.OldStop = 0
+        
+        self.bStart = Button(ax[4],
+                             label='Start')        
+        self.bStart.on_clicked(self.StartAnimation)
+        self.Timer = None
+        self.TextInterval = TextBox(ax[5],
+                                 'Interval [ms]',
+                                 initial='2000')
+
+
+    def StartAnimation(self, val):         
+        if self.Timer is not None:
+            self.bStart.label = 'Start'
+            self.Timer.stop()
+            self.Timer = None
+            return
+            
+        try:
+            interval = float(self.TextInterval.text)
+        except:
+            return
+
+        self.Timer = self.Fig.canvas.new_timer(interval=interval)
+        self.Timer.add_callback(self.UpdateAnimation)
+        self.Timer.start()
+        self.bStart.label = 'Stop'
+
+    def UpdateAnimation(self):        
+        self.sTstart.set_val(self.sTstart.val + self.sTshow.val/2)        
 
     def Update(self, val):
         twind = (self.sTstart.val * pq.s,
@@ -585,7 +615,7 @@ class PlotSlots():
 
 
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
-                 AxKwargs=None, TimeAxis=-1, CalcSignal=True,
+                 AxKwargs=None, TimeAxis=-1,
                  ScaleBarAx=None, LiveControl=False):
 
         if RcGeneralParams is not None:
@@ -596,10 +626,6 @@ class PlotSlots():
             self.FigKwargs.update(FigKwargs)
 
         self.Slots = Slots
-        if CalcSignal:
-            for sl in self.Slots:
-                sig = sl.Signal
-                sl.Signal = sig.GetSignal(None)
 
         self.ScaleBarAx = ScaleBarAx
 
