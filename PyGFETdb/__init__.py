@@ -4,7 +4,7 @@ Created on Tue Nov 15 17:27:23 2016
 
 @author: aguimera
 """
-from PyGFETdb import QuantityClass as quantities
+from PyGFETdb import QuantitySupport as quantities
 
 qty = quantities.QuantityClass()  # Activates Quantities support globally
 
