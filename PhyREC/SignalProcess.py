@@ -16,10 +16,11 @@ import matplotlib.mlab as mlab
 import elephant
 import scipy.stats as stats
 from scipy import interpolate
+import sys
 
 
 def Derivative(sig):
-    derivative_sig = NeoSignal(            
+    derivative_sig = NeoSignal(
             np.diff(sig.as_quantity(), axis=0) / sig.sampling_period,
             t_start=sig.t_start+sig.sampling_period/2,
             sampling_period=sig.sampling_period,
@@ -27,8 +28,9 @@ def Derivative(sig):
 
     return derivative_sig
 
+
 def DownSampling(sig, Fact, zero_phase=True):
-    print (sig.sampling_rate, sig.sampling_rate/Fact)
+    print(sig.sampling_rate, sig.sampling_rate/Fact)
     rs = signal.decimate(np.array(sig),
                          q=Fact,
                          zero_phase=zero_phase,
@@ -48,7 +50,7 @@ def RemoveDC(sig, Type='constant'):
 def SetZero(sig, TWind):
     st = np.array(sig)
     offset = np.mean(sig.GetSignal(TWind))
-    print (sig.name, offset)
+    print(sig.name, offset)
     st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
 
@@ -348,24 +350,58 @@ def xcorr(x, y, normed=True, detrend=mlab.detrend_none,
         return lags, correls   
     
 
-def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='Hole'):
+def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole'):
     Vgs = Tchar.GetVgs()
     vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
-    if Regim == 'Hole':
+    
+    if Regim == 'hole':
         Inds = np.where(vgs < Tchar.GetUd0())[1]
     else:
         Inds = np.where(vgs > Tchar.GetUd0())[1]
-    Ids = Tchar.GetIds(Vgs=vgs[Inds])
-    fgm = interpolate.interp1d(Ids[:, 0], vgs[Inds])
-    IdsExp = Tchar.GetIds(Vgs=VgsExp)
+    
+    Ids = Tchar.GetIds(Vgs=vgs[Inds]) * pq.A
+
+    IdsExp = Tchar.GetIds(Vgs=VgsExp) * pq.A
     IdsOff = np.mean(Sig)-IdsExp
-    st = fgm(np.clip(Sig - IdsOff, np.min(Ids), np.max(Ids)))
-    print(str(Sig.name), '-> ', 'IdsOff', IdsOff, 'Vgs', np.mean(st))
-    return NeoSignal(st*pq.V,
-                     units='V',
-                     t_start=Sig.t_start,
-                     sampling_rate=Sig.sampling_rate,
-                     name=str(Sig.name),
-                     file_origin=Sig.file_origin)    
+
+    Calibrated = np.array((True,))
+    try:
+        fgm = interpolate.interp1d(Ids[:, 0], vgs[Inds])
+        st = fgm(np.clip(Sig - IdsOff, np.min(Ids), np.max(Ids)))
+    except:
+        print(Sig.name, "Calibration error:", sys.exc_info()[0])
+        st = np.zeros(Sig.shape)
+        Calibrated = np.array((False,))
+        
+        
+    print(str(Sig.name), '-> ', 'IdsOff', IdsOff, 'Vgs', np.mean(st), Tchar.IsOK)
+    annotations = {'Calibrated': Calibrated,
+                   'Working':Calibrated,
+                   'IdsOff': IdsOff.flatten(),
+                   'VgsCal': np.array((np.mean(st), )),
+                   'IsOK': np.array((Tchar.IsOK, )),
+                   'Iname': np.array((Sig.name, )),                   
+                   }
+    
+    CalSig = NeoSignal(st*pq.V,
+                       units='V',
+                       t_start=Sig.t_start,
+                       sampling_rate=Sig.sampling_rate,
+                       name=str(Sig.name),
+                       file_origin=Sig.file_origin)
+
+#    CalSig.annotate(**annotations)    
+    CalSig.array_annotate(**annotations)
+        
+    return CalSig
+
+
+def ApplyProcessChain(sig, ProcessChain):
+    sl = sig.copy()  
+    for Proc in ProcessChain:
+        sl = Proc['function'](sl, **Proc['args'])
+    
+    return sl
+
 
 
