@@ -107,10 +107,10 @@ PyGFETdb.PlotFunctions module
    :undoc-members:
    :show-inheritance:
 
-PyGFETdb.QuantityClass module
------------------------------
+PyGFETdb.QuantitySupport module
+-------------------------------
 
-.. automodule:: PyGFETdb.QuantityClass
+.. automodule:: PyGFETdb.QuantitySupport
    :members:
    :undoc-members:
    :show-inheritance:
