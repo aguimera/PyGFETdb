@@ -12,6 +12,7 @@ from matplotlib.patches import Patch
 
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
+import PyGFETdb.SearchFunctions as s
 from PyGFETdb import PlotFunctions as plot
 from PyGFETdb import multithrds, Multiprocessing as mp
 
@@ -44,7 +45,7 @@ def PlotsParams(GrBase, arguments, **kwargs):
 ###########################
 def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrWs, ResultsParams = g.DBSearchPerWaferAndType(GrBase, arguments)
+    GrWs, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments)
     # DATA CLASSIFICATION ################################################################################
     Results = g.DataClassification(GrWs, arguments, ResultsParams)
     handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
@@ -69,7 +70,7 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 ###########################
 def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrTypes, ResultsParams = g.DBSearchPerType(GrBase, arguments)
+    GrTypes, ResultsParams = s.DBSearchPerType(GrBase, arguments)
     # DATA CLASSIFICATION ################################################################################
     Results = g.DataClassification(GrTypes, arguments, ResultsParams)
     # PLOTTING ######

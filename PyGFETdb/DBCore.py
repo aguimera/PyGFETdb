@@ -642,3 +642,30 @@ class PyFETdb(_PyFETdb):
         ret = super()._execute(query, values, LastRowID)
         Thread.lock.release()
         return ret
+
+    def _processPSD(self, dbPsd):
+        ret = dbPsd
+        # print('Processing PSD:', dbPsd)
+        # for nparam,vparam in dbPsd.items():
+        #    #res = np.where(vparam>10e-22,0,vparam)
+        #    res = vparam  # TODO: Process PSD stored in DB
+        #    dbPsd[nparam] = res
+        return ret
+
+    def _processFPSD(self, dbFPsd):
+        ret = None
+        # print('Processing FPSD[49]:', dbFPsd[49]) # TODO: Process Fpsd stored in DB
+        ret = dbFPsd
+        return ret
+
+    def _DecodeData(self, DataF):
+        res = super()._DecodeData(DataF)
+        k = res.get('PSD')
+        if k is not None:
+            resPSD = self._processPSD(k)
+            res.update({'PSD': resPSD})
+        k = res.get('Fpsd')
+        if k is not None:
+            resFPSD = self._processFPSD(k)
+            res.update({'Fpsd': resFPSD})
+        return res

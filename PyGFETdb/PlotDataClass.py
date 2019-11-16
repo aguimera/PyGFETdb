@@ -19,9 +19,7 @@ from scipy.interpolate import interp1d
 
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
-
-
-# import PyGFETdb.GlobalFunctions as global
+from PyGFETdb.GlobalFunctions import remove
 
 
 class MyCycle():
@@ -95,7 +93,6 @@ class PyFETPlotBase:
         for ax in self.Axs.values():
             plt.delaxes(ax)
         self.Axs = {}
-
 
     def SetAxesXLabels(self, Xvar=None):
 #        print 'empty'
@@ -550,6 +547,10 @@ class PyFETPlot(PyFETPlotBase):
                 elif self.AxsProp[axn][1] == 'Ids':
                     if 'IdsPoly' in Data:
                         Valx = np.polyval(Data['IdsPoly'][:, ivd], Data['Vgs'])
+                elif axn == 'PSD':
+                    Valx: np.ndarray = Data[self.AxsProp[axn][1]]
+                    Valx = process(Valx)
+                    Valxp = Valx
                 else:
                     Valx = Data[self.AxsProp[axn][1]]
                     Valxp = Valx
@@ -595,6 +596,7 @@ class PyFETPlot(PyFETPlotBase):
                         Valy = qty.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
                     elif axn == 'PSD':
                         Valy = Data[axn][svds][ivg, :]
+                        Valy = process(Valy)
                         if 'NoA' in Data:
                             ax.loglog(Valx[1:], noise.Fnoise(Valx[1:],
                                       Data['NoA'][ivg, ivd],
@@ -643,3 +645,8 @@ class PyFETPlot(PyFETPlotBase):
                                 color=self.color,
                                 label=label)
 
+
+def process(Array):
+    for i in range(1, 2):
+        Array = remove(Array, 48)
+    return Array
