@@ -149,7 +149,7 @@ class DBViewApp(QtWidgets.QMainWindow):
             self.msg.exec_()
             # return    # we stop the initialization, and the GUI shows cleanly...
 
-        self.remove50Hz = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise from plots
+        self.remove50Hz = False  # TODO: Add a checkbox in the GUI to remove 50Hz Noise from plots
 
         if not self.remove50Hz:
             self.remove50HzDB = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise from DB
