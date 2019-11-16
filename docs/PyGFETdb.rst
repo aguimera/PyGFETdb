@@ -115,6 +115,14 @@ PyGFETdb.QuantitySupport module
    :undoc-members:
    :show-inheritance:
 
+PyGFETdb.SearchFunctions module
+-------------------------------
+
+.. automodule:: PyGFETdb.SearchFunctions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PyGFETdb.Thread module
 ----------------------
 
