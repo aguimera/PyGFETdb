@@ -76,6 +76,14 @@ def process50Hz(Array, process: bool):
     :return: the array without the frequency 50Hz
     """
     if process:
+        # remove 50Hz
         for i in range(1, 2):  # To widen the effect increase the 2
             Array = remove(Array, 48)
+        #  remove below 1Hz
+        for i in range(1, 15):  # To widen the effect increase the 15
+            Array = remove(Array, 0)
+        # remove the highest frequencies
+        for i in range(1, 11):  # To widen the effect increase the 11
+            Array = remove(Array, Array.size - 1)
+
     return Array
