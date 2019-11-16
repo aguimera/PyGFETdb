@@ -19,7 +19,7 @@ from scipy.interpolate import interp1d
 
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
-from PyGFETdb.GlobalFunctions import remove
+from PyGFETdb.GlobalFunctions import process50Hz as process
 
 
 class MyCycle():
@@ -646,8 +646,3 @@ class PyFETPlot(PyFETPlotBase):
                                 label=label)
 
 
-def process(Array, process=True):
-    if process:
-        for i in range(1, 2):
-            Array = remove(Array, 48)
-    return Array

@@ -58,3 +58,10 @@ def remove(Valx: np.array, index):
     Valx.remove(Valx[index])
     Valx = np.array(Valx)
     return Valx
+
+
+def process50Hz(Array, process: bool):
+    if process:
+        for i in range(1, 2):
+            Array = remove(Array, 48)
+    return Array

@@ -45,7 +45,7 @@ def PlotsParams(GrBase, arguments, **kwargs):
 ###########################
 def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrWs, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments)
+    GrWs, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
     Results = g.DataClassification(GrWs, arguments, ResultsParams)
     handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
@@ -56,12 +56,13 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, handles=handles, Colors=Colors, perType="x Wafer", **kwargs)
+    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, handles=handles, Colors=Colors, perType="x Wafer",
+                          xlabel=xlabel, **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer",
+    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel=xlabel,
                           legendTitle=legendTitle, perType=" x Wafer", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer",
+    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel=xlabel,
                                legendTitle=legendTitle, perType="Overall", handles=handles, **kwargs)
 
 
@@ -70,7 +71,7 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 ###########################
 def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrTypes, ResultsParams = s.DBSearchPerType(GrBase, arguments)
+    GrTypes, ResultsParams = s.DBSearchPerType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
     Results = g.DataClassification(GrTypes, arguments, ResultsParams)
     # PLOTTING ######
@@ -82,12 +83,14 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
 
     data = Results['arg5']
     # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, Colors=Colors, handles=handles, perType="x Type", **kwargs)
+    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel, handles=handles,
+                          perType="x Type", **kwargs)
     # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, legendTitle=legendTitle, Colors=Colors, title="Working SGFETs x Type",
+    plot.PlotPerTypeYield(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel, title="Working SGFETs x Type",
                           perType="x Type", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, title="Working SGFETs x Type",
+    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel,
+                               title="Working SGFETs x Type",
                                perType="Overall", handles=handles, **kwargs)
 
 
@@ -238,12 +241,14 @@ def main():
         'Colors': Colors,
         'legendTitle': "Wafers",
         'xlabel': "Types",
+        'remove50Hz': True,
     }
     kwargs2 = {
         'arguments': arguments1,
         'Colors': Colors,
         'legendTitle': "Types",
         'xlabel': "Wafers",
+        'remove50Hz': True,
     }
 
     # PLOTS ####################################################################

@@ -18,7 +18,7 @@ else:
     getparams = mp.GetParams
 
 
-def DBSearchPerWaferAndType(GrBase, args):
+def DBSearchPerWaferAndType(GrBase, args, **kwargs):
     """
 
     :param GrBase: A group of conditions
@@ -29,12 +29,12 @@ def DBSearchPerWaferAndType(GrBase, args):
     ResultsParams = {}
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
         GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
-        ResultsDB = search(GrTypes)
+        ResultsDB = search(GrTypes, **kwargs)
         ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
     return GrWs, ResultsParams
 
 
-def DBSearchPerType(GrBase, args):
+def DBSearchPerType(GrBase, args, **kwargs):
     """
 
     :param GrBase: a group of conditions
@@ -45,6 +45,6 @@ def DBSearchPerType(GrBase, args):
     ResultsParams = {}
     for iType, (nType, cType) in enumerate(GrTypes.items()):
         GrWfs = DbSe.GenGroups(cType, 'Wafers.Name', LongName=False)
-        ResultsDB = search(GrWfs)
+        ResultsDB = search(GrWfs, **kwargs)
         ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
     return GrTypes, ResultsParams

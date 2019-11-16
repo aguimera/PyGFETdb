@@ -60,11 +60,13 @@ def _closeBoxplotValsGroup(ax, xPos, xLab, xlabel=None, ylabel=None, title='', l
 
     :return: None
     """
-    plt.xticks(xPos, xLab, rotation=45, fontsize='small')
+    plt.xticks(xPos, xLab, rotation=75, fontsize='small')
     ax.set_ylabel(ylabel=ylabel, fontsize='large')
 
     ax.set_xlabel(xlabel, fontsize='large')
     ax.set_title(label=title, fontsize='large')
+    chartBox = ax.get_position()
+    ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.65, chartBox.width, chartBox.height * 0.77])
 
 
 def _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, vals,
@@ -121,7 +123,7 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
         if units is not None:
             units = units.dimensionality.latex
 
-    plt.xticks(xPos, xLab, rotation=45, fontsize='small')
+    plt.xticks(xPos, xLab, rotation=75, fontsize='small')
 
     Ax.set_xlabel(xlabel, fontsize='large')
 
@@ -154,6 +156,8 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
         Ax.set_yscale(kwargs['yscale'])
 
     Ax.set_title(title, fontsize='large')
+    chartBox = Ax.get_position()
+    Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.65, chartBox.width, chartBox.height * 0.77])
     if legendTitle or handles:
         if legendTitle:
             legend = legendTitle
@@ -175,9 +179,9 @@ def Legend(Ax, legend, handles):
     :return: None
     """
     chartBox = Ax.get_position()
-    Ax.set_position([chartBox.x0, chartBox.y0 + chartBox.y0 * 1.3, chartBox.width * 0.8, chartBox.height * 0.8])
+    Ax.set_position([chartBox.x0, chartBox.y0, chartBox.width * 0.8, chartBox.height])
     Ax.legend(title=legend, handles=handles, loc='upper right', fontsize='x-small',
-              bbox_to_anchor=(0.89, 0.5, 0.5, 0.5), shadow=True, ncol=1)
+              bbox_to_anchor=(0.86, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
 def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):

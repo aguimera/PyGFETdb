@@ -149,7 +149,9 @@ class DBViewApp(QtWidgets.QMainWindow):
             self.msg.exec_()
             # return    # we stop the initialization, and the GUI shows cleanly...
 
-        self.remove50Hz = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise
+        self.remove50Hz = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise from plots
+        if not self.remove50Hz:
+            self.remove50HzDB = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise from DB
 
         self.InitMenu()
         self.ConnectLst()
@@ -538,13 +540,13 @@ class DBViewApp(QtWidgets.QMainWindow):
                               Condition=(self.TrtsUpdateFields[column][2], ids))
             self.DB.db.commit()
 
-    def GetDataFromDb(self, AC=False, DC=False):
+    def GetDataFromDb(self, AC=False, DC=False, remove50Hz=False):
         if AC:
             ids = self.GetTableSelectCol(self.TblAC)
             Trts = self.GetTableSelectCol(self.TblAC,
                                           Col=self.ACFields['Trts.Name'][1],
                                           String=True)
-            self.DataAC = self.DB.GetCharactFromId('ACcharacts', ids, Trts)
+            self.DataAC = self.DB.GetCharactFromId('ACcharacts', ids, Trts, remove50Hz=remove50Hz)
 
         if DC:
             ids = self.GetTableSelectCol(self.TblDC)
@@ -565,7 +567,7 @@ class DBViewApp(QtWidgets.QMainWindow):
                     open(fileName, 'wb'))
 
     def ButExportACClick(self):
-        self.GetDataFromDb(AC=True)
+        self.GetDataFromDb(AC=True, remove50Hz=self.remove50HzDB)
         fileName, _ = QFileDialog.getSaveFileName(self,
                                                   "Export Data", "",
                                                   "Pickle Files (*.pkl);;All Files (*)")
@@ -575,14 +577,14 @@ class DBViewApp(QtWidgets.QMainWindow):
                     open(fileName, 'wb'))
 
     def ButViewACClick(self):
-        self.GetDataFromDb(AC=True)
+        self.GetDataFromDb(AC=True, remove50Hz=self.remove50HzDB)
         Plot = PyFETpl.PyFETPlot()
         Plot.AddAxes(self.ViewAxsAC)
         Plot.PlotDataSet(self.DataAC, self.DataAC.keys(), PltIsOK=True)
         Plot.AddLegend(Axn='GMPoly')
 
     def ButAnalyzeACClick(self):
-        self.GetDataFromDb(AC=True)
+        self.GetDataFromDb(AC=True, remove50Hz=self.remove50HzDB)
         self.DataExp = AppDataExp(self.DataAC,
                                   self.ChkCalcIrms.isChecked(), remove50Hz=self.remove50Hz)
         self.DataExp.show()

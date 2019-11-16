@@ -55,11 +55,13 @@ def SearchDB(GrWfs, **kwargs):
         ResultsDB[Wfn] = {}
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
-                Data, Trts = DbSe.GetFromDB(**Grc)
+                kwargs.update(**Grc)
+                Data, Trts = DbSe.GetFromDB(**kwargs)
                 if Data is not None:
                     ResultsDB[Wfn][Grn] = dict(Data)
         else:
-            Data, Trts = DbSe.GetFromDB(**Wfc)
+            kwargs.update(**Wfc)
+            Data, Trts = DbSe.GetFromDB(**kwargs)
             if Data is not None:
                 ResultsDB[Wfn] = dict(Data)
 
@@ -142,10 +144,12 @@ def SearchDB_MP(GrWfs, **kwargs):
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 key = Wfn + ' ' + Grn
                 thread.initcall(key, DbSe)
-                thread.call(key, DbSe, 'GetFromDB', {}, **Wfc)
+                kwargs.update(**Grc)
+                thread.call(key, DbSe, 'GetFromDB', {}, **kwargs)
         else:
             thread.initcall(Wfn, DbSe)
-            thread.call(Wfn, DbSe, 'GetFromDB', {}, **Wfc)
+            kwargs.update(**Wfc)
+            thread.call(Wfn, DbSe, 'GetFromDB', {}, **kwargs)
 
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         ResultsDB[Wfn] = {}

@@ -9,10 +9,12 @@ import datetime
 import pickle
 import sys
 
+import numpy as np
 import pymysql
 
 from PyGFETdb import multithrds, Thread
 from PyGFETdb.DB import *
+from PyGFETdb.GlobalFunctions import process50Hz
 
 
 class _PyFETdb():
@@ -338,7 +340,7 @@ class _PyFETdb():
 
         return self.FindFillOutput(query, Values, Output)
 
-    def GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False):
+    def GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
@@ -384,8 +386,8 @@ class _PyFETdb():
                 Re = Res
 
             for cy, re in enumerate(Re):
-                cy = 'Cy{0:03d}'.format(cy)                
-                Data[Trt][cy] = self._DecodeData(re[DataF])
+                cy = 'Cy{0:03d}'.format(cy)
+                Data[Trt][cy] = self._DecodeData(re[DataF], remove50Hz=remove50Hz)
 #                Data[Trt][cy]['Ph'] = pickle.loads(re[DataPh])
 #                Data[Trt][cy]['FuncCond'] = pickle.loads(re[DataPh])
 
@@ -444,7 +446,7 @@ class _PyFETdb():
             self._execute(query, Id)
         self.db.commit()
 
-    def GetData2(self, Conditions, Table, Last=True, GetGate=False):
+    def GetData2(self, Conditions, Table, Last=True, GetGate=False, remove50Hz=False):
         Output = ('{}.id{}'.format(Table, Table,),
                   'Trts.Name')
 
@@ -461,7 +463,8 @@ class _PyFETdb():
                                      Ids=ids,
                                      Trts=set(Trts),
                                      Last=Last,
-                                     GetGate=GetGate)
+                                     GetGate=GetGate,
+                                     remove50Hz=remove50Hz)
         return Data, list(set(Trts))
 
     def GetTrtCharact2(self, Table, TrtId, TrtName, Last=False):
@@ -643,29 +646,26 @@ class PyFETdb(_PyFETdb):
         Thread.lock.release()
         return ret
 
-    def _processPSD(self, dbPsd):
-        ret = dbPsd
-        # print('Processing PSD:', dbPsd)
-        # for nparam,vparam in dbPsd.items():
-        #    #res = np.where(vparam>10e-22,0,vparam)
-        #    res = vparam  # TODO: Process PSD stored in DB
-        #    dbPsd[nparam] = res
+    def _processPSD(self, Dict, process=False):
+        if process:
+            res = []
+            for kdict, ndict in Dict.items():
+                for i, item in enumerate(ndict):
+                    res.append(process50Hz(item, process))
+            res = np.array(res)
+            Dict.update({kdict: res})
+
+    def _processFPSD(self, dbFPsd, remove50Hz=False):
+        ret = process50Hz(dbFPsd, remove50Hz)
         return ret
 
-    def _processFPSD(self, dbFPsd):
-        ret = None
-        # print('Processing FPSD[49]:', dbFPsd[49]) # TODO: Process Fpsd stored in DB
-        ret = dbFPsd
-        return ret
-
-    def _DecodeData(self, DataF):
+    def _DecodeData(self, DataF, remove50Hz=False):
         res = super()._DecodeData(DataF)
         k = res.get('PSD')
         if k is not None:
-            resPSD = self._processPSD(k)
-            res.update({'PSD': resPSD})
+            self._processPSD(k, remove50Hz)
         k = res.get('Fpsd')
         if k is not None:
-            resFPSD = self._processFPSD(k)
-            res.update({'Fpsd': resFPSD})
+            a: np.ndarray = self._processFPSD(k, remove50Hz)
+            res.update({'Fpsd': a})
         return res

@@ -6,10 +6,10 @@ Created on Fri Jan 12 13:12:37 2018
 
 """
 import logging
+import sys
 
 import numpy as np
 import quantities as pq
-import sys
 
 import PyGFETdb.DBCore as PyFETdb
 from PyGFETdb import qty
@@ -111,7 +111,7 @@ def FindCommonValues(Parameter, Conditions, Table='ACcharacts', **kwargs):
 
 
 def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
-              OutilerFilter=None, DataSelectionConfig=None):
+              OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
     """
 
         **Get data from data base**
@@ -184,7 +184,8 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     DataD, Trts = MyDb.GetData2(Conditions=Conditions,
                                 Table=Table,
                                 Last=Last,
-                                GetGate=GetGate)
+                                GetGate=GetGate,
+                                remove50Hz=remove50Hz)
 
     del (MyDb)
     Trts = list(Trts)
