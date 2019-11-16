@@ -149,6 +149,8 @@ class DBViewApp(QtWidgets.QMainWindow):
             self.msg.exec_()
             # return    # we stop the initialization, and the GUI shows cleanly...
 
+        self.remove50Hz = True  # TODO: Add a checkbox in the GUI to remove 50Hz Noise
+
         self.InitMenu()
         self.ConnectLst()
 
@@ -582,7 +584,7 @@ class DBViewApp(QtWidgets.QMainWindow):
     def ButAnalyzeACClick(self):
         self.GetDataFromDb(AC=True)
         self.DataExp = AppDataExp(self.DataAC,
-                                  self.ChkCalcIrms.isChecked())
+                                  self.ChkCalcIrms.isChecked(), remove50Hz=self.remove50Hz)
         self.DataExp.show()
 
     def ButViewDCClick(self):
@@ -600,10 +602,12 @@ class DBViewApp(QtWidgets.QMainWindow):
 
 class AppDataExp(QtWidgets.QMainWindow):
 
-    def __init__(self, ACData, CalcIrmsNok=False, IsDC=False):
+    def __init__(self, ACData, CalcIrmsNok=False, IsDC=False, remove50Hz=False):
         QtWidgets.QMainWindow.__init__(self)
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer.ui')
         uic.loadUi(uipath, self)
+
+        self.remove50Hz = remove50Hz
 
         self.setWindowTitle('Data Explorer')
         self.Data = ACData
@@ -742,10 +746,11 @@ class AppDataExp(QtWidgets.QMainWindow):
         self.PlotVgs.AddLegend()
     
     def LstVdsChange(self):
-        self.UpdatePltVsFreq()
+        self.UpdatePltVsFreq(self.remove50Hz)
     def LstVgsChange(self):
-        self.UpdatePltVsFreq()    
-    def UpdatePltVsFreq(self):
+        self.UpdatePltVsFreq(self.remove50Hz)
+
+    def UpdatePltVsFreq(self, remove50Hz=False):
  
         if not self.ChkPltVsFreq.isChecked():return
 
@@ -778,7 +783,7 @@ class AppDataExp(QtWidgets.QMainWindow):
 
         self.UpdateAxes()
         self.PlotFreq.Plot(self.Data[trt][cy], iVds=ivds, iVgs=ivgs,
-                           ColorOnVgs=True)
+                           ColorOnVgs=True, remove50Hz=remove50Hz)
         plt.show()
 
     def CreateNewPlotFreq(self):

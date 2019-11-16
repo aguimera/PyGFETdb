@@ -494,7 +494,7 @@ class PyFETPlot(PyFETPlotBase):
                 print (sys.exc_info()[0])
 
     def PlotDataSet(self, Data, Trts, PltUd0=False, PltIsOK=False,
-                    ColorOn='Trt'):
+                    ColorOn='Trt', ):
 
         Par = []
         for TrtN in sorted(Trts):
@@ -521,7 +521,7 @@ class PyFETPlot(PyFETPlotBase):
         plt.show()
 
     def Plot(self, Data, iVds=None, iVgs=None,
-             PltUd0=False, PltIsOK=False, ColorOnVgs=False):
+             PltUd0=False, PltIsOK=False, ColorOnVgs=False, remove50Hz=False):
 
         label = Data['Name']
 
@@ -549,7 +549,7 @@ class PyFETPlot(PyFETPlotBase):
                         Valx = np.polyval(Data['IdsPoly'][:, ivd], Data['Vgs'])
                 elif axn == 'PSD':
                     Valx: np.ndarray = Data[self.AxsProp[axn][1]]
-                    Valx = process(Valx)
+                    Valx = process(Valx, remove50Hz)
                     Valxp = Valx
                 else:
                     Valx = Data[self.AxsProp[axn][1]]
@@ -596,7 +596,7 @@ class PyFETPlot(PyFETPlotBase):
                         Valy = qty.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
                     elif axn == 'PSD':
                         Valy = Data[axn][svds][ivg, :]
-                        Valy = process(Valy)
+                        Valy = process(Valy, remove50Hz)
                         if 'NoA' in Data:
                             ax.loglog(Valx[1:], noise.Fnoise(Valx[1:],
                                       Data['NoA'][ivg, ivd],
@@ -646,7 +646,8 @@ class PyFETPlot(PyFETPlotBase):
                                 label=label)
 
 
-def process(Array):
-    for i in range(1, 2):
-        Array = remove(Array, 48)
+def process(Array, process=True):
+    if process:
+        for i in range(1, 2):
+            Array = remove(Array, 48)
     return Array
