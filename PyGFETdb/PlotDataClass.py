@@ -596,7 +596,8 @@ class PyFETPlot(PyFETPlotBase):
                         Valy = qty.Divide(np.angle(Data['gm'][svds][ivg, :]) * 180, np.pi)
                     elif axn == 'PSD':
                         Valy = Data[axn][svds][ivg, :]
-                        Valy = process(Valy, remove50Hz)
+                        if Valx.size != Valy.size:
+                            Valy = process(Valy, True)
                         if 'NoA' in Data:
                             ax.loglog(Valx[1:], noise.Fnoise(Valx[1:],
                                       Data['NoA'][ivg, ivd],
