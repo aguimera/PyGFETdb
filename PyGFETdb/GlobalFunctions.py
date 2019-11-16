@@ -11,8 +11,8 @@ import numpy as np
 
 def updateDictOfLists(dict, key, value):
     """
-        Modifies a dictionary of lists, appending the value at the list obtained
-        of applying the key to the dictionary
+        **Modifies a dictionary of lists, appending the value at the list obtained
+        of applying the key to the dictionary**
 
     :param dict: A dictionary to update
     :param key: The key to update
@@ -54,14 +54,28 @@ def DataClassification(GrWs, arguments, ResultsParams):
 
 
 def remove(Valx: np.array, index):
+    """
+        **Removes the value at the index specified from an array**
+
+    :param Valx: array to remove the value
+    :param index: index to remove the value
+    :return: the array without the value at the index specified
+    """
     Valx: list = Valx.tolist()
     Valx.remove(Valx[index])
-    Valx = np.array(Valx)
+    Valx: np.ndarray = np.array(Valx)
     return Valx
 
 
 def process50Hz(Array, process: bool):
+    """
+        **Removes the frequency 50Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequency 50Hz
+    """
     if process:
-        for i in range(1, 2):
+        for i in range(1, 2):  # To widen the effect increase the 2
             Array = remove(Array, 48)
     return Array

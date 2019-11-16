@@ -9,7 +9,8 @@ from PyGFETdb import QuantitySupport as quantities
 qty = quantities.QuantitySupport()  # Activates Quantities support globally
 
 """
-# qty = quantities.QuantitySupport(False)   # Deactivates Quantities support globally
+
+    qty = quantities.QuantitySupport(False)   **Deactivates Quantities support globally**
 
 However, the preferable method to deactivate Quantity support is calling *locally* 
 the method qty.setActive(False)

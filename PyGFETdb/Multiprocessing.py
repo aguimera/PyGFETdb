@@ -70,7 +70,7 @@ def SearchDB(GrWfs, **kwargs):
 
 def processGetFromDB(results):
     """
-        Gathers the results of different processes after a search in the database
+        **Gathers the results of different processes after a search in the database**
 
     :param results: Results obtained with multi-processing from the database
     :return: All the results from the search gathered in a tuple

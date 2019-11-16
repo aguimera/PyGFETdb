@@ -247,7 +247,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
     """
-        Plots the noise analysis
+        **Plots the noise analysis**
 
     :param Results: The values to plot
     :param handles: Matplotlib handles to plot the Legend
@@ -279,7 +279,7 @@ def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Color
 def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=None, Colors=None, legendTitle=None,
                      **kwargs):
     """
-           Plots the percentage of transistors yield per secondary group
+           **Plots the percentage of transistors yield per secondary group**
 
     :param Results: The values to plot
     :param title: The title of the plot
@@ -321,7 +321,7 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
                           **kwargs):
     """
 
-           Plots the percentage of transistors yield per primary group
+           **Plots the percentage of transistors yield per primary group**
 
     :param Results: The values to plot
     :param title: The title of the plot

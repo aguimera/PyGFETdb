@@ -28,7 +28,7 @@ class Thread(pool.ThreadPool):
 
     def call(self, funcname, arguments, **kwargs):
         """
-            Calls a function for the Thread to process
+            **Calls a function for the Thread to process**
 
         :param funcname: Name of the function to call
         :param arguments: Arguments of the call
@@ -69,9 +69,9 @@ class Thread(pool.ThreadPool):
 
     def getResults(self):
         """
-        Finalise the processing and get the results
+            **Finalise the processing and get the results**
 
-        :return:
+        :return: A dict of results
         """
 
         self.pool.close()
@@ -81,7 +81,7 @@ class Thread(pool.ThreadPool):
 
     def addResult(self, result):
         """
-        This function is used by the threads to return results
+            **This function is used by the threads to return results**
 
         :param result: The result to add
         :return: None
@@ -113,7 +113,7 @@ class MultiProcess():
 
     def initcall(self, key, klass):
         """
-            Initialises the Multi-processing
+            **Initialises the Multi-processing**
 
         :param key: A unique-key to each calculation
         :param klass: Calls where the function to call is
@@ -126,7 +126,7 @@ class MultiProcess():
 
     def call(self, key, klass, function, arguments, **kwargs):
         """
-            Calls a function for multi-processing
+            **Calls a function for multi-processing**
 
         :param key: The unique-key of the calculation
         :param klass: Calls where the function to call is
@@ -150,7 +150,7 @@ class MultiProcess():
 
     def getResults(self, key):
         """
-            Obtains the results for a calculation.
+            **Obtains the results for a calculation.**
 
         :param key: A unique-key identifying the calculation
         :return: The results of the previous call
@@ -176,7 +176,8 @@ def key():
 
 def callThread(klass, function, arguments, **kwargs):
     """
-        Auxiliary function for calling a function with a single Thread
+        **Auxiliary function for calling a function with a single Thread**
+
         The use of Multiprocessing class is preferred, as its faster
 
     :param klass: Class where the function to call is
@@ -200,7 +201,7 @@ def callThread(klass, function, arguments, **kwargs):
 
 def call(klass, function, arguments, **kwargs):
     """
-        Auxiliary function for calling a function with a Multiprocessing
+        **Auxiliary function for calling a function with a Multiprocessing**
 
 
     :param klass: Class where the function to call is

@@ -166,6 +166,9 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
                 'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
 
+    :param remove50Hz: bool to activate the removal of frequency 50Hz
+
+
     :return: A Dictionary with the data arranged as follows:
 
             {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}

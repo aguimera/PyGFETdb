@@ -231,9 +231,11 @@ class QuantitySupport(object):
 
     def flattenQuantity(self, quantity):
         """
-        Flattens a Quantity with the units
+            **Flattens a Quantity with the units**
+
         :param quantity: Quantity to flatten
         :return: the Quantity flattened
+
         """
         units = self.getQuantityUnits(quantity)
         ret = self.flatten(quantity)
