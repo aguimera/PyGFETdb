@@ -467,7 +467,7 @@ class _PyFETdb():
                                      remove50Hz=remove50Hz)
         return Data, list(set(Trts))
 
-    def GetTrtCharact2(self, Table, TrtId, TrtName, Last=False):
+    def GetTrtCharact2(self, Table, TrtId, TrtName, Last=False, remove50Hz=False):
 
         cond = {'{}.Trt_id='.format(Table): TrtId}
 
@@ -482,19 +482,19 @@ class _PyFETdb():
 
         Vals = {}
         if Last:
-            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0])
+            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0], remove50Hz=remove50Hz)
             if TrtName:
                 Vals['Cy{0:03d}'.format(0)]['Name'] = TrtName
         else:
             for cy, re in enumerate(Res):
-                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0])
+                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0], remove50Hz=remove50Hz)
                 if TrtName:
                     Vals['Cy{0:03d}'.format(cy)]['Name'] = TrtName
 
         return Vals
 
     def GetData(self, Conditions, DC=True, AC=True, Last=False,
-                Date=None, IsCmp=None):
+                Date=None, IsCmp=None, remove50Hz=False):
 
         Output = ('Trts.idTrts', 'Trts.Name',
                   'TrtTypes.idTrtTypes', 'TrtTypes.Name',
@@ -523,7 +523,7 @@ class _PyFETdb():
                                             TrtName=T['Trts.Name'],
                                             Last=Last,
                                             Date=Date,
-                                            IsCmp=IsCmp)
+                                            IsCmp=IsCmp, remove50Hz=remove50Hz)
                 if ACVals is not None:
                     TrtsOut.append(T)
                     DataAC[T['Trts.Name']] = ACVals
@@ -531,7 +531,7 @@ class _PyFETdb():
         return DataDC, DataAC, TrtsOut
 
     def GetTrtCharact(self, Table, TrtId, TrtName=None,
-                      Last=False, Date=None, IsCmp=None):
+                      Last=False, Date=None, IsCmp=None, remove50Hz=False):
 
         cond = {'{}.Trt_id='.format(Table): TrtId}
         if Date is not None:
@@ -552,12 +552,12 @@ class _PyFETdb():
 
         Vals = {}
         if Last:
-            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0])
+            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0], remove50Hz=remove50Hz)
             if TrtName:
                 Vals['Cy{0:03d}'.format(0)]['Name'] = TrtName
         else:
             for cy, re in enumerate(Res):
-                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0])
+                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0], remove50Hz=remove50Hz)
                 if TrtName:
                     Vals['Cy{0:03d}'.format(cy)]['Name'] = TrtName
 
