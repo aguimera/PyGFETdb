@@ -128,10 +128,11 @@ def main():
 
         {'Param': 'GMV',  # Parameter to evaluate
          'Range': (1e-1, 10),  # Range of allowed values, (Min, Max)
+         'Units': "mS/V",
          'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
                      'Vds': None,
                      'Ud0Norm': True,
-                     'Units': "mS/V",
+                     'Units': "mS/V",  #
                      },
          'Name': 'GMVy'},
 
@@ -142,10 +143,9 @@ def main():
              'Ud0Norm': True,
              'NFmin': 10,
              'NFmax': 1000,
-             'Units': "uV",
+             # 'Units': "uV",
          },
-         'Range': (5, 60),  # Range of allowed values, (Min, Max)
-         'Units': pq.microvolt / pq.S
+         'Range': (5e-6, 60e-6),  # Range of allowed values, (Min, Max)
          }
     ]
 
@@ -203,7 +203,7 @@ def main():
             'Vgs': 0,
             'Ud0Norm': True,
             'yscale': 'log',
-            'Units': pq.ohm,
+            'Units': "kohm",
             'title': 'Rds',
         },
         'arg2': {
@@ -211,12 +211,12 @@ def main():
             'Vgs': -0.1,
             'Ud0Norm': True,
             'yscale': 'log',
-            'Units': 'uS/V',
+            'Units': 'mS/V',
             'title': 'GMV',
         },
         'arg3': {
             'Param': 'Ud0',
-            'Units': pq.microvolt,
+            'Units': pq.millivolt,
             'title': 'Ud0',
         },
         'arg4': {
@@ -231,8 +231,8 @@ def main():
             'Param': 'Vrms',
             'Vgs': -0.1,
             'Ud0Norm': True,
-            'Units': pq.microvolt,
             'title': 'Vrms',
+            'Units': 'uV'
         },
     }
 

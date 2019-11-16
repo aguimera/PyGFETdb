@@ -185,11 +185,13 @@ def PlotXYVars(Data, Xvar, Yvar, Vgs, Vds, Ud0Norm=True, label=None,
 
 
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-    Vals = qty.createQuantityList()
-    if not Data: return Vals
 
-    # if Data is not dict:
-    #    Data = dict(Data)
+    Vals = qty.createQuantityList()
+
+    if Data is None:
+        return Vals
+
+    kwargs.update({'Param': Param})
 
     for Trtn, Datas in Data.items():
         for Dat in Datas:
@@ -216,7 +218,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     if not qty.isActive():  # Quantities support
         return Vals
     else:
-        return [qty.flattenQuantity(Vals)]
+        return [Vals]
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):
@@ -382,7 +384,7 @@ def PlotGroupBySearchAndGetParam(GroupBase, GroupBy, **kwargs):
 
 
 def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
-            DebugPlot=False, Label=None):
+            DebugPlot=False, Label=None, **kwargs):
     if Ax is None:
         fig, AxRs = plt.subplots()
         AxRc = AxRs.twinx()
@@ -406,7 +408,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
             for Trtn, Datas in Data.items():
                 for Dat in Datas:
                     funcX = Dat.__getattribute__('GetVgs')
-                    Valx = funcX(Vds=Vds, Ud0Norm=True)
+                    Valx = funcX(Vds=Vds, Ud0Norm=True, **kwargs)
                     if Valx is not None:
                         VxMax.append(np.max(Valx))
                         VxMin.append(np.min(Valx))
@@ -433,7 +435,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
             if len(Data) > 0:
                 for Trtn, Datas in Data.items():
                     for Dat in Datas:
-                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)
+                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True, **kwargs)
                         Y = np.vstack((Y, rds)) if Y.size else rds
                         L = np.array((Dat.TrtTypes['Length']))
                         X = np.vstack((X, L)) if X.size else L
@@ -486,7 +488,7 @@ def CalcTLM(Groups, Vds=None, Ax=None, Color=None,
 
 
 def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
-             DebugPlot=False, Label=None, Lerror=0.4e-6, TrackResistance=None):
+             DebugPlot=False, Label=None, Lerror=0.4e-6, TrackResistance=None, **kwargs):
     if Ax is None:
         fig, AxRs = plt.subplots()
         AxRc = AxRs.twinx()
@@ -538,7 +540,7 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
             if len(Data) > 0:
                 for Trtn, Datas in Data.items():
                     for Dat in Datas:
-                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True)
+                        rds = Dat.GetRds(Vgs=vgs, Vds=Vds, Ud0Norm=True, **kwargs)
                         if TrackResistance is not None:
                             rds = rds - TrackResistance[Dat.Name.split('-')[-1][1:]]
                         Y = np.vstack((Y, rds)) if Y.size else rds

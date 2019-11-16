@@ -184,7 +184,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                         key = (karg + ' ' + Wfn + ' ' + Grn)
                         kargs = {'Data': Data, 'args': arg}
                         thread.initcall(key, DbAn)
-                        thread.call(key, DbAn, 'GetParam', kargs)
+                        thread.call(key, DbAn, 'GetParam', kargs, **kargs)
 
             else:
                 Data = ResultsDB.get(Wfn)
@@ -192,7 +192,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                     key = karg + ' ' + Wfn
                     thread.initcall(key, DbAn)
                     kargs = {'Data': Data, 'args': arg}
-                    thread.call(key, DbAn, 'GetParam', kargs)
+                    thread.call(key, DbAn, 'GetParam', kargs, **kargs)
 
     # """""
     res = {}

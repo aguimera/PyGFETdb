@@ -117,10 +117,12 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
     qtyunits = None
     if qty.isActive():
         units = kwargs.get('Units')
-
-    if type(units) is pq.UnitQuantity or type(units) is pq.Quantity:
-        units = qty.getQuantityUnits(units)
-        if units is not None:
+        if qtys is not None:
+            qtys = qty.rescaleFromKey(qtys, units)  # Consistency Check
+            qtyunits = qty.getQuantityUnits(qtys)
+            if qtyunits is not None and (type(qtyunits) is pq.UnitQuantity or type(qtyunits) is pq.Quantity):
+                qtyunits = qtyunits.dimensionality.latex
+        elif units is not None and (type(units) is pq.UnitQuantity or type(units) is pq.Quantity):
             units = units.dimensionality.latex
 
     plt.xticks(xPos, xLab, rotation=75, fontsize='small')
@@ -129,10 +131,6 @@ def _closePlotValsGroup(Ax, xLab, xPos, qtys=None, ParamUnits=None,
 
     param = kwargs.get('Param')
 
-    if qty.isActive() and qtys is not None:
-        qtyunits = qty.getQuantityUnits(qtys)
-        if qtyunits is not None:
-            qtyunits = qtyunits.dimensionality.latex
     if qtyunits is not None:
         Ax.set_ylabel(param + '[' + qtyunits + ']')
     elif units is not None:
@@ -212,6 +210,7 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
                     ParamData = np.array(ParamData)
                     _PlotValsGroup(Ax, xLab, xPos, iGr, Grn, ParamData, **arg, **kwargs)
         _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, **arg, **kwargs)
+
     return Results
 
 

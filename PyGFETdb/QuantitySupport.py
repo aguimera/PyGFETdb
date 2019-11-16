@@ -14,20 +14,20 @@ import quantities as pq
 
 
 class QuantitySupport(object):
-    DefaultUnits = {'Vds': pq.V,
+    _DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
                     'PSD': pq.A ** 2 / pq.Hz,
                     'Fgm': pq.S,
-                    'gm': pq.S,
-                    'gmV': pq.S,
+                     'GM': pq.S,
+                     'GMV': pq.S / pq.V,
                     'Vgs': pq.V,
                     'Fpsd': pq.Hz,
                     'Ig': pq.A,
-                    'Irms': pq.V,
-                    'Vrms': pq.V / pq.S,
+                     'Irms': pq.A,
+                     'Vrms': pq.V,
                     'Ids': pq.A,
                     'Rds': pq.ohm
-                    }
+                     }
     """
     Dictionary with the association between PlotParameters and Units
     """
@@ -61,7 +61,15 @@ class QuantitySupport(object):
         :param key: string indicating the plot parameter to check
         :return: if exist a default unit for the plot parameter
         """
-        return self.isActive() and self.DefaultUnits.get(key) is not None
+        return self.isActive() and self.getDefaultUnitsKey(key) is not None
+
+    def getDefaultUnitsKey(self, key):
+        """
+            **Returns the default units for a parameter**
+        :param key: name of the parameter
+        :return: the default units for the parameter
+        """
+        return self._DefaultUnits.get(key)
 
     def createDefaultQuantity(self, key, value):
         """
@@ -71,7 +79,7 @@ class QuantitySupport(object):
         """
         if not self.isActive():
             return value
-        unit = self.DefaultUnits.get(key)
+        unit = self.getDefaultUnitsKey(key)
         if unit is not None:
             value = pq.Quantity(value, unit)
 
@@ -87,7 +95,7 @@ class QuantitySupport(object):
         """
         if not self.isActive():
             return param
-        unit = self.DefaultUnits.get(unitKey)
+        unit = self.getDefaultUnitsKey(unitKey)
 
         if not unit or type(param) is pq.Quantity:
             return param
@@ -115,29 +123,6 @@ class QuantitySupport(object):
             vals = []
         return vals
 
-    def rescaleFromKey(self, qtylist, units):
-        """
-
-        :param qtylist: The input Quantity-like
-        :param units: The units to rescale
-        :return: The input Quantity-like rescaled to the intented units
-        """
-        if not self.isActive() or units is None or qtylist is None: return qtylist
-        if type(qtylist) is pq.Quantity:
-            try:
-                return qtylist.rescale(units)
-            except:
-                raise BaseException(sys.exc_info()[1])
-
-        ret = self.createQuantityList()
-        if units:
-            for enum in enumerate(qtylist):
-                for qty in enumerate(enum[1]):
-                    try:
-                        ret = self.appendQuantity(ret, qty[1].rescale(units))
-                    except:
-                        raise BaseException(sys.exc_info()[1])
-        return ret
 
     def getQuantityUnits(self, qtylist):
         """
@@ -268,3 +253,36 @@ class QuantitySupport(object):
             return ret.tolist()
 
         return ret
+
+    def rescaleFromKey(self, qtylist, units):
+        """
+
+        :param qtylist: The input Quantity-like
+        :param units: The units to rescale
+        :return: The input Quantity-like rescaled to the intented units
+        """
+        if not self.isActive() or units is None or qtylist is None: return qtylist
+        qtylist = self.flattenQuantity(qtylist)
+        if type(qtylist) is pq.Quantity:
+            try:
+                return qtylist.rescale(units)
+            except ValueError as e:
+                raise e
+
+    def FormatQuantity(self, Par, ParamName, Units=None, Param=None, **kwargs):
+        """
+            **Formats a Quantity**
+
+        :param Par: quantity to format
+        :param ParamName: name of the parameter to format
+        :param Units: wanted units for the parameter
+        :param Param: name of the wanted parameter
+        :param kwargs: keyword arguments
+        :return: a quantity formatted coherently and with the wanted units
+        """
+        # We want coherent quantities
+        Par = self.rescaleFromKey(Par, self.getDefaultUnitsKey(ParamName))
+        # in the specified units
+        if Units is not None and Param == ParamName:
+            Par = self.rescaleFromKey(Par, Units)
+        return Par

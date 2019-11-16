@@ -49,9 +49,9 @@ class DataCharDC(object):
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
 
-    def _FormatOutput(self, Par, **kwargs):
+    def _FormatOutput(self, Par, ParamName, **kwargs):
 
-        Par = qty.rescaleFromKey(Par, kwargs.get('Units'))
+        Par = qty.FormatQuantity(Par, ParamName, **kwargs)
 
         # Added extra checks to add Quantities support
         # begin fix
@@ -127,18 +127,17 @@ class DataCharDC(object):
             RcVgs = FEMRcVgs[0, :]
             RcVgsRc = FEMRcVgs[1, :]
             rcint = interp1d(RcVgs, RcVgsRc)
-            Vgmeas = self.GetVgs(Ud0Norm=True)
+            Vgmeas = self.GetVgs(Ud0Norm=True, **kwargs)
             VgInds =  np.where((Vgmeas>np.min(RcVgs)) & (Vgmeas<np.max(RcVgs)))[0]
             FEMRc[VgInds] = rcint(Vgmeas[VgInds,0])
             print (FEMRc)
 
-
         L = self.TrtTypes['Length']
         W = self.TrtTypes['Width']
 
-        VgUd = np.abs(self.GetVgs(Ud0Norm=True))
-        Ids = self.GetIds()
-        Gm = np.abs(self.GetGM())
+        VgUd = np.abs(self.GetVgs(Ud0Norm=True, **kwargs))
+        Ids = self.GetIds(**kwargs)
+        Gm = np.abs(self.GetGM(**kwargs))
         for ivd, Vds in enumerate(self.Vds):
             n = qty.Divide(FEMCdl * VgUd[:, ivd], FEMq)
             self.FEMn[:, ivd] = np.sqrt(n**2 + FEMn0**2)
@@ -167,7 +166,7 @@ class DataCharDC(object):
                 ud0 = ud0 - qty.Divide(self.Vds[ivd], 2)
             Ud0 = np.vstack((Ud0, ud0)) if Ud0.size else ud0
 
-        return self._FormatOutput(Ud0, **kwargs)
+        return self._FormatOutput(Ud0, 'Ud0', **kwargs)
 
     def GetDateTime(self, **kwargs):
         return self.DateTime
@@ -176,7 +175,7 @@ class DataCharDC(object):
         return np.datetime64(self.DateTime)[None, None].transpose()
 
     def GetVds(self, **kwargs):
-        return self._FormatOutput(self.Vds, **kwargs)
+        return self._FormatOutput(self.Vds, 'Vds', **kwargs)
 
     def GetVgs(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if not Ud0Norm:
@@ -194,7 +193,7 @@ class DataCharDC(object):
             vgs = self.Vgs - self.Ud0[ivd]
             Vgs = np.vstack((Vgs, vgs)) if Vgs.size else vgs
 
-        return self._FormatOutput(Vgs, **kwargs)
+        return self._FormatOutput(Vgs, 'Vgs', **kwargs)
 
     def GetVdsIndexes(self, Vds):
         if Vds:
@@ -234,7 +233,7 @@ class DataCharDC(object):
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
         Ids = qty.createDefaultQuantity('Ids', Ids)  # Quantity support
-        return self._FormatOutput(Ids, **kwargs)
+        return self._FormatOutput(Ids, 'Ids', **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
         iVds = self.GetVdsIndexes(Vds)
@@ -249,6 +248,7 @@ class DataCharDC(object):
         if 'GMPoly' not in self.__dict__:
             self.CalcGMPoly()
 
+        Param = "GM"
         GM = np.array([])
         for ivd in iVds:
             if Ud0Norm and Vgs is not None:
@@ -259,13 +259,15 @@ class DataCharDC(object):
             gm = np.polyval(self.GMPoly[:, ivd], vg.data)
 
             # Assign proper units
-            gm = qty.createDefaultQuantity('gm', gm)  # Quantity support
+            gm = qty.createDefaultQuantity(Param, gm)  # Quantity support
 
             if Normalize:
                 gm = qty.Divide(gm, self.Vds[ivd])  # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
+                Param = "GMV"
+
             GM = np.vstack((GM, gm)) if GM.size else gm
 
-        return self._FormatOutput(GM, **kwargs)
+        return self._FormatOutput(GM, Param, **kwargs)
 
     def GetGMV(self, AbsVal=True, **kwargs):
         kwargs.update({'Normalize': True})
@@ -278,7 +280,7 @@ class DataCharDC(object):
         return np.max(np.abs(self.GetGM(**kwargs)))
     
     def GetRds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
         if Ids is None:
             return None
@@ -293,28 +295,28 @@ class DataCharDC(object):
                 rds = qty.Divide(self.Vds[ivd], Ids[:, iid])
                 Rds = np.vstack((Rds, rds)) if Rds.size else rds
 
-        return self._FormatOutput(Rds, **kwargs)
+        return self._FormatOutput(Rds, 'Rds', **kwargs)
 
     def GetFEMn(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMn' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetFEMmu(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmu' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetFEMmuGm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmuGm' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetIg(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'Ig' not in self.__dict__:
 #            print 'No Gate data'
             return None
-        return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def CheckVgsRange(self, Vgs, iVds, Ud0Norm):
         if Vgs is not None:
@@ -334,7 +336,7 @@ class DataCharDC(object):
         else:
             return self.Vgs
 
-    def _GetParam(self, Param, Vgs=None, Vds=None,
+    def _GetParam(self, Parameter, Vgs=None, Vds=None,
                   Ud0Norm=False, Normalize=False, **kwargs):
 
         iVds = self.GetVdsIndexes(Vds)
@@ -348,10 +350,10 @@ class DataCharDC(object):
             print ('self Vgs len error', self.Vgs)
             return None
 
-        if Param not in self.__dict__:
+        if Parameter not in self.__dict__:
             print ('Not Data')
             return None
-        Par = self.__getattribute__(Param)
+        Par = self.__getattribute__(Parameter)
 
 
         PAR = np.array([])
@@ -366,8 +368,8 @@ class DataCharDC(object):
 
             PAR = np.vstack((PAR, par)) if PAR.size else par
 
-        PAR = qty.returnQuantity(PAR, Param, **kwargs)
-        return self._FormatOutput(PAR, **kwargs)  # Quantity support
+        PAR = qty.returnQuantity(PAR, Parameter, **kwargs)
+        return self._FormatOutput(PAR, Parameter, **kwargs)  # Quantity support
 
 
     def GetName(self, **kwargs):
@@ -407,15 +409,15 @@ class DataCharDC(object):
         return np.array(self.Info['AnalyteCon'])[None, None]
 
     def GetGds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Gds = qty.Divide(1, self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
+        Gds = qty.Divide(1, self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs))
         return Gds
 
     def GetGMNorm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        GMNorm = self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, Normalize=True)
+        GMNorm = self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, Normalize=True, **kwargs)
         return GMNorm
 
     def GetUd0Vds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        return self.GetUd0(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, Normalize=True)
+        return self.GetUd0(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, Normalize=True, **kwargs)
 
 
 def Fnoise(f, a, b):
@@ -449,7 +451,7 @@ class DataCharAC(DataCharDC):
     NFmin = None
     NFmax = None
 
-    def _GetFreqVgsInd(self, Vgs=None, Vds=None, Ud0Norm=False):
+    def _GetFreqVgsInd(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None, None
@@ -462,7 +464,7 @@ class DataCharAC(DataCharDC):
         if Ud0Norm is True:
             vgs = vgs - self.Ud0[iVds[0]]
 
-        VGS = self.GetVgs(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        VGS = self.GetVgs(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         vgsmeas = [min(VGS, key=lambda x:abs(x-vg)) for vg in vgs]
         VgsInd = [np.where(VGS == vg)[0][0] for vg in vgsmeas]
 
@@ -508,7 +510,7 @@ class DataCharAC(DataCharDC):
                 except: # TODO: catch *all* exceptions
                     print ("Fitting error:", sys.exc_info()[0])
 
-    def CalcIRMS(self, Fmin, Fmax):
+    def CalcIRMS(self, Fmin, Fmax, **kwargs):
         nVgs = len(self.Vgs)
         nVds = len(self.Vds)
 
@@ -528,20 +530,20 @@ class DataCharAC(DataCharDC):
         self.Irms = qty.createDefaultQuantity('Irms', Irms)
 
     def GetPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
+        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm, **kwargs)
         if VgsInd is None:
             return None
         return self.PSD[SiVds[0]][VgsInd, :].transpose()
 
     def GetGmMag(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
+        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm, **kwargs)
         if VgsInd is None:
             return None
 
         return np.abs(self.gm[SiVds[0]][VgsInd, :].transpose())
 
     def GetGmPh(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
+        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm, **kwargs)
         if VgsInd is None:
             return None
 
@@ -553,26 +555,26 @@ class DataCharAC(DataCharDC):
     def GetFgm(self, **kwargs):
         return self.Fgm
 
-    def _CheckRMS(self, NFmin, NFmax):
+    def _CheckRMS(self, NFmin, NFmax, **kwargs):
         if NFmin is not None or NFmax is not None:
             if self.NFmin != NFmin or self.NFmax != NFmax:
                 print ('Calc IRMS')
                 self.NFmin = NFmin
                 self.NFmax = NFmax
                 if self.IsOK:
-                    self.CalcIRMS(Fmin=NFmin, Fmax=NFmax)
+                    self.CalcIRMS(Fmin=NFmin, Fmax=NFmax, **kwargs)
 
     def GetIrms(self, Vgs=None, Vds=None, Ud0Norm=False,
                 NFmin=None, NFmax=None, **kwargs):
-        self._CheckRMS(NFmax=NFmax, NFmin=NFmin)
+        self._CheckRMS(NFmax=NFmax, NFmin=NFmin, **kwargs)
         return self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetVrms(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self.GetIrms(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         if Irms is None:
             return None
-        gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        return qty.Divide(Irms, gm)
+        gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs))
+        return self._FormatOutput(qty.Divide(Irms, gm), 'Vrms', **kwargs)
 
     def _CheckFitting(self, FFmin, FFmax):
         if FFmin is not None or FFmax is not None:
@@ -586,35 +588,35 @@ class DataCharAC(DataCharDC):
     def GetNoA(self, Vgs=None, Vds=None, Ud0Norm=False,
                FFmin=None, FFmax=None, **kwargs):
         self._CheckFitting(FFmin, FFmax)
-        return self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetNoB(self, Vgs=None, Vds=None, Ud0Norm=False,
                FFmin=None, FFmax=None, **kwargs):
         self._CheckFitting(FFmin, FFmax)
-        return self._GetParam('NoB', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('NoB', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(NoA, (Ids ** 2))
 
     def GetIrmsVds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return self._GetParam('Irms', Vgs=Vgs, Vds=Vds,
-                              Ud0Norm=Ud0Norm, Normalize=True)
+                              Ud0Norm=Ud0Norm, Normalize=True, **kwargs)
 
     def GetIrmsIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(Irms, (Ids ** 2))
 
     def GetIrmsIds15(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(Irms, (Ids ** 1.5))
 
     def GetIrmsIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+        Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(Irms, Ids)
 
 
@@ -721,7 +723,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
 
             if self.AxsProp[axn][2] == 'Vgs':
                 if Vgs is None:
-                    Valx = Data.GetVgs(Ud0Norm=Ud0Norm)
+                    Valx = Data.GetVgs(Ud0Norm=Ud0Norm, **kwargs)
                 else:
                     Valx = Vgs
             else:
