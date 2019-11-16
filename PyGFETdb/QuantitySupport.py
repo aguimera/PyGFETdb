@@ -66,6 +66,7 @@ class QuantitySupport(object):
     def getDefaultUnitsKey(self, key):
         """
             **Returns the default units for a parameter**
+
         :param key: name of the parameter
         :return: the default units for the parameter
         """
