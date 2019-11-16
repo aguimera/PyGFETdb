@@ -474,7 +474,7 @@ class ControlFigure():
 
     def StartAnimation(self, val):         
         if self.Timer is not None:
-            self.bStart.label = 'Start'
+            self.bStart.label.set_label('Start')
             self.Timer.stop()
             self.Timer = None
             return
@@ -487,7 +487,7 @@ class ControlFigure():
         self.Timer = self.Fig.canvas.new_timer(interval=interval)
         self.Timer.add_callback(self.UpdateAnimation)
         self.Timer.start()
-        self.bStart.label = 'Stop'
+        self.bStart.label.set_label('Stop')
 
     def UpdateAnimation(self):        
         self.sTstart.set_val(self.sTstart.val + self.sTshow.val/2)        
