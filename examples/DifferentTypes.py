@@ -5,7 +5,6 @@
 @author: dragc
 
 """
-
 import matplotlib.pyplot as plt
 import quantities as pq
 from matplotlib.patches import Patch
@@ -14,7 +13,7 @@ import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.SearchFunctions as s
 from PyGFETdb import PlotFunctions as plot
-from PyGFETdb import multithrds, Multiprocessing as mp
+from PyGFETdb import qty, multithrds, Multiprocessing as mp
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -27,6 +26,51 @@ else:
 #############################
 # PLOTS PER WAFER AND TYPE
 ############################
+
+def PlotsPSDperType(GrBase, **kwargs):
+    arguments = {
+        'Fpsd': {
+            'Param': 'Fpsd',
+            'Vgs': -0.1,
+            'Ud0Norm': True,
+            'yscale': 'log',
+            'NFmin': 10,
+            'NFmax': 1000,
+        },
+        'Vgs': {
+            'Param': 'Vgs',
+            'NFmin': 10,
+            'NFmax': 1000,
+        },
+        'Vds': {
+            'Param': 'Vds',
+            'NFmin': 10,
+            'NFmax': 1000,
+        }
+    }
+    qty.setActive(False)
+    GrTypes, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
+    for nWf, vWf in GrTypes.items():
+        Fpsd = ResultsParams[nWf].get('Fpsd')
+        Vds = ResultsParams[nWf].get('Vds')
+        Vgs = ResultsParams[nWf].get('Vgs')
+        for nType, vType in Fpsd.items():
+            Fpsd = vType[0:75]
+            arguments2 = {'PSD': {
+                'Param': 'PSD',
+                'Vds': Vds[nType][0][0],
+                'Vgs': Vgs[nType],
+                'yscale': 'log', }}
+            grPSD, rPSD = s.DBSearchPerWaferAndType(GrBase, arguments2, **kwargs)
+            PSD = rPSD[nWf]['PSD'][nType]
+            fig, ax = plt.subplots()
+            ax.loglog(Fpsd, PSD, '--')
+            ax.set_xlabel("Frequency [Hz]")
+            ax.set_ylabel('PSD [A^2/Hz]')
+            title = "PSDs for Type {}".format(nType)
+            plt.title(title)
+    qty.setActive(True)
+
 
 def PlotsParams(GrBase, arguments, **kwargs):
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
@@ -149,6 +193,30 @@ def main():
          }
     ]
 
+    DataSelectionConfig2 = [
+        {'Param': 'Ud0',  # Parameter to evaluate
+         'Range': (200e-3, 500e-3),  # Range of allowed values, (Min, Max)
+         'Name': 'UD0y', },
+        {'Param': 'GMV',  # Parameter to evaluate
+         'Range': (1e-4, 10e-3),  # Range of allowed values, (Min, Max)
+         'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
+                     'Vds': None,
+                     'Ud0Norm': True,
+                     },
+         'Name': 'GMVy'},
+
+        {'Param': 'Vrms',  # Parameter to evaluate
+         'ParArgs': {
+             'Vgs': -0.1,  # Bias point to evaluate
+             'Vds': None,
+             'Ud0Norm': True,
+             'NFmin': 10,
+             'NFmax': 1000,
+         },
+         'Range': (5e-6, 60e-6),  # Range of allowed values, (Min, Max)
+         }
+    ]
+
     Conditions1 = {'Wafers.Name = ': Wafers1,
                    'Devices.Name != ': ('B12708W2-M6',),
                    'Devices.Name  != ': ('B12142W15-DUT',),
@@ -182,6 +250,12 @@ def main():
                'Table': CharTable,
                'Last': True,
                'DataSelectionConfig': DataSelectionConfig
+               }
+
+    GrBase4 = {'Conditions': Conditions1,
+               'Table': CharTable,
+               'Last': True,
+               'DataSelectionConfig': DataSelectionConfig2
                }
 
     # PLOT GLOBALS ####################################################################
@@ -250,22 +324,24 @@ def main():
         'xlabel': "Wafers",
         'remove50Hz': True,
     }
-
+    kwargs3 = {
+        'remove50Hz': True
+    }
     # PLOTS ####################################################################
+    PlotsPSDperType(GrBase4, **kwargs3)
     # PlotsParams(GrBase3, **kwargs2)
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
 
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPerTypes(GrBase2, **kwargs2)
-    PlotsPerTypes(GrBase3, **kwargs2)
+    #PlotsPerTypes(GrBase3, **kwargs2)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
 #
 
-# qty.setActive(False)
 main()
 plt.show()
 #os.system("read")
