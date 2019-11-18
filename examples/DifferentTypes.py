@@ -5,7 +5,10 @@
 @author: dragc
 
 """
+import os
+
 import matplotlib.pyplot as plt
+import numpy as np
 import quantities as pq
 from matplotlib.patches import Patch
 
@@ -14,6 +17,7 @@ import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.SearchFunctions as s
 from PyGFETdb import PlotFunctions as plot
 from PyGFETdb import qty, multithrds, Multiprocessing as mp
+from PyGFETdb.NoiseModel import Fnoise
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -32,20 +36,12 @@ def PlotsPSDperType(GrBase, **kwargs):
         'Fpsd': {
             'Param': 'Fpsd',
             'Vgs': -0.1,
-            'Ud0Norm': True,
-            'yscale': 'log',
-            'NFmin': 10,
-            'NFmax': 1000,
         },
         'Vgs': {
             'Param': 'Vgs',
-            'NFmin': 10,
-            'NFmax': 1000,
         },
         'Vds': {
             'Param': 'Vds',
-            'NFmin': 10,
-            'NFmax': 1000,
         }
     }
     qty.setActive(False)
@@ -55,18 +51,37 @@ def PlotsPSDperType(GrBase, **kwargs):
         Vds = ResultsParams[nWf].get('Vds')
         Vgs = ResultsParams[nWf].get('Vgs')
         for nType, vType in Fpsd.items():
-            Fpsd = vType[0:75]
-            arguments2 = {'PSD': {
-                'Param': 'PSD',
-                'Vds': Vds[nType][0][0],
-                'Vgs': Vgs[nType],
-                'yscale': 'log', }}
+            arguments2 = {
+                'PSD': {
+                    'Param': 'PSD',
+                    'Vds': Vds[nType][0][0],
+                    'Vgs': Vgs[nType],
+                },
+                'NoA': {'Param': 'NoA'},
+                'NoB': {'Param': 'NoB'},
+            }
             grPSD, rPSD = s.DBSearchPerWaferAndType(GrBase, arguments2, **kwargs)
+
             PSD = rPSD[nWf]['PSD'][nType]
+            NoA = np.array(rPSD[nWf]['NoA'][nType])
+            NoB = np.array(rPSD[nWf]['NoB'][nType])
+
+            Fpsd = vType[0:len(PSD)]
+            Fpsd2 = np.array(Fpsd).reshape((1, len(PSD)))
+            NoA = np.mean(NoA.transpose(), 1)
+            NoA = NoA.reshape((1, NoA.size))
+            NoB = np.mean(NoB.transpose(), 1)
+            NoB = NoB.reshape((1, NoB.size))
+
+            noise = Fnoise(Fpsd2, NoA[:, len(PSD)], NoB[:, len(PSD)])
+
             fig, ax = plt.subplots()
-            ax.loglog(Fpsd, PSD, '--')
+            plot.PlotMeanStd(Fpsd, PSD, ax, xscale='log', yscale='log')
+
+            ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
             ax.set_xlabel("Frequency [Hz]")
             ax.set_ylabel('PSD [A^2/Hz]')
+
             title = "PSDs for Type {}".format(nType)
             plt.title(title)
     qty.setActive(True)
@@ -325,7 +340,7 @@ def main():
         'remove50Hz': True,
     }
     kwargs3 = {
-        'remove50Hz': True
+        'remove50Hz': True,
     }
     # PLOTS ####################################################################
     PlotsPSDperType(GrBase4, **kwargs3)
@@ -344,7 +359,7 @@ def main():
 
 main()
 plt.show()
-#os.system("read")
+os.system("read")
 #
 #
 #

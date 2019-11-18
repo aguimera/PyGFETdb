@@ -350,3 +350,45 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
             work.append(((np.array(cWf)).size / total) * 100)
         _BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% {}]".format(perType), title, **kwargs)
+
+
+def PlotMeanStd(Valx, Valy, Ax=None,
+                Color='r',
+                PlotStd=True,
+                PlotOverlap=False,
+                label=None,
+                **kwargs):
+    scilimits = (-2, 2)
+
+    if Ax is None:
+        fig, Ax = plt.subplots()
+
+    if PlotOverlap:
+        if Valy is not None:
+            Ax.plot(Valx, Valy, color=Color, alpha=0.2)
+
+    Valy = np.array(Valy)
+    if Valy is not None and Valy.size:
+        avg = np.mean(Valy, axis=1)
+        std = np.std(Valy, axis=1)
+        Ax.plot(Valx, avg, color=Color, label=label)
+        if PlotStd:
+            Ax.fill_between(Valx, avg + std, avg - std,
+                            color=Color,
+                            linewidth=0.0,
+                            alpha=0.3)
+
+    if 'xscale' in list(kwargs.keys()):
+        Ax.set_xscale(kwargs['xscale'])
+    else:
+        Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
+
+    if 'yscale' in list(kwargs.keys()):
+        Ax.set_yscale(kwargs['yscale'])
+    else:
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
+
+    if 'yscale' in list(kwargs.keys()):
+        Ax.set_yscale(kwargs['yscale'])
+    else:
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
