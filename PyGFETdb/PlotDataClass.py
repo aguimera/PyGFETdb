@@ -19,7 +19,7 @@ from scipy.interpolate import interp1d
 
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
-from PyGFETdb.GlobalFunctions import process50Hz as process
+from PyGFETdb.GlobalFunctions import processFreqs as process
 
 
 class MyCycle():

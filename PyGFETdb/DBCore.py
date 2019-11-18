@@ -14,7 +14,7 @@ import pymysql
 
 from PyGFETdb import multithrds, Thread
 from PyGFETdb.DB import *
-from PyGFETdb.GlobalFunctions import process50Hz
+from PyGFETdb.GlobalFunctions import processFreqs as process
 
 
 class _PyFETdb(object):
@@ -646,17 +646,17 @@ class PyFETdb(_PyFETdb):
         Thread.lock.release()
         return ret
 
-    def _processPSD(self, Dict, process=False):
-        if process:
+    def _processPSD(self, Dict, remove50Hz=False):
+        if remove50Hz:
             res = []
             for kdict, ndict in Dict.items():
                 for i, item in enumerate(ndict):
-                    res.append(process50Hz(item, process))
+                    res.append(process(item, remove50Hz))
             res = np.array(res)
             Dict.update({kdict: res})
 
     def _processFPSD(self, dbFPsd, remove50Hz=False):
-        ret = process50Hz(dbFPsd, remove50Hz)
+        ret = process(dbFPsd, remove50Hz)
         return ret
 
     def _DecodeData(self, DataF, remove50Hz=False):

@@ -120,12 +120,24 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
 ###############################################################################
 #####
 ###############################################################################
-def InterpolatePSD (DevACVals, Points=100):
-                
+def InterpolatePSD(DevACVals, Points=100, Process50Hz=False):
+    """
+        ** Interpolates the PSD **
+
+    :param DevACVals: Data to interpolate
+    :param Points: Number of points to interpolate
+    :param Process50Hz: Remove noise on 50Hz
+    :return: None
+    """
     for ich,Ch in enumerate(sorted(DevACVals)):
         ch = DevACVals[Ch]
-            
-        Flin = ch['Fpsd'][1:]
+
+        Flin = ch['Fpsd']
+
+        fmin = 1 + int(len(Flin) / (100 * 50 * 3))  # remove the 3 first frequencies sampled
+        fmax = len(Flin) - int((len(Flin) - fmin) * 80 / 100)  # remove the 80% higher frequencies sampled
+
+        Flin = ch['Fpsd'][fmin:fmax]
         Flog = np.logspace(np.log10(Flin[0]),
                            np.log10(Flin[-1]),Points)    
         
@@ -134,16 +146,16 @@ def InterpolatePSD (DevACVals, Points=100):
         ch['Fpsd'] = Flog
 
         for Vds in ch['PSD']:
-            PSDlin = ch['PSD'][Vds][:,1:]
+            PSDlin = ch['PSD'][Vds][:, fmin:fmax]
             psd = interpolate.interp1d(Flin,PSDlin)
             temp = psd(Flog)
             r = []
             for i, item in enumerate(temp):
-                r.append(g.process50Hz(item, True))
+                r.append(g.process50Hz(item, Process50Hz))
             temp = np.array(r)
             ch['PSD'][Vds] = temp
 
-        ch['Fpsd'] = g.process50Hz(Flog, True)
+        ch['Fpsd'] = g.process50Hz(Flog, Process50Hz)
         DevACVals[Ch] = ch
 
 ###############################################################################

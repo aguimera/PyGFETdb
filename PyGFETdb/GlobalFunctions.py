@@ -82,11 +82,48 @@ def process50Hz(Array, process):
         # remove 50Hz
         for i in range(1, 2):  # To widen the effect increase the 2
             Array = remove(Array, 48)
+    return Array
+
+
+def processBelow1Hz(Array, process):
+    """
+        **Removes the frequencies below 1Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequencies below 1Hz
+    """
+    if process:
         #  remove below 1Hz
         for i in range(1, 15):  # To widen the effect increase the 15
             Array = remove(Array, 0)
-        # remove the highest frequencies
-        for i in range(1, 22):  # To widen the effect increase the 11
-            Array = remove(Array, Array.size - 1)
+    return Array
 
+
+def processHiFreqs(Array, process):
+    """
+        **Removes the higher frequencies**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the higher frequencies
+    """
+    if process:
+        # remove the highest frequencies
+        for i in range(1, 22):  # To widen the effect increase the 22
+            Array = remove(Array, Array.size - 1)
+    return Array
+
+
+def processFreqs(Array, process):
+    """
+            **Removes all the unwanted frequencies**
+
+        :param Array: array of frequencies
+        :param process: bool that activates the function
+        :return: the array without the unwanted frequencies
+        """
+    Array = process50Hz(Array, process)
+    Array = processBelow1Hz(Array, process)
+    Array = processHiFreqs(Array, process)
     return Array
