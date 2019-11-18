@@ -14,20 +14,20 @@ import quantities as pq
 
 
 class QuantitySupport(object):
-    _DefaultUnits = {'Vds': pq.V,
-                    'Ud0': pq.V,
-                     # 'PSD': pq.A ** 2 / pq.Hz,
-                    'Fgm': pq.S,
+    __DefaultUnits = {'Vds': pq.V,
+                      'Ud0': pq.V,
+                      # 'PSD': pq.A ** 2 / pq.Hz,
+                      'Fgm': pq.S,
                      'GM': pq.S,
                      'GMV': pq.S / pq.V,
-                    'Vgs': pq.V,
-                     # 'Fpsd': pq.Hz,
-                    'Ig': pq.A,
+                      'Vgs': pq.V,
+                      # 'Fpsd': pq.Hz,
+                      'Ig': pq.A,
                      'Irms': pq.A,
                      'Vrms': pq.V,
-                    'Ids': pq.A,
-                    'Rds': pq.ohm
-                     }
+                      'Ids': pq.A,
+                      'Rds': pq.ohm
+                      }
     """
     Dictionary with the association between PlotParameters and Units
     """
@@ -70,7 +70,8 @@ class QuantitySupport(object):
         :param key: name of the parameter
         :return: the default units for the parameter
         """
-        return self._DefaultUnits.get(key)
+        if key is not 'PSD' and key is not 'Fpsd':
+            return self.__DefaultUnits.get(key)
 
     def createDefaultQuantity(self, key, value):
         """

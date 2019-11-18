@@ -191,6 +191,8 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     if Data is None:
         return Vals
 
+    ret = []
+
     kwargs.update({'Param': Param})
 
     for Trtn, Datas in Data.items():
@@ -213,10 +215,16 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
                     try:
                         Vals = np.hstack(((Vals), Val)) if Vals.size else Val
                     except ValueError:
-                        print(sys.exc_info())
+                        # print(sys.exc_info())
+                        ret.append(Vals)
+                        Vals = qty.createQuantityList()
+                        Vals = qty.appendQuantity(Vals, Val)
                         # raise ArithmeticError # FIXME:
 
-    return Vals
+    if len(ret) > 1:
+        return ret
+    else:
+        return Vals
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):

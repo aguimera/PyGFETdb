@@ -39,28 +39,16 @@ def PlotsPSDperType(GrBase, **kwargs):
     :return: None
     """
     arguments = {
-        'Fpsd': {
-            'Param': 'Fpsd',
-        },
-        'Vds': {
-            'Param': 'Vds',
-        }
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
     }
-    # qty.setActive(False)
     GrTypes, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
+    rPSD = ResultsParams
     for nWf, vWf in GrTypes.items():
         Fpsd = ResultsParams[nWf].get('Fpsd')
-        Vds = ResultsParams[nWf].get('Vds')
         for nType, vType in Fpsd.items():
-            arguments2 = {
-                'PSD': {
-                    'Param': 'PSD',
-                    'Vds': [Vds[nType][0][0]],
-                },
-                'NoA': {'Param': 'NoA'},
-                'NoB': {'Param': 'NoB'},
-            }
-            grPSD, rPSD = s.DBSearchPerWaferAndType(GrBase, arguments2, **kwargs)
 
             PSD = rPSD[nWf]['PSD'][nType]
             NoA = np.array(rPSD[nWf]['NoA'][nType])
@@ -68,6 +56,7 @@ def PlotsPSDperType(GrBase, **kwargs):
 
             Fpsd = vType[0:len(PSD)]
             Fpsd2 = np.array(Fpsd).reshape((1, len(PSD)))
+
             NoA = np.mean(NoA.transpose(), 1)
             NoA = NoA.reshape((1, NoA.size))
             NoB = np.mean(NoB.transpose(), 1)
@@ -84,7 +73,6 @@ def PlotsPSDperType(GrBase, **kwargs):
 
             title = "PSDs for Type {}".format(nType)
             plt.title(title)
-    #qty.setActive(True)
 
 
 def PlotsParams(GrBase, arguments, **kwargs):
@@ -345,13 +333,13 @@ def main():
     # PLOTS ####################################################################
     # PlotsParams(GrBase3, **kwargs2)
 
-    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
-    # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
+    # # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
+    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
 
-    # PlotsPerTypes(GrBase1, **kwargs2)
-    # PlotsPerTypes(GrBase2, **kwargs2)
-    PlotsPerTypes(GrBase3, **kwargs2)
+    # # PlotsPerTypes(GrBase1, **kwargs2)
+    # # PlotsPerTypes(GrBase2, **kwargs2)
+    # PlotsPerTypes(GrBase3, **kwargs2)
 
     PlotsPSDperType(GrBase4, **kwargs3)
 
