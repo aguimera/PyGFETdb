@@ -10,5 +10,4 @@ numpy
 matplotlib
 scipy
 sphinx_rtd_theme
-PyGFETdb
 
