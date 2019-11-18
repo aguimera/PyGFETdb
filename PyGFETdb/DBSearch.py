@@ -125,7 +125,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
             {'Table.Field <sql operator>' : iterable type of values}
 
-        - Example:
+            - Example:
 
                 {'Wafers.Name = ':(B10803W17, B10803W11),'CharTable.IsOK > ':(0,)}
 
