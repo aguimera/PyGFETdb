@@ -119,7 +119,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         This function returns data which meets with "Conditions" dictionary for sql
         select query constructor.
 
-    :param Conditions: dictionary, conditions to construct the sql select query.
+        :param Conditions: dictionary, conditions to construct the sql select query.
 
         The dictionary should follow this structure:
 
@@ -129,7 +129,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
                 {'Wafers.Name = ':(B10803W17, B10803W11),'CharTable.IsOK > ':(0,)}
 
-    :param Table: string, optional.
+        :param Table: string, optional.
 
         Posible values 'ACcharacts' or 'DCcharacts'.
 
@@ -138,17 +138,17 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         The characterization table of Conditions dictionary can be indicated
         as 'CharTable'. In that case 'CharTable' will be replaced by Table value.
 
-    :param Last: boolean, optional.
+        :param Last: boolean, optional.
 
         If True (default value) just the last measured data for each transistor is returned.
 
         If False, all measured data is returned
 
-    :param Last: boolean, optional.
+        :param Last: boolean, optional.
 
         If True (default value) the gate measured data is also obtained
 
-    :param OutilerFilter: dictionary, optional.  (default 'None'),
+        :param OutilerFilter: dictionary, optional.  (default 'None'),
 
         If defined, dictionary to perform a statistical pre-evaluation of the
         data.
@@ -166,14 +166,14 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
                 'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
 
-    :param remove50Hz: bool to activate the removal of frequency 50Hz
+        :param remove50Hz: bool to activate the removal of frequency 50Hz
 
 
-    :return: A Dictionary with the data arranged as follows:
+        :return: A Dictionary with the data arranged as follows:
 
             {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
 
-    :return: A List of transistors
+        :return: A List of transistors
 
 
     """
