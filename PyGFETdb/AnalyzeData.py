@@ -15,11 +15,9 @@ import sys
 import numpy as np
 from scipy import interpolate
 
+import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
-
-
-# import PyGFETdb.GlobalFunctions as global
 
 
 ###############################################################################
@@ -138,8 +136,16 @@ def InterpolatePSD (DevACVals, Points=100):
         for Vds in ch['PSD']:
             PSDlin = ch['PSD'][Vds][:,1:]
             psd = interpolate.interp1d(Flin,PSDlin)
-            ch['PSD'][Vds] = psd(Flog)            
-            
+            temp = psd(Flog)
+            r = []
+            for i, item in enumerate(temp):
+                r.append(g.process50Hz(item, True))
+            temp = np.array(r)
+            ch['PSD'][Vds] = temp
+
+        ch['Fpsd'] = g.process50Hz(Flog, True)
+        DevACVals[Ch] = ch
+
 ###############################################################################
 #####
 ###############################################################################

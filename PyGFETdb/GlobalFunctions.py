@@ -53,7 +53,7 @@ def DataClassification(GrWs, arguments, ResultsParams):
     return clssfResults
 
 
-def remove(Valx: np.array, index):
+def remove(Valx, index):
     """
         **Removes the value at the index specified from an array**
 
@@ -61,13 +61,16 @@ def remove(Valx: np.array, index):
     :param index: index to remove the value
     :return: the array without the value at the index specified
     """
-    Valx: list = Valx.tolist()
-    Valx.remove(Valx[index])
-    Valx: np.ndarray = np.array(Valx)
+    if type(Valx) is list:
+        Valx.remove(Valx[index])
+    else:
+        Valx = Valx.tolist()
+        Valx.remove(Valx[index])
+        Valx = np.array(Valx)
     return Valx
 
 
-def process50Hz(Array, process: bool):
+def process50Hz(Array, process):
     """
         **Removes the frequency 50Hz**
 

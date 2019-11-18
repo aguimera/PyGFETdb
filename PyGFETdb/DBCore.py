@@ -17,7 +17,7 @@ from PyGFETdb.DB import *
 from PyGFETdb.GlobalFunctions import process50Hz
 
 
-class _PyFETdb():
+class _PyFETdb(object):
     PrintQuery = False
 
     def __init__(self, host=None, user=None, passwd=None, db=None, Update=True):
@@ -627,7 +627,7 @@ class PyFETdb(_PyFETdb):
         :param db:
         :param Update:
         """
-        super().__init__(host, user, passwd, db, Update)
+        super(PyFETdb, self).__init__(host, user, passwd, db, Update)
         if type(Thread) is None: pass
         if multithrds is None: pass
 
@@ -642,7 +642,7 @@ class PyFETdb(_PyFETdb):
         :return:
         """
         Thread.lock.acquire()
-        ret = super()._execute(query, values, LastRowID)
+        ret = super(PyFETdb, self)._execute(query, values, LastRowID)
         Thread.lock.release()
         return ret
 
@@ -660,12 +660,12 @@ class PyFETdb(_PyFETdb):
         return ret
 
     def _DecodeData(self, DataF, remove50Hz=False):
-        res = super()._DecodeData(DataF)
+        res = super(PyFETdb, self)._DecodeData(DataF)
         k = res.get('PSD')
         if k is not None:
             self._processPSD(k, remove50Hz)
         k = res.get('Fpsd')
         if k is not None:
-            a: np.ndarray = self._processFPSD(k, remove50Hz)
+            a = self._processFPSD(k, remove50Hz)
             res.update({'Fpsd': a})
         return res

@@ -157,7 +157,7 @@ class QuantitySupport(object):
                 ret = pq.Quantity(value)
         return ret
 
-    def getConsistentQuantityFromList(self, listQty: list):
+    def getConsistentQuantityFromList(self, listQty):
         """
 
         :param listQty:
