@@ -134,8 +134,9 @@ def InterpolatePSD(DevACVals, Points=100, Process50Hz=False):
 
         Flin = ch['Fpsd']
 
-        fmin = 1 + int(len(Flin) / (100 * 50 * 3))  # remove the 3 first frequencies sampled
-        fmax = len(Flin) - int((len(Flin) - fmin) * 80 / 100)  # remove the 80% higher frequencies sampled
+        fmin = 1 + int(len(Flin) / (100 * 50 * 3))  # remove the 4 first frequencies sampled
+        fmax = len(Flin) - int((len(Flin) - fmin) * 80 / 100)
+        # remove the 80% higher frequencies of the remainder samples
 
         Flin = ch['Fpsd'][fmin:fmax]
         Flog = np.logspace(np.log10(Flin[0]),
