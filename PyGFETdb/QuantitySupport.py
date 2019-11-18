@@ -21,7 +21,7 @@ class QuantitySupport(object):
                      'GM': pq.S,
                      'GMV': pq.S / pq.V,
                     'Vgs': pq.V,
-                    'Fpsd': pq.Hz,
+                     # 'Fpsd': pq.Hz,
                     'Ig': pq.A,
                      'Irms': pq.A,
                      'Vrms': pq.V,

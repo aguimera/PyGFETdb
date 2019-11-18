@@ -16,7 +16,7 @@ import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.SearchFunctions as s
 from PyGFETdb import PlotFunctions as plot
-from PyGFETdb import qty, multithrds, Multiprocessing as mp
+from PyGFETdb import multithrds, Multiprocessing as mp
 from PyGFETdb.NoiseModel import Fnoise
 
 # MULTIPROCESSING INITIALIZATION #################################################
@@ -46,7 +46,7 @@ def PlotsPSDperType(GrBase, **kwargs):
             'Param': 'Vds',
         }
     }
-    qty.setActive(False)
+    # qty.setActive(False)
     GrTypes, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
     for nWf, vWf in GrTypes.items():
         Fpsd = ResultsParams[nWf].get('Fpsd')
@@ -55,7 +55,7 @@ def PlotsPSDperType(GrBase, **kwargs):
             arguments2 = {
                 'PSD': {
                     'Param': 'PSD',
-                    'Vds': Vds[nType][0][0],
+                    'Vds': [Vds[nType][0][0]],
                 },
                 'NoA': {'Param': 'NoA'},
                 'NoB': {'Param': 'NoB'},
@@ -84,7 +84,7 @@ def PlotsPSDperType(GrBase, **kwargs):
 
             title = "PSDs for Type {}".format(nType)
             plt.title(title)
-    qty.setActive(True)
+    #qty.setActive(True)
 
 
 def PlotsParams(GrBase, arguments, **kwargs):
@@ -347,11 +347,11 @@ def main():
 
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
 
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPerTypes(GrBase2, **kwargs2)
-    #PlotsPerTypes(GrBase3, **kwargs2)
+    PlotsPerTypes(GrBase3, **kwargs2)
 
     PlotsPSDperType(GrBase4, **kwargs3)
 

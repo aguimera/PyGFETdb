@@ -209,16 +209,14 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
                 if type(Val) is pq.Quantity:
                     Vals = qty.appendQuantity(Vals, Val)
                 else:
+                    Vals = np.array(Vals)
                     try:
                         Vals = np.hstack(((Vals), Val)) if Vals.size else Val
                     except ValueError:
                         print(sys.exc_info())
                         # raise ArithmeticError # FIXME:
 
-    if not qty.isActive():  # Quantities support
-        return Vals
-    else:
-        return [Vals]
+    return Vals
 
 
 def SearchAndGetParam(Groups, Plot=True, Boxplot=False, ParamUnits=None, **kwargs):
