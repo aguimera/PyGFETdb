@@ -16,7 +16,7 @@ import quantities as pq
 class QuantitySupport(object):
     _DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
-                    'PSD': pq.A ** 2 / pq.Hz,
+                     # 'PSD': pq.A ** 2 / pq.Hz,
                     'Fgm': pq.S,
                      'GM': pq.S,
                      'GMV': pq.S / pq.V,
@@ -197,7 +197,7 @@ class QuantitySupport(object):
             else:
                 Dat = quantity
             for item in Dat:
-                if type(item) is pq.Quantity and item.size > 1 or type(item) is np.ndarray and item.size > 0:
+                if (type(item) is pq.Quantity and item.size > 1) or (type(item) is np.ndarray and item.size > 0):
                     if len(item) > 0:
                         for item2 in item:
                             tvals.append(item2)

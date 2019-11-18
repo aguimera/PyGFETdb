@@ -41,10 +41,6 @@ def PlotsPSDperType(GrBase, **kwargs):
     arguments = {
         'Fpsd': {
             'Param': 'Fpsd',
-            'Vgs': -0.1,
-        },
-        'Vgs': {
-            'Param': 'Vgs',
         },
         'Vds': {
             'Param': 'Vds',
@@ -55,13 +51,11 @@ def PlotsPSDperType(GrBase, **kwargs):
     for nWf, vWf in GrTypes.items():
         Fpsd = ResultsParams[nWf].get('Fpsd')
         Vds = ResultsParams[nWf].get('Vds')
-        Vgs = ResultsParams[nWf].get('Vgs')
         for nType, vType in Fpsd.items():
             arguments2 = {
                 'PSD': {
                     'Param': 'PSD',
                     'Vds': Vds[nType][0][0],
-                    'Vgs': Vgs[nType],
                 },
                 'NoA': {'Param': 'NoA'},
                 'NoB': {'Param': 'NoB'},
@@ -353,11 +347,11 @@ def main():
 
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
 
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPerTypes(GrBase2, **kwargs2)
-    PlotsPerTypes(GrBase3, **kwargs2)
+    #PlotsPerTypes(GrBase3, **kwargs2)
 
     PlotsPSDperType(GrBase4, **kwargs3)
 
