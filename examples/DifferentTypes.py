@@ -32,6 +32,12 @@ else:
 ############################
 
 def PlotsPSDperType(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
     arguments = {
         'Fpsd': {
             'Param': 'Fpsd',
@@ -343,15 +349,18 @@ def main():
         'remove50Hz': True,
     }
     # PLOTS ####################################################################
-    PlotsPSDperType(GrBase4, **kwargs3)
     # PlotsParams(GrBase3, **kwargs2)
+
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
 
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPerTypes(GrBase2, **kwargs2)
-    #PlotsPerTypes(GrBase3, **kwargs2)
+    PlotsPerTypes(GrBase3, **kwargs2)
+
+    PlotsPSDperType(GrBase4, **kwargs3)
+
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
