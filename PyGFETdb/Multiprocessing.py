@@ -5,7 +5,6 @@
 
 """
 
-import gc
 import itertools
 import sys
 
@@ -147,7 +146,7 @@ def SearchDB_MP(GrWfs, **kwargs):
     :return: The results of the search in the database
     """
     ResultsDB = {}
-    thread = Thread.MultiProcess(DbSe)
+    thread = Thread.MultiProcess(DbSe, 50)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
@@ -171,8 +170,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         else:
             ret = thread.getResults(Wfn)[Wfn]
             ResultsDB[Wfn] = processGetFromDB(ret)[0]
-
-    gc.collect()
+    del thread
     return ResultsDB
 
 
@@ -186,7 +184,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
     :param kwargs:
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
-    thread = Thread.MultiProcess(DbAn)
+    thread = Thread.MultiProcess(DbAn, 15)
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
@@ -217,10 +215,8 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
             else:
                 key = str(karg + ' ' + Wfn)
                 res[key] = thread.getResults(key)
-
+    del thread
     Results = processGetParams_MP(GrWfs, res, arguments)
-    # """
-    gc.collect()
     return Results
 
 
@@ -288,7 +284,7 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
     print('******* RESULTS OF THE ANALYSIS **********************************************')
     print('******************************************************************************')
     print(' ')
-    thread = Thread.MultiProcess(analysis)
+    thread = Thread.MultiProcess(analysis, 5)
 
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
@@ -327,5 +323,5 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
             r = thread.getResults(key)
             [noise, ok, perfect, grad, gradnoise] = r[key][0]
             results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, gradnoise]
-    gc.collect()
+    del thread
     return results

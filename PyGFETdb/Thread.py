@@ -4,6 +4,7 @@
 @author: dragc
 
 """
+import gc
 import random
 from multiprocessing import pool, Lock
 
@@ -11,14 +12,14 @@ from PyGFETdb import multithrds
 
 
 class Thread(pool.ThreadPool):
-    def __init__(self, package, processes=60):
+    def __init__(self, package, processes=10):
         """
 
         :param package: Module where the function to process is
 
         """
 
-        pool.ThreadPool.__init__(self, processes)
+        super(Thread, self).__init__(processes)
         self.pool = self
         self.parent = package
         self._NUMTHREADS = 10000000
@@ -66,6 +67,10 @@ class Thread(pool.ThreadPool):
 
     def __del__(self):
         del self._rets
+        self.pool.close()
+        self.pool.join()
+        self.pool.terminate()
+        gc.collect()
 
     def getResults(self):
         """
@@ -73,9 +78,6 @@ class Thread(pool.ThreadPool):
 
         :return: A dict of results
         """
-        self.pool.close()
-        self.pool.join()
-        self.pool.terminate()
         return self._rets
 
     def addResult(self, result):
@@ -106,13 +108,14 @@ lock = Lock()
 
 
 class MultiProcess():
-    def __init__(self, klass, processes=500):
+    def __init__(self, klass, processes=None):
         self.pool = Thread(klass, processes)
         self.tasks = {}
 
     def __del__(self):
         del self.pool
         del self.tasks
+        gc.collect()
 
     def initcall(self, key, klass):
         """

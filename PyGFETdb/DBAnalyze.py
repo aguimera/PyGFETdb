@@ -621,32 +621,32 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
 
     ret = []
 
-    kwargs.update({'Param': Param})
+    thread = Thread.MultiProcess(pData.DataCharAC, 10)
+    kwargs.update({'Param': Param, 'Vds': Vds, 'Vgs': Vgs, 'Ud0Norm': Ud0Norm})
     results = {}
     for Trtn, Datas in Data.items():
         results[Trtn] = {}
-        thread = Thread.Thread(pData.DataCharAC)
+        key = thread.initcall(Thread.key(), pData.DataCharAC)
         for Dat in Datas:
             args = {'args': {'self': Dat}}
             args.update(kwargs)
-            thread.call('Get' + Param, args, **args)
-        results[Trtn] = thread.getResults()
-    for Trtn, vTrtn in results.items():
-        for Val in vTrtn:
-            if Val is not None:
-                if type(Val) is pq.Quantity:
+            thread.call(key, pData.DataCharAC, 'Get' + Param, args, **args)
+        results[Trtn] = thread.getResults(key)[key][0]
+    for Trtn, Val in results.items():
+        if Val is not None:
+            if type(Val) is pq.Quantity:
+                Vals = qty.appendQuantity(Vals, Val)
+            else:
+                Vals = np.array(Vals)
+                try:
+                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+                except ValueError:
+                    # print(sys.exc_info())
+                    ret.append(Vals)
+                    Vals = qty.createQuantityList()
                     Vals = qty.appendQuantity(Vals, Val)
-                else:
-                    Vals = np.array(Vals)
-                    try:
-                        Vals = np.hstack(((Vals), Val)) if Vals.size else Val
-                    except ValueError:
-                        # print(sys.exc_info())
-                        ret.append(Vals)
-                        Vals = qty.createQuantityList()
-                        Vals = qty.appendQuantity(Vals, Val)
-                        # raise ArithmeticError # FIXME:
-
+                    # raise ArithmeticError # FIXME:
+    del thread
     if len(ret) > 1:
         return ret
     else:

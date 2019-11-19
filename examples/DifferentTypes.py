@@ -16,14 +16,6 @@ from PyGFETdb import PlotFunctions as plot, Multiprocessing as mp
 
 
 ############################
-# PLOTS PER WAFER
-###########################
-def PlotsParams(GrBase, arguments, **kwargs):
-    GrTypes, ResultsParams = search.DBSearchPerWafer(GrBase, arguments)
-    Vals = plot.PlotGroup(ResultsParams, GrTypes, arguments, **kwargs)
-    return Vals
-
-############################
 # PLOTS PER WAFER AND TYPES
 ###########################
 def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
@@ -45,7 +37,7 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel=xlabel,
                           legendTitle=legendTitle, perType=" x Wafer", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel=xlabel,
+    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel="Wafers",
                                legendTitle=legendTitle, perType="Overall", handles=handles, **kwargs)
 
 
@@ -72,7 +64,7 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
     plot.PlotPerTypeYield(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel, title="Working SGFETs x Type",
                           perType="x Type", handles=handles, **kwargs)
     # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel,
+    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, xlabel="Types",
                                title="Working SGFETs x Type",
                                perType="Overall", handles=handles, **kwargs)
 
@@ -294,7 +286,6 @@ def main():
 
     # PLOTS ####################################################################
 
-    # PlotsParams(GrBase3, **kwargs2)
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
     PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
