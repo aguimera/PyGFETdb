@@ -16,8 +16,6 @@ import quantities as pq
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
-import PyGFETdb.DataClass as pData
-import PyGFETdb.Thread as Thread
 from PyGFETdb import qty
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
 
@@ -601,53 +599,3 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
     return ContactVals
 
 
-def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-    """
-    **Multiprocessing Version of GetParam**
-
-    :param Data:
-    :param Param:
-    :param Vgs:
-    :param Vds:
-    :param Ud0Norm:
-    :param kwargs:
-    :return:
-    """
-
-    Vals = qty.createQuantityList()
-
-    if Data is None:
-        return Vals
-
-    ret = []
-
-    thread = Thread.MultiProcess(pData.DataCharAC, 10)
-    kwargs.update({'Param': Param, 'Vds': Vds, 'Vgs': Vgs, 'Ud0Norm': Ud0Norm})
-    results = {}
-    for Trtn, Datas in Data.items():
-        results[Trtn] = {}
-        key = thread.initcall(Thread.key(), pData.DataCharAC)
-        for Dat in Datas:
-            args = {'args': {'self': Dat}}
-            args.update(kwargs)
-            thread.call(key, pData.DataCharAC, 'Get' + Param, args, **args)
-        results[Trtn] = thread.getResults(key)[key][0]
-    for Trtn, Val in results.items():
-        if Val is not None:
-            if type(Val) is pq.Quantity:
-                Vals = qty.appendQuantity(Vals, Val)
-            else:
-                Vals = np.array(Vals)
-                try:
-                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
-                except ValueError:
-                    # print(sys.exc_info())
-                    ret.append(Vals)
-                    Vals = qty.createQuantityList()
-                    Vals = qty.appendQuantity(Vals, Val)
-                    # raise ArithmeticError # FIXME:
-    del thread
-    if len(ret) > 1:
-        return ret
-    else:
-        return Vals

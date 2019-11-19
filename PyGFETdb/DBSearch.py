@@ -353,3 +353,4 @@ def UpdateCharTableField(Conditions, Value,
         print('Cancelled')
 
     MyDb.db.commit()
+

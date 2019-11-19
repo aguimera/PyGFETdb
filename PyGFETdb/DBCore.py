@@ -669,3 +669,100 @@ class PyFETdb(_PyFETdb):
             a = self._processFPSD(k, remove50Hz)
             res.update({'Fpsd': a})
         return res
+
+    # FIXME:
+    def __GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
+
+        DataF = '{}.Data'.format(Table)
+        Output = ['Trts.Name',
+                  'TrtTypes.Name',
+                  'TrtTypes.Width',
+                  'TrtTypes.Length',
+                  'TrtTypes.Pass',
+                  'TrtTypes.Area',
+                  'TrtTypes.Contact',
+                  DataF,
+                  '{}.Ph'.format(Table),
+                  '{}.Solution'.format(Table),
+                  '{}.IonStrength'.format(Table),
+                  '{}.FuncStep'.format(Table),
+                  '{}.AnalyteCon'.format(Table),
+                  '{}.Comments'.format(Table)]
+
+        GidF = None
+        if GetGate:
+            if Table == 'DCcharacts':
+                GidF = 'DCcharacts.Gate_id'
+                Output.append(GidF)
+            else:
+                DCidF = 'ACcharacts.DC_id'
+                Output.append(DCidF)
+
+        Cond = {}
+        idf = '{}.id{}='.format(Table, Table)
+        Cond[idf] = []
+        for s in set(Ids):
+            Cond[idf].append(s)
+
+        thread = Thread.MultiProcess(PyFETdb)
+        key = thread.initcall(Thread.key(), PyFETdb)
+        Data = {}
+        for Trt in Trts:
+            args = {'args': {'self': self, 'Trt': Trt, 'Cond': Cond, 'Table': Table, 'Output': Output, 'Last': Last,
+                             'DataF': DataF, 'remove50Hz': remove50Hz, 'GetGate': GetGate,
+                             'GidF': GidF, 'DCidF': DCidF}}
+            thread.call(key, PyFETdb, '_getTrt', args, **args)
+
+        for Trt in Trts:
+            ret = thread.getResults(key)[key]
+            for item in ret:
+                Data.update({Trt: item})
+
+        return Data
+
+    def _getTrt(self, Trt, Cond, Table, Output, Last, DataF, remove50Hz, GetGate, GidF, DCidF):
+        Cond['Trts.Name='] = (Trt,)
+        Res = self.GetCharactInfo(Table, Cond, Output)
+        Data = {}
+        Data[Trt] = {}
+
+        if Last:
+            Re = (Res[-1],)
+        else:
+            Re = Res
+
+        for cy, re in enumerate(Re):
+            cy = 'Cy{0:03d}'.format(cy)
+            Data[Trt][cy] = self._DecodeData(re[DataF], remove50Hz=remove50Hz)
+            #                Data[Trt][cy]['Ph'] = pickle.loads(re[DataPh])
+            #                Data[Trt][cy]['FuncCond'] = pickle.loads(re[DataPh])
+
+            if GetGate:
+                idg = None
+                if GidF is None:
+                    Rows = self.MultiSelect(Table=('DCcharacts',),
+                                            Conditions={'idDCcharacts=': (re[DCidF],)},
+                                            FieldsOut=('Gate_id',))
+                    if len(Rows) > 0:
+                        idg = Rows[0][0]
+                else:
+                    idg = re[GidF]
+
+                if idg is not None:
+                    Data[Trt][cy]['Gate'] = self.GetGateFromId(idg)
+
+            for f in Output:
+                if f.endswith('Data'):
+                    continue
+                fp = f.split('.')
+                if fp[0] == 'Trts':
+                    Data[Trt][cy][fp[1]] = re[f]
+                elif fp[0] == Table:
+                    fn = Data[Trt][cy].get('Info', {})
+                    fn[fp[1]] = re[f]
+                    Data[Trt][cy]['Info'] = fn
+                else:
+                    fn = Data[Trt][cy].get(fp[0], {})
+                    fn[fp[1]] = re[f]
+                    Data[Trt][cy][fp[0]] = fn
+        return Data[Trt]

@@ -4,15 +4,14 @@
 @author: dragc
 
 """
-import gc
 import random
 from multiprocessing import pool, Lock
 
-from PyGFETdb import multithrds
+from PyGFETdb import multithrds, numprocs
 
 
 class Thread(pool.ThreadPool):
-    def __init__(self, package, processes=10):
+    def __init__(self, package, processes=numprocs):
         """
 
         :param package: Module where the function to process is
@@ -70,7 +69,6 @@ class Thread(pool.ThreadPool):
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
-        gc.collect()
 
     def getResults(self):
         """
@@ -101,6 +99,10 @@ class Thread(pool.ThreadPool):
 
         print(e)
 
+    def end(self):
+        self.pool.close()
+        self.pool.join()
+        self.pool.terminate()
 
 ##########################################################
 
@@ -108,14 +110,13 @@ lock = Lock()
 
 
 class MultiProcess():
-    def __init__(self, klass, processes=None):
+    def __init__(self, klass, processes=numprocs):
         self.pool = Thread(klass, processes)
         self.tasks = {}
 
     def __del__(self):
         del self.pool
         del self.tasks
-        gc.collect()
 
     def initcall(self, key, klass):
         """
@@ -174,6 +175,8 @@ class MultiProcess():
         ret.update({key: temp})
         return ret
 
+    def end(self):
+        self.pool.end()
 
 def key():
     """

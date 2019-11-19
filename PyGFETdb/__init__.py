@@ -5,6 +5,7 @@ Created on Tue Nov 15 17:27:23 2016
 @author: aguimera
 """
 # from PyGFETdb import QuantitySupport as quantities
+import gc
 
 import PyGFETdb.QuantitySupport as quantities
 
@@ -22,3 +23,7 @@ the method qty.setActive(False)
 multithrds = True
 
 superthreading = True
+
+numprocs = None  # None # os default
+
+gc.enable()

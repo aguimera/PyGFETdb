@@ -5,7 +5,6 @@
 @author: dragc
 
 """
-import os
 
 import matplotlib.pyplot as plt
 import quantities as pq
@@ -296,7 +295,7 @@ def main():
 main()
 
 plt.show()
-os.system("read")
+# os.system("read")
 #
 #
 #

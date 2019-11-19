@@ -9,16 +9,26 @@ import itertools
 import sys
 
 import numpy as np
+import quantities as pq
 
+import PyGFETdb
 import PyGFETdb.DBAnalyze as DbAn
+import PyGFETdb.DBCore as PyFETdb
 import PyGFETdb.DBSearch as DbSe
-from PyGFETdb import multithrds, superthreading, Thread, AnalysisFunctions as analysis
+import PyGFETdb.DataClass as pData
+from PyGFETdb import qty, multithrds, superthreading, Thread, AnalysisFunctions as analysis
+from PyGFETdb.DataClass import DataCharAC
 
 if not superthreading:
     getParam = 'GetParam'
+    getparamclass = DbAn
+    GetFromDB = 'GetFromDB'
+    getclass = DbSe
 else:
     getParam = '_GetParam'
-
+    getparamclass = ''
+    GetFromDB = '_GetFromDB'
+    getclass = ''
 
 def SearchDB(GrWfs, **kwargs):
     """
@@ -146,18 +156,24 @@ def SearchDB_MP(GrWfs, **kwargs):
     :return: The results of the search in the database
     """
     ResultsDB = {}
-    thread = Thread.MultiProcess(DbSe, 50)
+
+    if PyGFETdb.Multiprocessing.getclass == '':
+        getclass = PyGFETdb.Multiprocessing
+    else:
+        getclass = PyGFETdb.Multiprocessing.getclass
+
+    thread = Thread.MultiProcess(getclass)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 key = Wfn + ' ' + Grn
-                thread.initcall(key, DbSe)
+                thread.initcall(key, getclass)
                 kwargs.update(**Grc)
-                thread.call(key, DbSe, 'GetFromDB', {}, **kwargs)
+                thread.call(key, getclass, GetFromDB, {}, **kwargs)
         else:
             thread.initcall(Wfn, DbSe)
             kwargs.update(**Wfc)
-            thread.call(Wfn, DbSe, 'GetFromDB', {}, **kwargs)
+            thread.call(Wfn, getclass, GetFromDB, {}, **kwargs)
 
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         ResultsDB[Wfn] = {}
@@ -170,6 +186,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         else:
             ret = thread.getResults(Wfn)[Wfn]
             ResultsDB[Wfn] = processGetFromDB(ret)[0]
+    thread.end()
     del thread
     return ResultsDB
 
@@ -184,7 +201,13 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
     :param kwargs:
     :return: A dict of args of dicts of groupnames and parameter found in a previous search
     """
-    thread = Thread.MultiProcess(DbAn, 15)
+
+    if PyGFETdb.Multiprocessing.getparamclass == '':
+        getparamclass = PyGFETdb.Multiprocessing
+    else:
+        getparamclass = PyGFETdb.Multiprocessing.getparamclass
+
+    thread = Thread.MultiProcess(getparamclass)
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
@@ -193,16 +216,16 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                     if Data is not None:
                         key = str(karg + ' ' + Wfn + ' ' + Grn)
                         kargs = {'Data': Data, 'args': arg}
-                        thread.initcall(key, DbAn)
-                        thread.call(key, DbAn, getParam, kargs, **kargs)
+                        thread.initcall(key, getparamclass)
+                        thread.call(key, getparamclass, getParam, kargs, **kargs)
 
             else:
                 Data = ResultsDB.get(Wfn)
                 if Data is not None:
                     key = str(karg + ' ' + Wfn)
-                    thread.initcall(key, DbAn)
+                    thread.initcall(key, getparamclass)
                     kargs = {'Data': Data, 'args': arg}
-                    thread.call(key, DbAn, getParam, kargs, **kargs)
+                    thread.call(key, getparamclass, getParam, kargs, **kargs)
 
     # """""
     res = {}
@@ -215,6 +238,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
             else:
                 key = str(karg + ' ' + Wfn)
                 res[key] = thread.getResults(key)
+    thread.end()
     del thread
     Results = processGetParams_MP(GrWfs, res, arguments)
     return Results
@@ -258,14 +282,14 @@ def processOneArg(GrWfs, Results, Ret, karg):
                         k = result.get(key)
                         if k is not None:
                             l = list(itertools.chain(k))
-                            Ret[karg][Wfn][Grn] = l[0]
+                            Ret[karg][Wfn][Grn] = l[0][0]
         else:
             for key, result in Results.items():
                 if key.startswith(karg + ' ' + Wfn):
                     k = result.get(key)
                     if k is not None:
                         l = list(itertools.chain(k))
-                        Ret[karg][Wfn] = l[0]
+                        Ret[karg][Wfn] = l[0][0]
 
 
 def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
@@ -284,7 +308,7 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
     print('******* RESULTS OF THE ANALYSIS **********************************************')
     print('******************************************************************************')
     print(' ')
-    thread = Thread.MultiProcess(analysis, 5)
+    thread = Thread.MultiProcess(analysis)
 
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
@@ -323,5 +347,244 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
             r = thread.getResults(key)
             [noise, ok, perfect, grad, gradnoise] = r[key][0]
             results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, gradnoise]
+    thread.end()
     del thread
     return results
+
+
+def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+    """
+    **Multiprocessing Version of GetParam**
+
+    :param Data:
+    :param Param:
+    :param Vgs:
+    :param Vds:
+    :param Ud0Norm:
+    :param kwargs:
+    :return:
+    """
+
+    Vals = qty.createQuantityList()
+
+    if Data is None:
+        return Vals
+
+    ret = []
+
+    thread = Thread.MultiProcess(pData.DataCharAC)
+    kwargs.update({'Param': Param, 'Vds': Vds, 'Vgs': Vgs, 'Ud0Norm': Ud0Norm})
+    results = {}
+    for Trtn, Datas in Data.items():
+        results[Trtn] = {}
+        key = thread.initcall(Thread.key(), pData.DataCharAC)
+        for Dat in Datas:
+            args = {'args': {'self': Dat}}
+            args.update(kwargs)
+            thread.call(key, pData.DataCharAC, 'Get' + Param, args, **args)
+        results[Trtn] = thread.getResults(key)[key][0]
+    for Trtn, Val in results.items():
+        if Val is not None:
+            if type(Val) is pq.Quantity:
+                Vals = qty.appendQuantity(Vals, Val)
+            else:
+                Vals = np.array(Vals)
+                try:
+                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+                except ValueError:
+                    # print(sys.exc_info())
+                    ret.append(Vals)
+                    Vals = qty.createQuantityList()
+                    Vals = qty.appendQuantity(Vals, Val)
+                    # raise ArithmeticError # FIXME:
+    thread.end()
+    del thread
+    if len(ret) > 1:
+        return ret, results
+    else:
+        return Vals, results
+
+
+def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
+               OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
+    """
+
+        **Get data from data base**
+
+        This function returns data which meets with "Conditions" dictionary for sql
+        select query constructor.
+
+        :param Conditions: dictionary, conditions to construct the sql select query.
+
+        The dictionary should follow this structure:
+
+            {'Table.Field <sql operator>' : iterable type of values}
+
+            - Example:
+
+                {'Wafers.Name = ':(B10803W17, B10803W11),'CharTable.IsOK > ':(0,)}
+
+        :param Table: string, optional.
+
+        Posible values 'ACcharacts' or 'DCcharacts'.
+
+        The default value is 'ACcharacts'. Characterization table to get data
+
+        The characterization table of Conditions dictionary can be indicated
+        as 'CharTable'. In that case 'CharTable' will be replaced by Table value.
+
+        :param Last: boolean, optional.
+
+        If True (default value) just the last measured data for each transistor is returned.
+
+        If False, all measured data is returned
+
+        :param Last: boolean, optional.
+
+        If True (default value) the gate measured data is also obtained
+
+        :param OutilerFilter: dictionary, optional.  (default 'None'),
+
+        If defined, dictionary to perform a statistical pre-evaluation of the
+        data.
+
+        The data that are not between the p25 and p75 percentile are
+        not returned.
+
+            The dictionary should follow this structure:
+
+                {'Param':Value, --> Characterization parameter, ie. 'Ids', 'Vrms'...
+
+                'Vgs':Value,   --> Vgs evaluation point
+
+                'Vds':Value,   --> Vds evaluationd point
+
+                'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
+
+        :param remove50Hz: bool to activate the removal of frequency 50Hz
+
+
+        :return: A Dictionary with the data arranged as follows:
+
+            {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
+
+        :return: A List of transistors
+
+
+    """
+
+    # logging.basicConfig(filename=log, level=logging.DEBUG)
+
+    Conditions = DbSe.CheckConditionsCharTable(Conditions, Table)
+
+    MyDb = PyFETdb.PyFETdb()
+
+    DataD, Trts = MyDb.GetData2(Conditions=Conditions,
+                                Table=Table,
+                                Last=Last,
+                                GetGate=GetGate,
+                                remove50Hz=remove50Hz)
+
+    del (MyDb)
+    Trts = list(Trts)
+    Total = float(len(Trts))
+
+    Data = {}
+    for Trtn, Cys in DataD.items():
+        Chars = []
+        for Cyn, Dat in sorted(Cys.items()):
+            Char = DataCharAC(Dat)
+            Chars.append(Char)
+        Data[Trtn] = Chars
+
+    #    logging.debug('Getting Data from %s', Conditions)
+    print('Trts Found ->', len(Trts))
+
+    if OutilerFilter is not None:
+        #       logging.debug('Look for Outliers %s', OutilerFilter)
+        Data = DbSe.RemoveOutilers(Data, OutilerFilter)
+        Trts = Data.keys()
+        #      logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
+        print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
+
+    if DataSelectionConfig is not None:
+        Trts = {}
+        Trts['Total'] = Data.keys()
+        for DataSel in DataSelectionConfig:
+            #         logging.debug('Look for data in range %s', DataSel)
+            if 'Name' not in DataSel:
+                DataSel['Name'] = DataSel['Param']
+            Data = _DataSelection(Data, **DataSel)
+            Trts[DataSel['Name']] = Data.keys()
+        #        logging.debug('Input Trts %d Output Trts %d', Total, len(Trts))
+
+        Trts['Final'] = Data.keys()
+        for DataSel in DataSelectionConfig:
+            name = DataSel['Name']
+            v = float(len(Trts[name]))
+            if Total > 0:
+                print(name, ' Yield -> ', v / Total)
+
+    return Data, Trts
+
+
+def _DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
+                   ParArgs={'Vgs': None,
+                            'Vds': None,
+                            'Ud0Norm': False,
+                            'Units': None}):
+    rPAr, tPar = _GetParam(Data, Param, **ParArgs)
+    DataFilt = {}
+    for Trtn, Datas in tPar.items():
+        if Datas is not None and Datas.size > 0:
+            if type(Datas) is list:
+                for Val in Datas:
+                    if _checkRanges(Val, Units, Range, InSide):
+                        DataFilt.update({Trtn: Data[Trtn]})
+            else:
+                if _checkRanges(Datas, Units, Range, InSide):
+                    DataFilt.update({Trtn: Data[Trtn]})
+    return DataFilt
+
+
+def _checkRanges(Val, Units, Range, InSide):
+    # Added extra checks to make scripts compatible
+    # begin fix
+    if Val is None:
+        return
+    if type(Val) is not tuple:
+        Val = (Val)
+    # Added Quantity Support for the Range
+    if qty.isActive() and Units is not None:
+        try:
+            Range = pq.Quantity(Range, Units)
+        except TypeError as e:
+            print("Range Units Error: ", sys.exc_info())
+    # end fix
+    if InSide:
+        if Range[0] is None:
+            MinCond = False
+        else:
+            MinCond = (Val < Range[0]).any()
+
+        if Range[1] is None:
+            MaxCond = False
+        else:
+            MaxCond = (Val > Range[1]).any()
+        FinalCond = MinCond | MaxCond
+    else:
+        if Range[0] is None:
+            MinCond = True
+        else:
+            MinCond = (Val > Range[0]).any()
+
+        if Range[1] is None:
+            MaxCond = True
+        else:
+            MaxCond = (Val < Range[1]).any()
+        FinalCond = MinCond & MaxCond
+
+    if FinalCond:
+        # logging.debug('Meas Out %s %s %f', Trtn, Dat.GetTime(), Val)
+        return
+    return True
