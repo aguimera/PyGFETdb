@@ -13,8 +13,8 @@ import numpy as np
 import pymysql
 
 from PyGFETdb import multithrds, Thread
+from PyGFETdb.AnalysisFunctions import processFreqs as process
 from PyGFETdb.DB import *
-from PyGFETdb.GlobalFunctions import processFreqs as process
 
 
 class _PyFETdb(object):

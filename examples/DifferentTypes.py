@@ -11,59 +11,18 @@ import matplotlib.pyplot as plt
 import quantities as pq
 from matplotlib.patches import Patch
 
-import PyGFETdb.DBSearch as DbSe
-import PyGFETdb.GlobalFunctions as g
-import PyGFETdb.SearchFunctions as s
+import PyGFETdb.AnalysisFunctions as analysis
+import PyGFETdb.SearchFunctions as search
 from PyGFETdb import PlotFunctions as plot
-from PyGFETdb import multithrds, Multiprocessing as mp
-
-# MULTIPROCESSING INITIALIZATION #################################################
-if multithrds:
-    search = mp.SearchDB_MP
-    getparams = mp.GetParams_MP
-else:
-    search = mp.SearchDB
-    getparams = mp.GetParams
 
 
-#############################
-# PLOTS PSD
 ############################
-
-def PlotsPSDperType(GrBase, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs)
-    results = g.processPSDs(GrTypes, rPSD)
-    for nType, vType in GrTypes.items():
-        Fpsd = rPSD[nType].get('Fpsd')
-        for nWf, vWf in Fpsd.items():
-            plot.PlotPSD(results[nType][nWf][0],  # Fpsd
-                         results[nType][nWf][1],  # PSD
-                         results[nType][nWf][2],  # Fpsd2
-                         results[nType][nWf][3],  # noise
-                         results[nType][nWf][4],  # ok
-                         nType, nWf)
-
-
+# PLOTS PER WAFER
+###########################
 def PlotsParams(GrBase, arguments, **kwargs):
-    GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
-    ResultsDB = search(GrTypes)
-    argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': arguments, 'args': arguments}
-    ResultsParams = getparams(**argParams)
+    GrTypes, ResultsParams = search.DBSearchPerWafer(GrBase, arguments)
     Vals = plot.PlotGroup(ResultsParams, GrTypes, arguments, **kwargs)
     return Vals
-
 
 # END PLOTS PER WAFER ################################################################
 # """
@@ -73,9 +32,9 @@ def PlotsParams(GrBase, arguments, **kwargs):
 ###########################
 def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrWs, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
+    GrWs, ResultsParams = search.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
-    Results = g.DataClassification(GrWs, arguments, ResultsParams)
+    Results = search.DataClassification(GrWs, arguments, ResultsParams)
     handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
                     for i in range(0, len(list(GrWs.keys())))))
 
@@ -99,9 +58,9 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
 ###########################
 def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     # DATABASE SEARCH ####################################################################################
-    GrTypes, ResultsParams = s.DBSearchPerType(GrBase, arguments, **kwargs)
+    GrTypes, ResultsParams = search.DBSearchPerType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
-    Results = g.DataClassification(GrTypes, arguments, ResultsParams)
+    Results = search.DataClassification(GrTypes, arguments, ResultsParams)
     # PLOTTING ######
     handles = list((Patch(color=Colors[i], label=sorted(list(GrTypes.keys()))[i])
                     for i in range(0, len(list(GrTypes.keys())))))
@@ -120,6 +79,37 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
     plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel,
                                title="Working SGFETs x Type",
                                perType="Overall", handles=handles, **kwargs)
+
+
+#############################
+# PLOTS PSD
+############################
+
+def PlotsPSDperType(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs)
+    results = analysis.processPSDs(GrTypes, rPSD)
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        for nWf, vWf in Fpsd.items():
+            plot.PlotPSD(results[nType][nWf][0],  # Fpsd
+                         results[nType][nWf][1],  # PSD
+                         results[nType][nWf][2],  # Fpsd2
+                         results[nType][nWf][3],  # noise
+                         results[nType][nWf][4],  # ok
+                         nType, nWf)
+
 
 
 def main():
@@ -312,24 +302,16 @@ def main():
         'remove50Hz': True,
     }
     # PLOTS ####################################################################
-    # PlotsParams(GrBase3, **kwargs2)
-
-    # # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
-    # # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-
-    # # PlotsPerTypes(GrBase1, **kwargs2)
-    # # PlotsPerTypes(GrBase2, **kwargs2)
-    # PlotsPerTypes(GrBase3, **kwargs2)
-
-    PlotsPSDperType(GrBase4, **kwargs3)
-
-
+    PlotsParams(GrBase3, **kwargs2)
+    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    PlotsPerTypes(GrBase3, **kwargs2)
+    PlotsPSDperType(GrBase3, **kwargs3)
 
 # """"""""""""""""""""""""""""""""""""""""""""""
 #
 
 main()
+
 plt.show()
 os.system("read")
 #
