@@ -14,7 +14,7 @@ import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBSearch as DbSe
 from PyGFETdb import multithrds, Thread, AnalysisFunctions as analysis
 
-superthreading = False
+superthreading = True
 
 if not superthreading:
     getParam = 'GetParam'
@@ -193,7 +193,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                         key = (karg + ' ' + Wfn + ' ' + Grn)
                         kargs = {'Data': Data, 'args': arg}
                         thread.initcall(key, DbAn)
-                        thread.call(key, DbAn, 'GetParam', kargs, **kargs)
+                        thread.call(key, DbAn, getParam, kargs, **kargs)
 
             else:
                 Data = ResultsDB.get(Wfn)
@@ -201,7 +201,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                     key = karg + ' ' + Wfn
                     thread.initcall(key, DbAn)
                     kargs = {'Data': Data, 'args': arg}
-                    thread.call(key, DbAn, 'GetParam', kargs, **kargs)
+                    thread.call(key, DbAn, getParam, kargs, **kargs)
 
     # """""
     res = {}

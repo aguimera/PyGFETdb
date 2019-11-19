@@ -629,11 +629,10 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         for Dat in Datas:
             args = {'args': {'self': Dat}}
             args.update(kwargs)
-            key = str(Dat)
             thread.call('Get' + Param, args, **args)
         results[Trtn] = thread.getResults()
-    for Trtn, Datas in results.items():
-        for Val in Datas:
+    for Trtn, vTrtn in results.items():
+        for Val in vTrtn:
             if Val is not None:
                 if type(Val) is pq.Quantity:
                     Vals = qty.appendQuantity(Vals, Val)
