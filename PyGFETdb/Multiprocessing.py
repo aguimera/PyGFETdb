@@ -509,7 +509,7 @@ def _GetFromDBSuper(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
-        thread = Thread.MultiProcess(selfclass, 75)
+        thread = Thread.MultiProcess(selfclass, 250)
         key = thread.initcall(Thread.key(), selfclass)
         Trts = {}
         Trts['Total'] = Data.keys()
