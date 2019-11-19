@@ -297,7 +297,7 @@ def main():
 
 
 main()
-# plt.show()
+plt.show()
 # os.system("read")
 #
 #
