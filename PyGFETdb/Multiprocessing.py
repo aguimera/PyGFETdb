@@ -5,6 +5,7 @@
 
 """
 
+import gc
 import itertools
 import sys
 
@@ -20,6 +21,30 @@ if not superthreading:
     getParam = 'GetParam'
 else:
     getParam = '_GetParam'
+
+
+def SearchDB(GrWfs, **kwargs):
+    """
+
+    :param Group: A group of conditions
+    :return: The results of the search in the database
+    """
+    ResultsDB = {}
+    for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
+        ResultsDB[Wfn] = {}
+        if type(Wfc) is dict and Wfc.get('Conditions') is None:
+            for iGr, (Grn, Grc) in enumerate(Wfc.items()):
+                kwargs.update(**Grc)
+                Data, Trts = DbSe.GetFromDB(**kwargs)
+                if Data is not None:
+                    ResultsDB[Wfn][Grn] = dict(Data)
+        else:
+            kwargs.update(**Wfc)
+            Data, Trts = DbSe.GetFromDB(**kwargs)
+            if Data is not None:
+                ResultsDB[Wfn] = dict(Data)
+
+    return dict(ResultsDB)
 
 
 def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
@@ -52,29 +77,6 @@ def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
                         Results[karg][Wfn] = ParamData
     return processResults(Results, args)
 
-
-def SearchDB(GrWfs, **kwargs):
-    """
-
-    :param Group: A group of conditions
-    :return: The results of the search in the database
-    """
-    ResultsDB = {}
-    for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
-        ResultsDB[Wfn] = {}
-        if type(Wfc) is dict and Wfc.get('Conditions') is None:
-            for iGr, (Grn, Grc) in enumerate(Wfc.items()):
-                kwargs.update(**Grc)
-                Data, Trts = DbSe.GetFromDB(**kwargs)
-                if Data is not None:
-                    ResultsDB[Wfn][Grn] = dict(Data)
-        else:
-            kwargs.update(**Wfc)
-            Data, Trts = DbSe.GetFromDB(**kwargs)
-            if Data is not None:
-                ResultsDB[Wfn] = dict(Data)
-
-    return dict(ResultsDB)
 
 
 def processGetFromDB(results):
@@ -165,11 +167,14 @@ def SearchDB_MP(GrWfs, **kwargs):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 ResultsDB[Grn] = {}
-                key = Wfn + ' ' + Grn
-                ResultsDB[Wfn][Grn] = processGetFromDB(thread.getResults(key))[0]
+                key = str(Wfn + ' ' + Grn)
+                ret = thread.getResults(key)[key]
+                ResultsDB[Wfn][Grn] = processGetFromDB(ret)[0]
         else:
-            ResultsDB[Wfn] = processGetFromDB(thread.getResults(Wfn))[0]
+            ret = thread.getResults(Wfn)[Wfn]
+            ResultsDB[Wfn] = processGetFromDB(ret)[0]
 
+    gc.collect()
     return ResultsDB
 
 
@@ -190,7 +195,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                 for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
                     Data = ResultsDB.get(Grn)
                     if Data is not None:
-                        key = (karg + ' ' + Wfn + ' ' + Grn)
+                        key = str(karg + ' ' + Wfn + ' ' + Grn)
                         kargs = {'Data': Data, 'args': arg}
                         thread.initcall(key, DbAn)
                         thread.call(key, DbAn, getParam, kargs, **kargs)
@@ -198,7 +203,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
             else:
                 Data = ResultsDB.get(Wfn)
                 if Data is not None:
-                    key = karg + ' ' + Wfn
+                    key = str(karg + ' ' + Wfn)
                     thread.initcall(key, DbAn)
                     kargs = {'Data': Data, 'args': arg}
                     thread.call(key, DbAn, getParam, kargs, **kargs)
@@ -209,15 +214,15 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
                 for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
-                    key = (karg + ' ' + Wfn + ' ' + Grn)
+                    key = str(karg + ' ' + Wfn + ' ' + Grn)
                     res[key] = thread.getResults(key)
             else:
-                key = karg + ' ' + Wfn
+                key = str(karg + ' ' + Wfn)
                 res[key] = thread.getResults(key)
 
     Results = processGetParams_MP(GrWfs, res, arguments)
     # """
-
+    gc.collect()
     return Results
 
 
@@ -259,14 +264,14 @@ def processOneArg(GrWfs, Results, Ret, karg):
                         k = result.get(key)
                         if k is not None:
                             l = list(itertools.chain(k))
-                            Ret[karg][Wfn][Grn] = l
+                            Ret[karg][Wfn][Grn] = l[0]
         else:
             for key, result in Results.items():
                 if key.startswith(karg + ' ' + Wfn):
                     k = result.get(key)
                     if k is not None:
                         l = list(itertools.chain(k))
-                        Ret[karg][Wfn] = l
+                        Ret[karg][Wfn] = l[0]
 
 
 def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
@@ -322,7 +327,7 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
             Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
             key = keys[nType][nWf]
             r = thread.getResults(key)
-            [noise, ok, perfect, grad, gradnoise] = r[key]
+            [noise, ok, perfect, grad, gradnoise] = r[key][0]
             results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, gradnoise]
-
+    gc.collect()
     return results

@@ -11,14 +11,14 @@ from PyGFETdb import multithrds
 
 
 class Thread(pool.ThreadPool):
-    def __init__(self, package):
+    def __init__(self, package, processes=100):
         """
 
         :param package: Module where the function to process is
 
         """
 
-        pool.ThreadPool.__init__(self)
+        pool.ThreadPool.__init__(self, processes)
         self.pool = self
         self.parent = package
         self._NUMTHREADS = 10000000
@@ -65,7 +65,7 @@ class Thread(pool.ThreadPool):
         return ret
 
     def __del__(self):
-        pass
+        del self._rets
 
     def getResults(self):
         """
@@ -73,7 +73,6 @@ class Thread(pool.ThreadPool):
 
         :return: A dict of results
         """
-
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
@@ -107,9 +106,13 @@ lock = Lock()
 
 
 class MultiProcess():
-    def __init__(self, klass):
-        self.pool = {}
-        self.lock = None
+    def __init__(self, klass, processes=500):
+        self.pool = Thread(klass, processes)
+        self.tasks = {}
+
+    def __del__(self):
+        del self.pool
+        del self.tasks
 
     def initcall(self, key, klass):
         """
@@ -119,9 +122,9 @@ class MultiProcess():
         :param klass: Calls where the function to call is
         :return: None
         """
-        self.pool[key] = Thread(klass)
-        if self.lock is None:
-            self.lock = self.pool[key].lock
+        # if self.lock is None:
+        #    self.lock = self.pool.lock
+        self.tasks[key] = {}
         return key
 
     def call(self, key, klass, function, arguments, **kwargs):
@@ -138,7 +141,8 @@ class MultiProcess():
 
         res = None
         if multithrds:  # is not None:
-            ret = self.pool[key].call(function, arguments, **kwargs)
+            ret = self.pool.call(function, arguments, **kwargs)
+            self.tasks[key].update({key: ret})
             return ret
         else:
             func = getattr(klass, function)
@@ -157,13 +161,14 @@ class MultiProcess():
         :return: The results of the previous call
 
         """
-
         ret = {}
-        pool = self.pool.get(key)
-        if pool is not None:
-            res = pool.getResults()
-            for item in res:
-                ret.update({key: item})
+        temp = []
+        res = self.pool.getResults()
+        tasks = self.tasks.get(key)
+        if tasks is not None:
+            for t in tasks.values():
+                temp.append(t.get())
+        ret.update({key: temp})
         return ret
 
 
