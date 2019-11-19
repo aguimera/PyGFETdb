@@ -5,6 +5,8 @@
 @author: dragc
 
 """
+import gc
+import sys
 
 import matplotlib.pyplot as plt
 import quantities as pq
@@ -94,6 +96,7 @@ def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
 ###########################
 def main():
     plt.close('all')
+    gc.enable()
 
     Wafers1 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
@@ -284,18 +287,19 @@ def main():
     }
 
     # PLOTS ####################################################################
-
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
     PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
 
+    print('Collect->', gc.collect())
 # """"""""""""""""""""""""""""""""""""""""""""""
 # END MAIN
 
-main()
 
-plt.show()
+main()
+# plt.show()
 # os.system("read")
 #
 #
 #
+sys.exit()

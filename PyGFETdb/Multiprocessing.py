@@ -27,7 +27,7 @@ if not superthreading:
 else:
     getParam = '_GetParam'
     getparamclass = ''
-    GetFromDB = '_GetFromDB'
+    GetFromDB = '_GetFromDBSuper'
     getclass = ''
 
 def SearchDB(GrWfs, **kwargs):
@@ -405,6 +405,228 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return Vals, results
 
 
+def _GetFromDBSuper(Conditions, Table='ACcharacts', Last=True, GetGate=True,
+                    OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
+    """
+
+        **Get data from data base**
+
+        This function returns data which meets with "Conditions" dictionary for sql
+        select query constructor.
+
+        :param Conditions: dictionary, conditions to construct the sql select query.
+
+        The dictionary should follow this structure:
+
+            {'Table.Field <sql operator>' : iterable type of values}
+
+            - Example:
+
+                {'Wafers.Name = ':(B10803W17, B10803W11),'CharTable.IsOK > ':(0,)}
+
+        :param Table: string, optional.
+
+        Posible values 'ACcharacts' or 'DCcharacts'.
+
+        The default value is 'ACcharacts'. Characterization table to get data
+
+        The characterization table of Conditions dictionary can be indicated
+        as 'CharTable'. In that case 'CharTable' will be replaced by Table value.
+
+        :param Last: boolean, optional.
+
+        If True (default value) just the last measured data for each transistor is returned.
+
+        If False, all measured data is returned
+
+        :param Last: boolean, optional.
+
+        If True (default value) the gate measured data is also obtained
+
+        :param OutilerFilter: dictionary, optional.  (default 'None'),
+
+        If defined, dictionary to perform a statistical pre-evaluation of the
+        data.
+
+        The data that are not between the p25 and p75 percentile are
+        not returned.
+
+            The dictionary should follow this structure:
+
+                {'Param':Value, --> Characterization parameter, ie. 'Ids', 'Vrms'...
+
+                'Vgs':Value,   --> Vgs evaluation point
+
+                'Vds':Value,   --> Vds evaluationd point
+
+                'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
+
+        :param remove50Hz: bool to activate the removal of frequency 50Hz
+
+
+        :return: A Dictionary with the data arranged as follows:
+
+            {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
+
+        :return: A List of transistors
+
+
+    """
+    selfclass = PyGFETdb.Multiprocessing
+
+    # logging.basicConfig(filename=log, level=logging.DEBUG)
+
+    Conditions = DbSe.CheckConditionsCharTable(Conditions, Table)
+
+    MyDb = PyFETdb.PyFETdb()
+
+    DataD, Trts = MyDb.GetData2(Conditions=Conditions,
+                                Table=Table,
+                                Last=Last,
+                                GetGate=GetGate,
+                                remove50Hz=remove50Hz)
+
+    del (MyDb)
+    Trts = list(Trts)
+    Total = float(len(Trts))
+
+    Data = {}
+    for Trtn, Cys in DataD.items():
+        Chars = []
+        for Cyn, Dat in sorted(Cys.items()):
+            Char = DataCharAC(Dat)
+            Chars.append(Char)
+        Data[Trtn] = Chars
+
+    #    logging.debug('Getting Data from %s', Conditions)
+    print('Trts Found ->', len(Trts))
+
+    if OutilerFilter is not None:
+        #       logging.debug('Look for Outliers %s', OutilerFilter)
+        Data = _RemoveOutilers(Data, OutilerFilter)
+        Trts = Data.keys()
+        #      logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
+        print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
+
+    if DataSelectionConfig is not None:
+        thread = Thread.MultiProcess(selfclass, 75)
+        key = thread.initcall(Thread.key(), selfclass)
+        Trts = {}
+        Trts['Total'] = Data.keys()
+        for DataSel in DataSelectionConfig:
+            #         logging.debug('Look for data in range %s', DataSel)
+            if 'Name' not in DataSel:
+                DataSel['Name'] = DataSel['Param']
+            args = {'args': {'Data': Data}}
+            args.update(DataSel)
+            thread.call(key, selfclass, '_DataSelection', args, **args)
+
+        DataFilt = {}
+        ret = thread.getResults(key)[key]  # _DataSelection(Data, **DataSel)
+        for item in ret:
+            DataFilt.update(item)
+        Trts = DataFilt.keys()
+        Data = DataFilt
+
+    return Data, Trts
+
+
+def _DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
+                   ParArgs={'Vgs': None,
+                            'Vds': None,
+                            'Ud0Norm': False,
+                            'Units': None}):
+    rPAr, tPar = _GetParam(Data, Param, **ParArgs)
+    DataFilt = {}
+    for Trtn, Datas in tPar.items():
+        if Datas is not None and Datas.size > 0:
+            if type(Datas) is list:
+                for Val in Datas:
+                    if _checkRanges(Val, Units, Range, InSide):
+                        DataFilt.update({Trtn: Data[Trtn]})
+            else:
+                if _checkRanges(Datas, Units, Range, InSide):
+                    DataFilt.update({Trtn: Data[Trtn]})
+    return DataFilt
+
+
+def _checkRanges(Val, Units, Range, InSide):
+    # Added extra checks to make scripts compatible
+    # begin fix
+    if Val is None:
+        return
+    if type(Val) is not tuple:
+        Val = (Val)
+    # Added Quantity Support for the Range
+    if qty.isActive() and Units is not None:
+        try:
+            Range = pq.Quantity(Range, Units)
+        except TypeError as e:
+            print("Range Units Error: ", sys.exc_info())
+    # end fix
+    if InSide:
+        if Range[0] is None:
+            MinCond = False
+        else:
+            MinCond = (Val < Range[0]).any()
+
+        if Range[1] is None:
+            MaxCond = False
+        else:
+            MaxCond = (Val > Range[1]).any()
+        FinalCond = MinCond | MaxCond
+    else:
+        if Range[0] is None:
+            MinCond = True
+        else:
+            MinCond = (Val > Range[0]).any()
+
+        if Range[1] is None:
+            MaxCond = True
+        else:
+            MaxCond = (Val < Range[1]).any()
+        FinalCond = MinCond & MaxCond
+
+    if FinalCond:
+        # logging.debug('Meas Out %s %s %f', Trtn, Dat.GetTime(), Val)
+        return
+    return True
+
+
+def _RemoveOutilers(Data, OutilerFilter):
+    Vals = np.array([])
+    for Trtn, Datas in Data.items():
+        for Dat in Datas:
+            func = Dat.__getattribute__('Get' + OutilerFilter['Param'])
+            Val = func(Vgs=OutilerFilter['Vgs'],
+                       Vds=OutilerFilter['Vds'],
+                       Ud0Norm=OutilerFilter['Ud0Norm'])
+            if Val is not None:
+                Vals = np.hstack((Vals, Val)) if Vals.size else Val
+
+    p25 = np.percentile(Vals, 25)
+    p75 = np.percentile(Vals, 75)
+    lower = p25 - 1.5 * (p75 - p25)
+    upper = p75 + 1.5 * (p75 - p25)
+
+    DataFilt = {}
+    for Trtn, Datas in Data.items():
+        Chars = []
+        for Cyn, Char in enumerate(Datas):
+            func = Char.__getattribute__('Get' + OutilerFilter['Param'])
+            Val = func(Vgs=OutilerFilter['Vgs'],
+                       Vds=OutilerFilter['Vds'],
+                       Ud0Norm=OutilerFilter['Ud0Norm'])
+
+            if (Val <= lower or Val >= upper):
+                print('Outlier Removed ->', Val, Trtn, Cyn)
+            else:
+                Chars.append(Char)
+        DataFilt[Trtn] = Chars
+
+    return DataFilt
+
+
 def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
     """
@@ -497,26 +719,26 @@ def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             Chars.append(Char)
         Data[Trtn] = Chars
 
-    #    logging.debug('Getting Data from %s', Conditions)
+    # logging.debug('Getting Data from %s', Conditions)
     print('Trts Found ->', len(Trts))
 
     if OutilerFilter is not None:
-        #       logging.debug('Look for Outliers %s', OutilerFilter)
-        Data = DbSe.RemoveOutilers(Data, OutilerFilter)
+        # logging.debug('Look for Outliers %s', OutilerFilter)
+        Data = _RemoveOutilers(Data, OutilerFilter)
         Trts = Data.keys()
-        #      logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
+        # logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
         print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
         Trts = {}
         Trts['Total'] = Data.keys()
         for DataSel in DataSelectionConfig:
-            #         logging.debug('Look for data in range %s', DataSel)
+            # logging.debug('Look for data in range %s', DataSel)
             if 'Name' not in DataSel:
                 DataSel['Name'] = DataSel['Param']
             Data = _DataSelection(Data, **DataSel)
             Trts[DataSel['Name']] = Data.keys()
-        #        logging.debug('Input Trts %d Output Trts %d', Total, len(Trts))
+            # logging.debug('Input Trts %d Output Trts %d', Total, len(Trts))
 
         Trts['Final'] = Data.keys()
         for DataSel in DataSelectionConfig:
@@ -526,65 +748,3 @@ def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                 print(name, ' Yield -> ', v / Total)
 
     return Data, Trts
-
-
-def _DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
-                   ParArgs={'Vgs': None,
-                            'Vds': None,
-                            'Ud0Norm': False,
-                            'Units': None}):
-    rPAr, tPar = _GetParam(Data, Param, **ParArgs)
-    DataFilt = {}
-    for Trtn, Datas in tPar.items():
-        if Datas is not None and Datas.size > 0:
-            if type(Datas) is list:
-                for Val in Datas:
-                    if _checkRanges(Val, Units, Range, InSide):
-                        DataFilt.update({Trtn: Data[Trtn]})
-            else:
-                if _checkRanges(Datas, Units, Range, InSide):
-                    DataFilt.update({Trtn: Data[Trtn]})
-    return DataFilt
-
-
-def _checkRanges(Val, Units, Range, InSide):
-    # Added extra checks to make scripts compatible
-    # begin fix
-    if Val is None:
-        return
-    if type(Val) is not tuple:
-        Val = (Val)
-    # Added Quantity Support for the Range
-    if qty.isActive() and Units is not None:
-        try:
-            Range = pq.Quantity(Range, Units)
-        except TypeError as e:
-            print("Range Units Error: ", sys.exc_info())
-    # end fix
-    if InSide:
-        if Range[0] is None:
-            MinCond = False
-        else:
-            MinCond = (Val < Range[0]).any()
-
-        if Range[1] is None:
-            MaxCond = False
-        else:
-            MaxCond = (Val > Range[1]).any()
-        FinalCond = MinCond | MaxCond
-    else:
-        if Range[0] is None:
-            MinCond = True
-        else:
-            MinCond = (Val > Range[0]).any()
-
-        if Range[1] is None:
-            MaxCond = True
-        else:
-            MaxCond = (Val < Range[1]).any()
-        FinalCond = MinCond & MaxCond
-
-    if FinalCond:
-        # logging.debug('Meas Out %s %s %f', Trtn, Dat.GetTime(), Val)
-        return
-    return True
