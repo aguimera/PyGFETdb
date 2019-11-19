@@ -699,17 +699,15 @@ class PlotSlots():
         if self.CtrFig is not None:
             self.CtrFig.SetTimes(self.current_time)
             
-    def PlotEvents(self, Times, color='r', alpha=0.5,
-                   Labels=None, lAx=0, fontsize='xx-small', LabPosition='top'):
+    def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
+                   LabPosition='top', **kwargs):
 
         self.Texts = []
         if Labels is not None:
             for ilbl, lbl in enumerate(Labels):
                 for ax in self.Axs:
                     ylim = ax.get_ylim()
-                    ax.vlines(Times[ilbl], ylim[0], ylim[1],
-                              color=color,
-                              alpha=alpha)
+                    ax.vlines(Times[ilbl], ylim[0], ylim[1], **kwargs)
                 lax = self.Axs[lAx]
                 if LabPosition == 'top':
                     ylim = lax.get_ylim()[1]
@@ -722,9 +720,7 @@ class PlotSlots():
         EventLines = []
         for ax in self.Axs:
             ylim = ax.get_ylim()
-            lines = ax.vlines(Times, ylim[0], ylim[1],
-                              color=color,
-                              alpha=alpha)
+            lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
 #            EventLines.append(lines[0])
 
         return EventLines

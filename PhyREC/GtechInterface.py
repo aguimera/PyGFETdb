@@ -41,7 +41,7 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None):
 
     if InChannels is None:
         InChannels = range(fbChs)
-    DownFact = 4
+
 
     DCData = Spro.Filter(NeoSignal(Data[:, :fbChs][:, InChannels],
                                    units='A',
@@ -75,6 +75,12 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None):
     return FBData, ACData, DCData
 
 
+def AppendData(sig, data):
+    v_old = np.array(sig)
+    v_new = np.vstack((v_old, np.array(data)))
+    return sig.duplicate_with_new_array(signal=v_new*sig.units)
+
+
 def LoadMatFiles(FilesIn, InChannels=None, DownFact=None):
     FbData = None
     for ifi, FileIn in enumerate(FilesIn):
@@ -86,10 +92,7 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None):
         if FbData is None:
             FbData = Data
         else:
-            v_old = np.array(FbData)
-            v_new = np.vstack((v_old, np.array(Data)))
-            FbData = FbData.duplicate_with_new_array(signal=v_new*FbData.units)
-
+			FbData = AppendData(FbData, Data)
     return FbData
 
 
