@@ -138,7 +138,8 @@ class MultiProcess():
 
         res = None
         if multithrds:  # is not None:
-            self.pool[key].call(function, arguments, **kwargs)
+            ret = self.pool[key].call(function, arguments, **kwargs)
+            return ret
         else:
             func = getattr(klass, function)
             if not callable(func):
@@ -171,7 +172,7 @@ def key():
 
     :return: a random number to be used as key for multiprocessing
     """
-    return random.randint(0, 10000000)
+    return random.randint(0, int(1e22))
 
 
 def callThread(klass, function, arguments, **kwargs):

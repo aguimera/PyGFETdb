@@ -8,9 +8,18 @@
 import itertools
 import sys
 
+import numpy as np
+
 import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBSearch as DbSe
-from PyGFETdb import multithrds, Thread
+from PyGFETdb import multithrds, Thread, AnalysisFunctions as analysis
+
+superthreading = False
+
+if not superthreading:
+    getParam = 'GetParam'
+else:
+    getParam = '_GetParam'
 
 
 def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
@@ -260,3 +269,60 @@ def processOneArg(GrWfs, Results, Ret, karg):
                         Ret[karg][Wfn] = l
 
 
+def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
+    """
+
+    :param GrTypes: Group to process
+    :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
+    :param tolerance:
+    :param noisetolerance:
+    :return: A dict with the results of the processing
+    """
+    results = {}
+    keys = {}
+    i = 0
+    print('******************************************************************************')
+    print('******* RESULTS OF THE ANALYSIS **********************************************')
+    print('******************************************************************************')
+    print(' ')
+    thread = Thread.MultiProcess(analysis)
+
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        PSD = rPSD[nType]['PSD']
+        NoA = rPSD[nType]['NoA']
+        NoB = rPSD[nType]['NoB']
+        keys[nType] = {}
+        for nWf, vWf in Fpsd.items():
+            PSDt = PSD[nWf]
+            NoAt = NoA[nWf]
+            NoBt = NoB[nWf]
+
+            Fpsdt = vWf[0:len(PSDt)]
+            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+            args = {
+                'PSD': PSDt,
+                'Fpsd': Fpsd2t,
+                'NoA': NoAt,
+                'NoB': NoBt,
+                'tolerance': tolerance,
+                'noisetolerance': noisetolerance
+            }
+            key = thread.initcall(Thread.key(), analysis)
+            keys[nType][nWf] = key
+            thread.call(key, analysis, 'processNoise', args, **args)
+
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        PSD = rPSD[nType]['PSD']
+        results[nType] = {}
+        for nWf, vWf in Fpsd.items():
+            PSDt = PSD[nWf]
+            Fpsdt = vWf[0:len(PSDt)]
+            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+            key = keys[nType][nWf]
+            r = thread.getResults(key)
+            [noise, ok, perfect, grad, gradnoise] = r[key]
+            results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, gradnoise]
+
+    return results

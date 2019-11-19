@@ -16,11 +16,10 @@ import quantities as pq
 import statsmodels.api as sm
 import xlsxwriter as xlsw
 
+import PyGFETdb.DataClass as pData
+import PyGFETdb.Thread as Thread
 from PyGFETdb import qty
 from PyGFETdb.DBSearch import GetFromDB, FindCommonValues
-
-
-# import PyGFETdb.GlobalFunctions as global
 
 
 def CreateCycleColors(Vals):
@@ -600,3 +599,56 @@ def CalcTLM2(Groups, Vds=None, Ax=None, Color=None,
     ContactVals['LT'] = LT
 
     return ContactVals
+
+
+def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+    """
+    **Multiprocessing Version of GetParam**
+
+    :param Data:
+    :param Param:
+    :param Vgs:
+    :param Vds:
+    :param Ud0Norm:
+    :param kwargs:
+    :return:
+    """
+
+    Vals = qty.createQuantityList()
+
+    if Data is None:
+        return Vals
+
+    ret = []
+
+    kwargs.update({'Param': Param})
+    results = {}
+    for Trtn, Datas in Data.items():
+        results[Trtn] = {}
+        thread = Thread.Thread(pData.DataCharAC)
+        for Dat in Datas:
+            args = {'args': {'self': Dat}}
+            args.update(kwargs)
+            key = str(Dat)
+            thread.call('Get' + Param, args, **args)
+        results[Trtn] = thread.getResults()
+    for Trtn, Datas in results.items():
+        for Val in Datas:
+            if Val is not None:
+                if type(Val) is pq.Quantity:
+                    Vals = qty.appendQuantity(Vals, Val)
+                else:
+                    Vals = np.array(Vals)
+                    try:
+                        Vals = np.hstack(((Vals), Val)) if Vals.size else Val
+                    except ValueError:
+                        # print(sys.exc_info())
+                        ret.append(Vals)
+                        Vals = qty.createQuantityList()
+                        Vals = qty.appendQuantity(Vals, Val)
+                        # raise ArithmeticError # FIXME:
+
+    if len(ret) > 1:
+        return ret
+    else:
+        return Vals

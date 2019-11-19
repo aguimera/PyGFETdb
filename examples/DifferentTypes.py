@@ -11,9 +11,8 @@ import matplotlib.pyplot as plt
 import quantities as pq
 from matplotlib.patches import Patch
 
-import PyGFETdb.AnalysisFunctions as analysis
 import PyGFETdb.SearchFunctions as search
-from PyGFETdb import PlotFunctions as plot
+from PyGFETdb import PlotFunctions as plot, Multiprocessing as mp
 
 
 ############################
@@ -23,9 +22,6 @@ def PlotsParams(GrBase, arguments, **kwargs):
     GrTypes, ResultsParams = search.DBSearchPerWafer(GrBase, arguments)
     Vals = plot.PlotGroup(ResultsParams, GrTypes, arguments, **kwargs)
     return Vals
-
-# END PLOTS PER WAFER ################################################################
-# """
 
 ############################
 # PLOTS PER WAFER AND TYPES
@@ -84,8 +80,7 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
 #############################
 # PLOTS PSD
 ############################
-
-def PlotsPSDperType(GrBase, **kwargs):
+def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -98,27 +93,20 @@ def PlotsPSDperType(GrBase, **kwargs):
         'NoA': {'Param': 'NoA'},
         'NoB': {'Param': 'NoB'},
     }
-    GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs)
-    results = analysis.processPSDs(GrTypes, rPSD, tolerance=1.5e-22)
-    for nType, vType in GrTypes.items():
-        Fpsd = rPSD[nType].get('Fpsd')
-        for nWf, vWf in Fpsd.items():
-            plot.PlotPSD(results[nType][nWf][0],  # Fpsd
-                         results[nType][nWf][1],  # PSD
-                         results[nType][nWf][2],  # Fpsd2
-                         results[nType][nWf][3],  # noise
-                         # results[nType][nWf][4],  # ok
-                         results[nType][nWf][5],  # perfect
-                         nType, nWf)
+    GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
+    results = mp.processPSDs_MP(GrTypes, rPSD, **kwargs.get('noise'))
+    plot.PlotResultsPSD(GrTypes, results, rPSD)
 
 
-
+############################
+# MAIN
+###########################
 def main():
     plt.close('all')
 
     Wafers1 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-        #'B12142W46',  # (in vivo Rob) # High doping
+        # 'B12142W46',  # (in vivo Rob) # High doping
         # 'B12142W15',  # (in vivo Rob)
         # 'B11870W8',  # (IDIBAPS implants)
         # 'B11601W4',
@@ -300,16 +288,19 @@ def main():
         'remove50Hz': True,
     }
     kwargs3 = {
-        'remove50Hz': True,
+        'db': {'remove50Hz': True},
+        'noise': {'tolerance': 1.5e-22, 'noisetolerance': 1.5e-25}
     }
+
     # PLOTS ####################################################################
+
     # PlotsParams(GrBase3, **kwargs2)
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
-    PlotsPSDperType(GrBase3, **kwargs3)
+    PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
 
 # """"""""""""""""""""""""""""""""""""""""""""""
-#
+# END MAIN
 
 main()
 

@@ -13,6 +13,12 @@ import quantities as pq
 from PyGFETdb import qty
 
 
+########################################################################
+##
+## PLOT UTILITY FUNCTIONS
+##
+########################################################################
+
 def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
     """
 
@@ -182,6 +188,61 @@ def Legend(Ax, legend, handles):
               bbox_to_anchor=(0.86, 0.5, 0.5, 0.5), shadow=True, ncol=1)
 
 
+def PlotMeanStd(Valx, Valy, Ax=None,
+                Color='r',
+                PlotStd=True,
+                PlotOverlap=False,
+                label=None,
+                **kwargs):
+    """
+
+    :param Valx: Data for the x axis
+    :param Valy: Data for the y axis
+    :param Ax: Matplotib.Axis
+    :param Color: Color to start plotting
+    :param PlotStd: default true, if true plots the standard deviation
+    :param PlotOverlap: if true plot over the previous plot
+    :param label: label of the Data
+    :param kwargs:
+    :return:
+    """
+    scilimits = (-2, 2)
+
+    if Ax is None:
+        fig, Ax = plt.subplots()
+
+    if PlotOverlap:
+        if Valy is not None:
+            Ax.plot(Valx, Valy, color=Color, alpha=0.2)
+
+    Valy = np.array(Valy)
+    if Valy is not None and Valy.size:
+        avg = np.mean(Valy, axis=1)
+        std = np.std(Valy, axis=1)
+        Ax.plot(Valx, avg, color=Color, label=label)
+        if PlotStd:
+            Ax.fill_between(Valx, avg + std, avg - std,
+                            color=Color,
+                            linewidth=0.0,
+                            alpha=0.3)
+
+    if 'xscale' in list(kwargs.keys()):
+        Ax.set_xscale(kwargs['xscale'])
+    else:
+        Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
+
+    if 'yscale' in list(kwargs.keys()):
+        Ax.set_yscale(kwargs['yscale'])
+    else:
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
+
+    if 'yscale' in list(kwargs.keys()):
+        Ax.set_yscale(kwargs['yscale'])
+    else:
+        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
+
+
+
 def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
     """
 
@@ -214,35 +275,11 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
     return Results
 
 
-def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, legendTitle=None, **kwargs):
-    """
-
-    :param Results: The results of a search in the database
-    :param Group: A group of conditions to analyse
-    :param args: Arguments for getting the parameters
-    :param kwargs:
-    :return: None
-    """
-    for iarg, (karg, arg) in enumerate(Results.items()):
-        fig, Ax = plt.subplots()
-        xLab = []
-        xPos = []
-        qtys = []
-        icolor = 0
-        pos = 0
-        for iGr, (Grn, Grc) in enumerate(sorted(arg.items())):
-            for iGr2, (Grn2, ParamData) in enumerate(sorted(Grc.items())):
-                if ParamData is not None:
-                    if qty.isActive():
-                        qtys.append(ParamData)
-                    ParamData = qty.flatten(ParamData)
-                    ParamData = np.array(ParamData)
-                    _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
-                    pos += 1
-            icolor += 1
-        _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, legendTitle=legendTitle,
-                            xlabel=xlabel, **arguments[karg])
-
+########################################################################
+##
+## PLOTS PER TYPE
+##
+########################################################################
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
     """
@@ -352,60 +389,6 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% {}]".format(perType), title, **kwargs)
 
 
-def PlotMeanStd(Valx, Valy, Ax=None,
-                Color='r',
-                PlotStd=True,
-                PlotOverlap=False,
-                label=None,
-                **kwargs):
-    """
-
-    :param Valx: Data for the x axis
-    :param Valy: Data for the y axis
-    :param Ax: Matplotib.Axis
-    :param Color: Color to start plotting
-    :param PlotStd: default true, if true plots the standard deviation
-    :param PlotOverlap: if true plot over the previous plot
-    :param label: label of the Data
-    :param kwargs:
-    :return:
-    """
-    scilimits = (-2, 2)
-
-    if Ax is None:
-        fig, Ax = plt.subplots()
-
-    if PlotOverlap:
-        if Valy is not None:
-            Ax.plot(Valx, Valy, color=Color, alpha=0.2)
-
-    Valy = np.array(Valy)
-    if Valy is not None and Valy.size:
-        avg = np.mean(Valy, axis=1)
-        std = np.std(Valy, axis=1)
-        Ax.plot(Valx, avg, color=Color, label=label)
-        if PlotStd:
-            Ax.fill_between(Valx, avg + std, avg - std,
-                            color=Color,
-                            linewidth=0.0,
-                            alpha=0.3)
-
-    if 'xscale' in list(kwargs.keys()):
-        Ax.set_xscale(kwargs['xscale'])
-    else:
-        Ax.ticklabel_format(axis='x', style='sci', scilimits=scilimits)
-
-    if 'yscale' in list(kwargs.keys()):
-        Ax.set_yscale(kwargs['yscale'])
-    else:
-        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
-
-    if 'yscale' in list(kwargs.keys()):
-        Ax.set_yscale(kwargs['yscale'])
-    else:
-        Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
-
-
 def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, nWf=None):
     """
 
@@ -426,3 +409,61 @@ def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, nWf=None):
 
     title = "PSDs {} for Type {} / Wafer {}".format("OK" if perfect else "NOK", nType, nWf)
     plt.title(title)
+
+
+########################################################################
+##
+##  PLOT RESULTS
+##
+########################################################################
+
+
+def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, legendTitle=None, **kwargs):
+    """
+
+    :param Results: The results of a search in the database
+    :param Group: A group of conditions to analyse
+    :param args: Arguments for getting the parameters
+    :param kwargs:
+    :return: None
+    """
+    for iarg, (karg, arg) in enumerate(Results.items()):
+        fig, Ax = plt.subplots()
+        xLab = []
+        xPos = []
+        qtys = []
+        icolor = 0
+        pos = 0
+        for iGr, (Grn, Grc) in enumerate(sorted(arg.items())):
+            for iGr2, (Grn2, ParamData) in enumerate(sorted(Grc.items())):
+                if ParamData is not None:
+                    if qty.isActive():
+                        qtys.append(ParamData)
+                    ParamData = qty.flatten(ParamData)
+                    ParamData = np.array(ParamData)
+                    _PlotValsGroup(Ax, xLab, xPos, pos, Grn2, ParamData, Colors[icolor], **arguments[karg])
+                    pos += 1
+            icolor += 1
+        _closePlotValsGroup(Ax, xLab, xPos, qtys, handles=handles, legendTitle=legendTitle,
+                            xlabel=xlabel, **arguments[karg])
+
+
+def PlotResultsPSD(GrTypes, results, rPSD):
+    """
+        **Plots the results of the Noise Analysis**
+
+    :param GrTypes: Group to plot
+    :param results: results of Noise Analysis
+    :param rPSD: results of a PSD search in the database
+    :return: None
+    """
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        for nWf, vWf in Fpsd.items():
+            PlotPSD(results[nType][nWf][0],  # Fpsd
+                    results[nType][nWf][1],  # PSD
+                    results[nType][nWf][2],  # Fpsd2
+                    results[nType][nWf][3],  # noise
+                    # results[nType][nWf][4],  # ok
+                    results[nType][nWf][5],  # perfect
+                    nType, nWf)
