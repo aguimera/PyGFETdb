@@ -20,3 +20,5 @@ the method qty.setActive(False)
 """
 
 multithrds = True
+
+superthreading = True

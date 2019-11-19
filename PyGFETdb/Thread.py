@@ -11,7 +11,7 @@ from PyGFETdb import multithrds
 
 
 class Thread(pool.ThreadPool):
-    def __init__(self, package, processes=100):
+    def __init__(self, package, processes=60):
         """
 
         :param package: Module where the function to process is

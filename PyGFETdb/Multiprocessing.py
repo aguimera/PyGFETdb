@@ -13,9 +13,7 @@ import numpy as np
 
 import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBSearch as DbSe
-from PyGFETdb import multithrds, Thread, AnalysisFunctions as analysis
-
-superthreading = True
+from PyGFETdb import multithrds, superthreading, Thread, AnalysisFunctions as analysis
 
 if not superthreading:
     getParam = 'GetParam'
