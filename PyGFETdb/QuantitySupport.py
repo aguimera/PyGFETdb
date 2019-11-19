@@ -241,9 +241,9 @@ class QuantitySupport(object):
         units = None
         try:
             ret = np.divide(Dividend, Divisor)
-        except:
+        except ValueError as e:
             print("Error in Divide:", sys.exc_info())
-            raise ArithmeticError
+            raise e
 
         if type(ret) is pq.Quantity:
             units = ret.units

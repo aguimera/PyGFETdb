@@ -392,3 +392,14 @@ def PlotMeanStd(Valx, Valy, Ax=None,
         Ax.set_yscale(kwargs['yscale'])
     else:
         Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
+
+
+def PlotPSD(Fpsd, PSD, Fpsd2, noise, ok=False, nType=None, nWf=None):
+    fig, ax = plt.subplots()
+    PlotMeanStd(Fpsd, PSD, ax, xscale='log', yscale='log')
+    ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {} for Type {} / Wafer {}".format("OK" if ok else "NOK", nType, nWf)
+    plt.title(title)

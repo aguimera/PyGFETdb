@@ -8,7 +8,6 @@
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import quantities as pq
 from matplotlib.patches import Patch
 
@@ -17,7 +16,6 @@ import PyGFETdb.GlobalFunctions as g
 import PyGFETdb.SearchFunctions as s
 from PyGFETdb import PlotFunctions as plot
 from PyGFETdb import multithrds, Multiprocessing as mp
-from PyGFETdb.NoiseModel import Fnoise
 
 # MULTIPROCESSING INITIALIZATION #################################################
 if multithrds:
@@ -27,8 +25,9 @@ else:
     search = mp.SearchDB
     getparams = mp.GetParams
 
+
 #############################
-# PLOTS PER WAFER AND TYPE
+# PLOTS PSD
 ############################
 
 def PlotsPSDperType(GrBase, **kwargs):
@@ -44,35 +43,17 @@ def PlotsPSDperType(GrBase, **kwargs):
         'NoA': {'Param': 'NoA'},
         'NoB': {'Param': 'NoB'},
     }
-    GrTypes, ResultsParams = s.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
-    rPSD = ResultsParams
-    for nWf, vWf in GrTypes.items():
-        Fpsd = ResultsParams[nWf].get('Fpsd')
-        for nType, vType in Fpsd.items():
-
-            PSD = rPSD[nWf]['PSD'][nType]
-            NoA = np.array(rPSD[nWf]['NoA'][nType])
-            NoB = np.array(rPSD[nWf]['NoB'][nType])
-
-            Fpsd = vType[0:len(PSD)]
-            Fpsd2 = np.array(Fpsd).reshape((1, len(PSD)))
-
-            NoA = np.mean(NoA.transpose(), 1)
-            NoA = NoA.reshape((1, NoA.size))
-            NoB = np.mean(NoB.transpose(), 1)
-            NoB = NoB.reshape((1, NoB.size))
-
-            noise = Fnoise(Fpsd2, NoA[:, len(PSD)], NoB[:, len(PSD)])
-
-            fig, ax = plt.subplots()
-            plot.PlotMeanStd(Fpsd, PSD, ax, xscale='log', yscale='log')
-
-            ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
-            ax.set_xlabel("Frequency [Hz]")
-            ax.set_ylabel('PSD [A^2/Hz]')
-
-            title = "PSDs for Type {}".format(nType)
-            plt.title(title)
+    GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs)
+    results = g.processPSDs(GrTypes, rPSD)
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        for nWf, vWf in Fpsd.items():
+            plot.PlotPSD(results[nType][nWf][0],  # Fpsd
+                         results[nType][nWf][1],  # PSD
+                         results[nType][nWf][2],  # Fpsd2
+                         results[nType][nWf][3],  # noise
+                         results[nType][nWf][4],  # ok
+                         nType, nWf)
 
 
 def PlotsParams(GrBase, arguments, **kwargs):

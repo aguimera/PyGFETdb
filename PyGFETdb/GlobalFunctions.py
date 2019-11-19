@@ -8,6 +8,9 @@ Global Functions that do not fit in the previous files.
 
 import numpy as np
 
+from PyGFETdb import qty
+from PyGFETdb.NoiseModel import Fnoise
+
 
 def updateDictOfLists(dict, key, value):
     """
@@ -110,7 +113,7 @@ def processHiFreqs(Array, process):
     """
     if process:
         # remove the highest frequencies
-        for i in range(1, 22):  # To widen the effect increase the 22
+        for i in range(1, 25):  # To widen the effect increase the 22
             Array = remove(Array, Array.size - 1)
     return Array
 
@@ -127,3 +130,81 @@ def processFreqs(Array, process):
     Array = processBelow1Hz(Array, process)
     Array = processHiFreqs(Array, process)
     return Array
+
+
+def processNoise(PSD, Fpsd, NoA, NoB):
+    Fpsd2 = Fpsd
+
+    if NoA is not None and len(NoA[0].shape) == 1:  # Only a wafer
+        NoA = np.array(NoA)
+        NoB = np.array(NoB)
+
+        NoA = np.mean(NoA.transpose(), 1)
+        NoA = NoA.reshape((1, NoA.size))
+
+        NoB = np.mean(NoB.transpose(), 1)
+        NoB = NoB.reshape((1, NoB.size))
+        noise = Fnoise(Fpsd2, NoA[:, len(PSD)], NoB[:, len(PSD)])
+    else:  # more than one wafer
+        rA = []
+        for item in NoA:
+            rA.append(np.mean(item))
+
+        rB = []
+        for item in NoB:
+            rB.append(np.mean(item))
+
+        NoA = np.array(rA)
+        NoB = np.array(rB)
+
+        noise = Fnoise(Fpsd2, NoA[:len(Fpsd2)], NoB[:len(Fpsd2)])
+
+    ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd2, noise)
+
+    return noise, ok, perfect, grad, noisegrad
+
+
+def processPSDs(GrTypes, rPSD):
+    results = {}
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        results[nType] = {}
+        PSD = rPSD[nType]['PSD']
+        NoA = rPSD[nType]['NoA']
+        NoB = rPSD[nType]['NoB']
+        for nWf, vWf in Fpsd.items():
+            PSDt = PSD[nWf]
+            NoAt = NoA[nWf]
+            NoBt = NoB[nWf]
+
+            Fpsdt = vWf[0:len(PSDt)]
+            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+
+            noise, ok, perfect, grad, noisegrad = processNoise(PSDt, Fpsd2t, NoAt, NoBt)
+            results[nType][nWf] = (Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad)
+    return results
+
+
+def isPSDok(PSD, Fpsd, noise):
+    mPSD = np.mean(PSD, 1)
+
+    dx = np.diff(Fpsd)
+    y = np.diff(mPSD)
+
+    grad = qty.Divide(y, dx)
+    perfect = np.all(grad < 0)  #
+
+    y2 = np.diff(noise)
+    noisegrad = qty.Divide(y2, dx)
+
+    ok = np.all(noisegrad < 0)
+
+    if perfect:
+        print('PSD Noise PERFECT -> {}'.format(np.max(grad)))
+    else:
+        print('PSD Noise NOK -> {}'.format(np.max(grad)))
+
+    if ok:
+        print('Noise Fitted OK -> {}'.format(np.mean(noisegrad)))
+
+    return ok, perfect, grad, noisegrad
