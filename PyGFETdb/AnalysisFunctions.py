@@ -127,8 +127,9 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
     """
     results = {}
     i = 0
+    print(' ')
     print('******************************************************************************')
-    print('******* RESULTS OF THE ANALYSIS **********************************************')
+    print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
     print('******************************************************************************')
     print(' ')
     for nType, vType in GrTypes.items():
@@ -147,10 +148,15 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
             i += 1
             print('***************************************************')
             print('{}) Type:{}, Wafer:{}'.format(i, nType, nWf))
+            print('***************************************************')
 
             [noise, ok, perfect, grad, noisegrad] = processNoise(PSDt, Fpsd2t, NoAt, NoBt, tolerance, noisetolerance)
-
+            print(' ')
             results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+
+    print('******************************************************************************')
+    print('******* END OF THE NOISE ANALYSIS ********************************************')
+    print('******************************************************************************')
     return results
 
 

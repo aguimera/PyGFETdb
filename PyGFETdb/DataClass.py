@@ -330,7 +330,7 @@ class DataCharDC(object):
                     VgsM = self.Vgs
 
                 if (np.min(vg) < np.min(VgsM)) or (np.max(vg) > np.max(VgsM)):
-                    print (self.Name, 'Vgs range not valid', vg, VgsM, self.Ud0)
+                    # print (self.Name, 'Vgs range not valid', vg, VgsM, self.Ud0)
                     return None
             return Vgs
         else:
@@ -351,7 +351,7 @@ class DataCharDC(object):
             return None
 
         if Parameter not in self.__dict__:
-            print ('Not Data')
+            # print ('Not Data')
             return None
         Par = self.__getattribute__(Parameter)
 
@@ -558,7 +558,7 @@ class DataCharAC(DataCharDC):
     def _CheckRMS(self, NFmin, NFmax, **kwargs):
         if NFmin is not None or NFmax is not None:
             if self.NFmin != NFmin or self.NFmax != NFmax:
-                print ('Calc IRMS')
+                #print ('Calc IRMS')
                 self.NFmin = NFmin
                 self.NFmax = NFmax
                 if self.IsOK:

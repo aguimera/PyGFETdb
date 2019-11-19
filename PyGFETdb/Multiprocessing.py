@@ -27,7 +27,7 @@ if not superthreading:
 else:
     getParam = '_GetParam'
     getparamclass = ''
-    GetFromDB = '_GetFromDBSuper'
+    GetFromDB = '_GetFromDB'
     getclass = ''
 
 def SearchDB(GrWfs, **kwargs):
@@ -161,7 +161,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         getclass = PyGFETdb.Multiprocessing
     else:
         getclass = PyGFETdb.Multiprocessing.getclass
-
+    print('Searching in DB...')
     thread = Thread.MultiProcess(getclass)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
@@ -188,6 +188,7 @@ def SearchDB_MP(GrWfs, **kwargs):
             ResultsDB[Wfn] = processGetFromDB(ret)[0]
     thread.end()
     del thread
+    print('DB Search... Done')
     return ResultsDB
 
 
@@ -207,6 +208,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
     else:
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
+    print("Searching Parameters...")
     thread = Thread.MultiProcess(getparamclass)
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
@@ -240,6 +242,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                 res[key] = thread.getResults(key)
     thread.end()
     del thread
+    print('Searching Parameters Done.')
     Results = processGetParams_MP(GrWfs, res, arguments)
     return Results
 
@@ -371,7 +374,7 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return Vals
 
     ret = []
-
+    # print('Getting Parameter {}...'.format(Param))
     thread = Thread.MultiProcess(pData.DataCharAC)
     kwargs.update({'Param': Param, 'Vds': Vds, 'Vgs': Vgs, 'Ud0Norm': Ud0Norm})
     results = {}
@@ -399,13 +402,14 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
                     # raise ArithmeticError # FIXME:
     thread.end()
     del thread
+    # print("Getting Parameter {} Done.".format(Param))
     if len(ret) > 1:
         return ret, results
     else:
         return Vals, results
 
 
-def _GetFromDBSuper(Conditions, Table='ACcharacts', Last=True, GetGate=True,
+def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                     OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
     """
 
@@ -509,10 +513,11 @@ def _GetFromDBSuper(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
-        thread = Thread.MultiProcess(selfclass, 250)
+        thread = Thread.MultiProcess(selfclass)
         key = thread.initcall(Thread.key(), selfclass)
         Trts = {}
         Trts['Total'] = Data.keys()
+        print('DataSelection...')
         for DataSel in DataSelectionConfig:
             #         logging.debug('Look for data in range %s', DataSel)
             if 'Name' not in DataSel:
@@ -527,7 +532,9 @@ def _GetFromDBSuper(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             DataFilt.update(item)
         Trts = DataFilt.keys()
         Data = DataFilt
-
+        print('DataSelection Done.')
+        thread.end()
+        del thread
     return Data, Trts
 
 
@@ -627,124 +634,3 @@ def _RemoveOutilers(Data, OutilerFilter):
     return DataFilt
 
 
-def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
-               OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
-    """
-
-        **Get data from data base**
-
-        This function returns data which meets with "Conditions" dictionary for sql
-        select query constructor.
-
-        :param Conditions: dictionary, conditions to construct the sql select query.
-
-        The dictionary should follow this structure:
-
-            {'Table.Field <sql operator>' : iterable type of values}
-
-            - Example:
-
-                {'Wafers.Name = ':(B10803W17, B10803W11),'CharTable.IsOK > ':(0,)}
-
-        :param Table: string, optional.
-
-        Posible values 'ACcharacts' or 'DCcharacts'.
-
-        The default value is 'ACcharacts'. Characterization table to get data
-
-        The characterization table of Conditions dictionary can be indicated
-        as 'CharTable'. In that case 'CharTable' will be replaced by Table value.
-
-        :param Last: boolean, optional.
-
-        If True (default value) just the last measured data for each transistor is returned.
-
-        If False, all measured data is returned
-
-        :param Last: boolean, optional.
-
-        If True (default value) the gate measured data is also obtained
-
-        :param OutilerFilter: dictionary, optional.  (default 'None'),
-
-        If defined, dictionary to perform a statistical pre-evaluation of the
-        data.
-
-        The data that are not between the p25 and p75 percentile are
-        not returned.
-
-            The dictionary should follow this structure:
-
-                {'Param':Value, --> Characterization parameter, ie. 'Ids', 'Vrms'...
-
-                'Vgs':Value,   --> Vgs evaluation point
-
-                'Vds':Value,   --> Vds evaluationd point
-
-                'Ud0Norm':Boolean} --> Indicates if Vgs is normalized to CNP
-
-        :param remove50Hz: bool to activate the removal of frequency 50Hz
-
-
-        :return: A Dictionary with the data arranged as follows:
-
-            {'Transistor Name':list of PyGFET.DataClass.DataCharAC classes}
-
-        :return: A List of transistors
-
-
-    """
-
-    # logging.basicConfig(filename=log, level=logging.DEBUG)
-
-    Conditions = DbSe.CheckConditionsCharTable(Conditions, Table)
-
-    MyDb = PyFETdb.PyFETdb()
-
-    DataD, Trts = MyDb.GetData2(Conditions=Conditions,
-                                Table=Table,
-                                Last=Last,
-                                GetGate=GetGate,
-                                remove50Hz=remove50Hz)
-
-    del (MyDb)
-    Trts = list(Trts)
-    Total = float(len(Trts))
-
-    Data = {}
-    for Trtn, Cys in DataD.items():
-        Chars = []
-        for Cyn, Dat in sorted(Cys.items()):
-            Char = DataCharAC(Dat)
-            Chars.append(Char)
-        Data[Trtn] = Chars
-
-    # logging.debug('Getting Data from %s', Conditions)
-    print('Trts Found ->', len(Trts))
-
-    if OutilerFilter is not None:
-        # logging.debug('Look for Outliers %s', OutilerFilter)
-        Data = _RemoveOutilers(Data, OutilerFilter)
-        Trts = Data.keys()
-        # logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
-        print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
-
-    if DataSelectionConfig is not None:
-        Trts = {}
-        Trts['Total'] = Data.keys()
-        for DataSel in DataSelectionConfig:
-            # logging.debug('Look for data in range %s', DataSel)
-            if 'Name' not in DataSel:
-                DataSel['Name'] = DataSel['Param']
-            Data = _DataSelection(Data, **DataSel)
-            Trts[DataSel['Name']] = Data.keys()
-            # logging.debug('Input Trts %d Output Trts %d', Total, len(Trts))
-
-        Trts['Final'] = Data.keys()
-        for DataSel in DataSelectionConfig:
-            name = DataSel['Name']
-            v = float(len(Trts[name]))
-            if Total > 0:
-                print(name, ' Yield -> ', v / Total)
-
-    return Data, Trts

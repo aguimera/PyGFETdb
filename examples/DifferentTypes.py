@@ -12,14 +12,20 @@ import matplotlib.pyplot as plt
 import quantities as pq
 from matplotlib.patches import Patch
 
+import PyGFETdb.AnalysisFunctions as analysis
 import PyGFETdb.SearchFunctions as search
-from PyGFETdb import PlotFunctions as plot, Multiprocessing as mp
+from PyGFETdb import PlotFunctions as plot
 
 
 ############################
 # PLOTS PER WAFER AND TYPES
 ###########################
 def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
+    print(' ')
+    print('******************************************************************************')
+    print('******* PLOTS PER WAFER AND TYPE *********************************************')
+    print('******************************************************************************')
+    print(' ')
     # DATABASE SEARCH ####################################################################################
     GrWs, ResultsParams = search.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
@@ -41,11 +47,18 @@ def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlab
     plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel="Wafers",
                                legendTitle=legendTitle, perType="Overall", handles=handles, **kwargs)
 
+    print('Collect->', gc.collect())
+
 
 ############################
 # PLOTS PER TYPES
 ###########################
 def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
+    print(' ')
+    print('******************************************************************************')
+    print('******* PLOTS PER TYPE *******************************************************')
+    print('******************************************************************************')
+    print(' ')
     # DATABASE SEARCH ####################################################################################
     GrTypes, ResultsParams = search.DBSearchPerType(GrBase, arguments, **kwargs)
     # DATA CLASSIFICATION ################################################################################
@@ -69,6 +82,8 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
                                title="Working SGFETs x Type",
                                perType="Overall", handles=handles, **kwargs)
 
+    print('Collect->', gc.collect())
+
 
 #############################
 # PLOTS PSD
@@ -86,16 +101,23 @@ def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
         'NoA': {'Param': 'NoA'},
         'NoB': {'Param': 'NoB'},
     }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
     GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = mp.processPSDs_MP(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     plot.PlotResultsPSD(GrTypes, results, rPSD)
 
+    print('Collect->', gc.collect())
 
 ############################
 # MAIN
 ###########################
 def main():
     plt.close('all')
+    plt.rcParams['figure.max_open_warning'] = False
     gc.enable()
 
     Wafers1 = (
@@ -287,11 +309,18 @@ def main():
     }
 
     # PLOTS ####################################################################
-    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-    # PlotsPerTypes(GrBase3, **kwargs2)
+
+    ######## ALL THE WAFERS #####################
+    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    PlotsPerTypes(GrBase3, **kwargs2)
     PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
 
-    print('Collect->', gc.collect())
+    ####### ONE WAFER ##########################
+    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
+    # PlotsPerTypes(GrBase1, **kwargs2)
+    # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
+
+
 # """"""""""""""""""""""""""""""""""""""""""""""
 # END MAIN
 

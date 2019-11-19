@@ -24,6 +24,6 @@ multithrds = True
 
 superthreading = True
 
-numprocs = 50  # None # os default
+numprocs = 100  # None: os default
 
 gc.enable()
