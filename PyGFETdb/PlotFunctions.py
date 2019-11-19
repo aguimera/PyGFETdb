@@ -358,6 +358,18 @@ def PlotMeanStd(Valx, Valy, Ax=None,
                 PlotOverlap=False,
                 label=None,
                 **kwargs):
+    """
+
+    :param Valx: Data for the x axis
+    :param Valy: Data for the y axis
+    :param Ax: Matplotib.Axis
+    :param Color: Color to start plotting
+    :param PlotStd: default true, if true plots the standard deviation
+    :param PlotOverlap: if true plot over the previous plot
+    :param label: label of the Data
+    :param kwargs:
+    :return:
+    """
     scilimits = (-2, 2)
 
     if Ax is None:
@@ -394,12 +406,23 @@ def PlotMeanStd(Valx, Valy, Ax=None,
         Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
 
 
-def PlotPSD(Fpsd, PSD, Fpsd2, noise, ok=False, nType=None, nWf=None):
+def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, nWf=None):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param Fpsd2: Data of the x axis for noise fitting
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param nWf: Name of the Wafer
+    :return: None
+    """
     fig, ax = plt.subplots()
     PlotMeanStd(Fpsd, PSD, ax, xscale='log', yscale='log')
     ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
-    title = "PSDs {} for Type {} / Wafer {}".format("OK" if ok else "NOK", nType, nWf)
+    title = "PSDs {} for Type {} / Wafer {}".format("OK" if perfect else "NOK", nType, nWf)
     plt.title(title)

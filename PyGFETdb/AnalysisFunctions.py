@@ -52,7 +52,7 @@ def processHiFreqs(Array, process):
     """
     if process:
         # remove the highest frequencies
-        for i in range(1, 25):  # To widen the effect increase the 22
+        for i in range(1, 25):  # To widen the effect increase the 25
             Array = g.remove(Array, Array.size - 1)
     return Array
 
@@ -71,9 +71,23 @@ def processFreqs(Array, process):
     return Array
 
 
-def processNoise(PSD, Fpsd, NoA, NoB):
-    Fpsd2 = Fpsd
+def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1.5e-22):
+    """
 
+    :param PSD: PSD of a Group
+    :param Fpsd: Fpsd of a Group
+    :param NoA: NoA of a Group
+    :param NoB: NoB of a Group
+    :param tolerance: margin of error allowed on the analysis of the Mean PSD
+    :return: noise:
+    :return: ok: True if the noise is fitted well
+    :return: perfect: True if the Mean PSD gradient is acceptable
+    :return: grad: Mean PSD gradient
+    :return: noisegrad: Noise gradient
+
+    """
+    Fpsd2 = Fpsd
+    noise = None
     if NoA is not None and len(NoA[0].shape) == 1:  # Only a wafer
         NoA = np.array(NoA)
         NoB = np.array(NoB)
@@ -84,7 +98,7 @@ def processNoise(PSD, Fpsd, NoA, NoB):
         NoB = np.mean(NoB.transpose(), 1)
         NoB = NoB.reshape((1, NoB.size))
         noise = Fnoise(Fpsd2, NoA[:, len(Fpsd2)], NoB[:, len(Fpsd2)])
-    else:  # more than one wafer
+    elif NoA is not None:  # more than one wafer
         rA = []
         for item in NoA:
             rA.append(np.mean(item))
@@ -98,13 +112,25 @@ def processNoise(PSD, Fpsd, NoA, NoB):
 
         noise = Fnoise(Fpsd2, NoA[:len(Fpsd2)], NoB[:len(Fpsd2)])
 
-    ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd2, noise)
+    ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd2, noise, tolerance)
 
     return noise, ok, perfect, grad, noisegrad
 
 
-def processPSDs(GrTypes, rPSD):
+def processPSDs(GrTypes, rPSD, tolerance=1.5e-22):
+    """
+
+    :param GrTypes: Group to process
+    :param rPSD: Results of a search
+    :param tolerance:
+    :return: A dict with the results of the processing
+    """
     results = {}
+    i = 0
+    print('******************************************************************************')
+    print('******* RESULTS OF THE ANALYSIS **********************************************')
+    print('******************************************************************************')
+    print(' ')
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
         results[nType] = {}
@@ -118,13 +144,27 @@ def processPSDs(GrTypes, rPSD):
 
             Fpsdt = vWf[0:len(PSDt)]
             Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
-
-            noise, ok, perfect, grad, noisegrad = processNoise(PSDt, Fpsd2t, NoAt, NoBt)
+            i += 1
+            print('***************************************************')
+            print('{}) Type:{}, Wafer:{}'.format(i, nType, nWf))
+            noise, ok, perfect, grad, noisegrad = processNoise(PSDt, Fpsd2t, NoAt, NoBt, tolerance)
             results[nType][nWf] = (Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad)
     return results
 
 
-def isPSDok(PSD, Fpsd, noise):
+def isPSDok(PSD, Fpsd, noise, tolerance=1.5e-22):
+    """
+
+       :param PSD: PSD of a Group
+       :param Fpsd: Fpsd of a Group
+       :param noise: Mean noise
+       :param tolerance: margin of error allowed on the analysis of the Mean PSD
+       :return: ok: True if the noise is fitted well
+       :return: perfect: True if the Mean PSD gradient is acceptable
+       :return: grad: Mean PSD gradient
+       :return: noisegrad: Noise gradient
+
+       """
     mPSD = np.mean(PSD, 1)
 
     dx = np.diff(Fpsd)
@@ -133,15 +173,15 @@ def isPSDok(PSD, Fpsd, noise):
     y2 = np.diff(noise)
 
     grad = qty.Divide(y, dx)  # Gradient of the mean PSD
-    perfect = np.all(grad <= 0)
+    perfect = np.all(grad <= tolerance)
 
     noisegrad = qty.Divide(y2, dx)  # Gradient of the noise fitting
     ok = np.all(noisegrad <= 0)
 
     if perfect:
-        print('PSD Noise PERFECT -> {}'.format(np.max(grad)))
+        print('Mean PSD Noise PERFECT -> {}'.format(np.max(grad)))
     else:
-        print('PSD Noise BAD -> {}'.format(np.max(grad)))
+        print('Mean PSD Noise BAD -> {}'.format(np.max(grad)))
 
     if ok:
         print('Noise Fitted OK -> {}'.format(np.mean(noisegrad)))

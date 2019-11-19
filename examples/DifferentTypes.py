@@ -99,7 +99,7 @@ def PlotsPSDperType(GrBase, **kwargs):
         'NoB': {'Param': 'NoB'},
     }
     GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs)
-    results = analysis.processPSDs(GrTypes, rPSD)
+    results = analysis.processPSDs(GrTypes, rPSD, tolerance=1.5e-22)
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
         for nWf, vWf in Fpsd.items():
@@ -107,7 +107,8 @@ def PlotsPSDperType(GrBase, **kwargs):
                          results[nType][nWf][1],  # PSD
                          results[nType][nWf][2],  # Fpsd2
                          results[nType][nWf][3],  # noise
-                         results[nType][nWf][4],  # ok
+                         # results[nType][nWf][4],  # ok
+                         results[nType][nWf][5],  # perfect
                          nType, nWf)
 
 
@@ -302,9 +303,9 @@ def main():
         'remove50Hz': True,
     }
     # PLOTS ####################################################################
-    PlotsParams(GrBase3, **kwargs2)
-    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-    PlotsPerTypes(GrBase3, **kwargs2)
+    # PlotsParams(GrBase3, **kwargs2)
+    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # PlotsPerTypes(GrBase3, **kwargs2)
     PlotsPSDperType(GrBase3, **kwargs3)
 
 # """"""""""""""""""""""""""""""""""""""""""""""
