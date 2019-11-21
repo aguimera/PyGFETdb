@@ -78,7 +78,6 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None):
 def AppendData(sig, data):
     v_old = np.array(sig)
     v_new = np.vstack((v_old, np.array(data)))
-    
     return sig.duplicate_with_new_array(signal=v_new*sig.units)
 
 
@@ -93,7 +92,7 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None):
         if FbData is None:
             FbData = Data
         else:
-            FbData = AppendData(FbData,Data)
+			FbData = AppendData(FbData, Data)
     return FbData
 
 
