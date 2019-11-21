@@ -147,7 +147,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
                 Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
                 i += 1
                 print('***************************************************')
-                print('{}) Type:{}, Wafer:{}'.format(i, nType, nWf))
+                print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
                 print('***************************************************')
 
                 [noise, ok, perfect, grad, noisegrad] = processNoise(PSDt, Fpsd2t, NoAt, NoBt,
