@@ -373,14 +373,14 @@ def main():
     # PlotsPerTypes(GrBase3, **kwargs2)
     # PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3,**kwargs3)
-    AnalysisPSDperDevice(GrBase3, **kwargs3)
+    # AnalysisPSDperDevice(GrBase3, **kwargs3)
 
     ####### ONE WAFER ##########################
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
-    # AnalysisPSDperDevice(GrBase1, **kwargs3)
+    AnalysisPSDperDevice(GrBase1, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
