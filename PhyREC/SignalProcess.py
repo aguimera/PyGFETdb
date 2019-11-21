@@ -359,9 +359,11 @@ def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole'):
     else:
         Inds = np.where(vgs > Tchar.GetUd0())[1]
     
-    Ids = Tchar.GetIds(Vgs=vgs[Inds]) * pq.A
+    Ids = Tchar.GetIds(Vgs=vgs[Inds])
+#    * pq.A
 
-    IdsExp = Tchar.GetIds(Vgs=VgsExp) * pq.A
+    IdsExp = Tchar.GetIds(Vgs=VgsExp)
+#    * pq.A
     IdsOff = np.mean(Sig)-IdsExp
 
     Calibrated = np.array((True,))
