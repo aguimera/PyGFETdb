@@ -127,6 +127,8 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
     """
     results = {}
     i = 0
+    okc = 0
+    perfectc = 0
     print(' ')
     print('******************************************************************************')
     print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
@@ -153,8 +155,17 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
                 [noise, ok, perfect, grad, noisegrad] = processNoise(PSDt, Fpsd2t, NoAt, NoBt,
                                                                  tolerance, errortolerance, gradtolerance)
                 print(' ')
+                if ok:
+                    okc += 1
+                if perfect:
+                    perfectc += 1
                 results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
 
+    print('******************************************************************************')
+    print('*******  NOISE ANALYSIS SUMMARY ********************************************')
+    print('******************************************************************************')
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
