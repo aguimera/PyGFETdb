@@ -309,8 +309,8 @@ def main():
         },
         'noise': {
             'tolerance': 1.5e-22,
-            'errortolerance': 1.3e-19,
-            'gradtolerance': -2.7e-18
+            'errortolerance': 1.3,
+            'gradtolerance': 0.07
         }
     }
 

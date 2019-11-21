@@ -189,11 +189,11 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gra
 
     graderror = grad - noisegrad
     error = mPSD - noise
-    minerr = np.min(error)
-    meangraderr = np.mean(graderror)
+    minerr = np.min(error) / np.max(mPSD)
+    meangraderr = np.mean(graderror) / np.max(mPSD)
 
     ok1 = minerr > 0 and minerr < errortolerance
-    ok2 = meangraderr < 0 and meangraderr > gradtolerance
+    ok2 = meangraderr < 0 and np.abs(meangraderr) < gradtolerance
 
     ok = ok1 and ok2
 
@@ -207,9 +207,9 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gra
     else:
         print('Noise Fitted BAD -> error:{} grad-error:{}'.format(minerr, meangraderr))
         if not ok1:
-            print('Noise Error BAD -> error:{}'.format(minerr))
+            print('     Noise Error BAD -> error:{}'.format(minerr))
         if not ok2:
-            print('Noise GradError BAD -> grad-error:{}'.format(meangraderr))
+            print('     Noise GradError BAD -> grad-error:{}'.format(meangraderr))
 
 
     return ok, perfect, grad, noisegrad
@@ -264,8 +264,8 @@ def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=-1.3, gradtoleranc
     else:
         print('Noise Fitted BAD -> error:{} grad-error:{}'.format(minerr, meangraderr))
         if not ok1:
-            print('Noise Error BAD -> error:{}'.format(minerr))
+            print('     Noise Error BAD -> error:{}'.format(minerr))
         if not ok2:
-            print('Noise GradError BAD -> grad-error:{}'.format(meangraderr))
+            print('     Noise GradError BAD -> grad-error:{}'.format(meangraderr))
 
     return ok, perfect, grad, noisegrad
