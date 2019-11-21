@@ -188,8 +188,8 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-4, errortolerance=1.3, gradtole
     noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
     graderror = grad - noisegrad
-    error = mPSD - noise
-    minerr = np.min(error) / np.max(mPSD)
+    error = (mPSD - noise) / np.max(mPSD)
+    minerr = np.min(error)
     meangraderr = np.mean(graderror)
 
     ok1 = minerr > 0 and minerr < errortolerance
@@ -242,8 +242,8 @@ def isPSDok(PSD, Fpsd, noise, tolerance=1.5, errortolerance=-1.3, gradtolerance=
     noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
     graderror = grad - noisegrad
-    error = mPSD - noise
-    minerr = np.min(error) / np.max(mPSD)
+    error = (mPSD - noise) / np.max(mPSD)
+    minerr = np.min(error)
     meangraderr = np.mean(graderror)
 
     ok1 = minerr > errortolerance
