@@ -28,6 +28,8 @@ def DBSearchPerWaferAndType(GrBase, args, **kwargs):
     GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
     ResultsParams = {}
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+        print('')
+        print('Searching Waffer {}...'.format(Grwn))
         GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
         ResultsDB = search(GrTypes, **kwargs)
         ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
@@ -44,6 +46,8 @@ def DBSearchPerType(GrBase, args, **kwargs):
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
     ResultsParams = {}
     for iType, (nType, cType) in enumerate(GrTypes.items()):
+        print('')
+        print('Searching Type {}...'.format(nType))
         GrWfs = DbSe.GenGroups(cType, 'Wafers.Name', LongName=False)
         ResultsDB = search(GrWfs, **kwargs)
         ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
