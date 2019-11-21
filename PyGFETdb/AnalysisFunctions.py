@@ -243,7 +243,7 @@ def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=1.3e-19, gradtoler
          meangraderr < 0 and meangraderr > gradtolerance
 
     if perfect:
-        print('PSD Noise PERFECT -> {}'.format(np.max(grad)))
+        print('PSD Noise OK -> {}'.format(np.max(grad)))
     else:
         print('PSD Noise BAD -> {}'.format(np.max(grad)))
 
