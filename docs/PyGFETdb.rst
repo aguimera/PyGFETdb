@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+PyGFETdb.AnalysisFunctions module
+---------------------------------
+
+.. automodule:: PyGFETdb.AnalysisFunctions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PyGFETdb.AnalyzeData module
 ---------------------------
 
