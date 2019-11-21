@@ -52,7 +52,7 @@ def processHiFreqs(Array, process):
     """
     if process:
         # remove the highest frequencies
-        for i in range(1, 25):  # To widen the effect increase the 25
+        for i in range(1, 27):  # To widen the effect increase the 25
             Array = g.remove(Array, Array.size - 1)
     return Array
 
