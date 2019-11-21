@@ -161,7 +161,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
     return results
 
 
-def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3, gradtolerance=0.11):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-4, errortolerance=1.3, gradtolerance=0.11):
     """
 
        :param PSD: PSD of a Group
@@ -182,15 +182,15 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3, gradtol
     y = np.diff(mPSD)
     y2 = np.diff(noise)
 
-    grad = qty.Divide(y, dx)  # Gradient of the mean PSD
+    grad = qty.Divide(y, dx) / np.max(mPSD)  # Gradient of the mean PSD
     perfect = np.all(grad <= tolerance)
 
-    noisegrad = qty.Divide(y2, dx)  # Gradient of the noise fitting
+    noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
     graderror = grad - noisegrad
     error = mPSD - noise
     minerr = np.min(error) / np.max(mPSD)
-    meangraderr = np.mean(graderror) / np.max(mPSD)
+    meangraderr = np.mean(graderror)
 
     ok1 = minerr > 0 and minerr < errortolerance
     ok2 = meangraderr < 0 and np.abs(meangraderr) < gradtolerance
@@ -215,7 +215,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3, gradtol
     return ok, perfect, grad, noisegrad
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=-1.3, gradtolerance=0.05):
+def isPSDok(PSD, Fpsd, noise, tolerance=5, errortolerance=-1.3, gradtolerance=0.05):
     """
 
        :param PSD: PSD of a Group
@@ -236,15 +236,15 @@ def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=-1.3, gradtoleranc
     y = np.diff(mPSD)
     y2 = np.diff(noise.transpose())
 
-    grad = qty.Divide(y, dx)  # Gradient of the mean PSD
+    grad = qty.Divide(y, dx) / np.max(mPSD)  # Gradient of the mean PSD
     perfect = np.all(grad <= tolerance)
 
-    noisegrad = qty.Divide(y2, dx)  # Gradient of the noise fitting
+    noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
     graderror = grad - noisegrad
     error = mPSD - noise
     minerr = np.min(error) / np.max(mPSD)
-    meangraderr = np.mean(graderror) / np.max(mPSD)
+    meangraderr = np.mean(graderror)
 
     ok1 = minerr > errortolerance
     ok2 = np.abs(meangraderr) <= gradtolerance

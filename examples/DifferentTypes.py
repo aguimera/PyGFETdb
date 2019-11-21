@@ -308,7 +308,7 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 1.5e-22,
+            'tolerance': 2.5e-4,
             'errortolerance': 1.3,
             'gradtolerance': 0.11
         }
