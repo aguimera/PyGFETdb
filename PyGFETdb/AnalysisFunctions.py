@@ -208,7 +208,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gra
     return ok, perfect, grad, noisegrad
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=-1.3e-21, gradtolerance=2.7e-18):
     """
 
        :param PSD: PSD of a Group
@@ -239,8 +239,8 @@ def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=1.3e-19, gradtoler
     minerr = np.min(error)
     meangraderr = np.mean(graderror)
 
-    ok = minerr < errortolerance and \
-         meangraderr < 0 and meangraderr > gradtolerance
+    ok = minerr > errortolerance and \
+         np.abs(meangraderr) <= gradtolerance
 
     if perfect:
         print('PSD Noise OK -> {}'.format(np.max(grad)))
