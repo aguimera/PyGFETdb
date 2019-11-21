@@ -54,6 +54,23 @@ def DBSearchPerWaferAndDevice(GrBase, args, **kwargs):
     return GrWs, ResultsParams
 
 
+def DBSearchPerDevice(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: A group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrWs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
+    ResultsParams = {}
+    for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+        print('')
+        print('Searching Device {}...'.format(Grwn))
+        ResultsDB = search(GrWs, **kwargs)
+        ResultsParams[Grwn] = getparams(ResultsDB, GrWs, args)
+    return GrWs, ResultsParams
+
+
 def DBSearchPerType(GrBase, args, **kwargs):
     """
 

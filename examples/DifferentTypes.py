@@ -111,7 +111,7 @@ def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
     plot.PlotResultsPSD(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
-
+    return results
 
 def PlotsPSDperWaferAndDevice(GrBase, **kwargs):
     """
@@ -136,6 +136,33 @@ def PlotsPSDperWaferAndDevice(GrBase, **kwargs):
     plot.PlotResultsPSD(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
+    return results
+
+
+def AnalysisPSDperDevice(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    # plot.PlotResultsPSD(GrTypes, results, rPSD)
+
+    print('Collect->', gc.collect())
+    return results
 ############################
 # MAIN
 ###########################
@@ -349,7 +376,8 @@ def main():
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
-    PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
+    AnalysisPSDperDevice(GrBase1, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
