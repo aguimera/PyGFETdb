@@ -17,6 +17,7 @@ import numpy as np
 from matplotlib import gridspec
 from scipy.interpolate import interp1d
 
+import PyGFETdb.AnalysisFunctions as analysis
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
 from PyGFETdb.AnalysisFunctions import processFreqs as process
@@ -599,9 +600,11 @@ class PyFETPlot(PyFETPlotBase):
                         if Valx.size != Valy.size:
                             Valy = process(Valy, True)
                         if 'NoA' in Data:
-                            ax.loglog(Valx[1:], noise.Fnoise(Valx[1:],
-                                      Data['NoA'][ivg, ivd],
-                                      Data['NoB'][ivg, ivd]), '--')
+                            fit = noise.Fnoise(Valx[1:],
+                                               Data['NoA'][ivg, ivd],
+                                               Data['NoB'][ivg, ivd])
+                            ax.loglog(Valx[1:], fit, '--')
+                            analysis.isPSDok(Valy, Valx, fit)
                     elif axn == 'Gm':
                         if 'GMPoly' in Data:
                             Valy = np.polyval(Data['GMPoly'][:, ivd],

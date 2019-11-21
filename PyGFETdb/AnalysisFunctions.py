@@ -112,7 +112,7 @@ def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1.5e-22, errortolerance=1.3e-19,
 
         noise = Fnoise(Fpsd2, NoA[:len(Fpsd2)], NoB[:len(Fpsd2)])
 
-    ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd2, noise, tolerance, errortolerance, gradtolerance)
+    ok, perfect, grad, noisegrad = isMeanPSDok(PSD, Fpsd2, noise, tolerance, errortolerance, gradtolerance)
 
     return [noise, ok, perfect, grad, noisegrad]
 
@@ -161,7 +161,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
     return results
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
     """
 
        :param PSD: PSD of a Group
@@ -193,6 +193,53 @@ def isPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gradtol
     meangraderr = np.mean(graderror)
 
     ok = minerr > 0 and minerr < errortolerance and \
+         meangraderr < 0 and meangraderr > gradtolerance
+
+    if perfect:
+        print('Mean PSD Noise PERFECT -> {}'.format(np.max(grad)))
+    else:
+        print('Mean PSD Noise BAD -> {}'.format(np.max(grad)))
+
+    if ok:
+        print('Noise Fitted OK -> error:{} grad-error:{}'.format(minerr, meangraderr))
+    else:
+        print('Noise Fitted BAD -> error:{} grad-error:{}'.format(minerr, meangraderr))
+
+    return ok, perfect, grad, noisegrad
+
+
+def isPSDok(PSD, Fpsd, noise, tolerance=5e-18, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+    """
+
+       :param PSD: PSD of a Group
+       :param Fpsd: Fpsd of a Group
+       :param noise: Mean noise
+       :param tolerance: margin of error allowed on the analysis of the Mean PSD
+       :param tolerance: margin of error allowed on the analysis of the Mean Noise
+       :return: ok: True if the noise is fitted well
+       :return: perfect: True if the Mean PSD gradient is acceptable
+       :return: grad: Mean PSD gradient
+       :return: noisegrad: Noise gradient
+
+       """
+    mPSD = PSD[1:]
+
+    dx = np.diff(Fpsd.transpose())[1:]
+
+    y = np.diff(mPSD)
+    y2 = np.diff(noise.transpose())
+
+    grad = qty.Divide(y, dx)  # Gradient of the mean PSD
+    perfect = np.all(grad <= tolerance)
+
+    noisegrad = qty.Divide(y2, dx)  # Gradient of the noise fitting
+
+    graderror = grad - noisegrad
+    error = mPSD - noise
+    minerr = np.min(error)
+    meangraderr = np.mean(graderror)
+
+    ok = minerr < errortolerance and \
          meangraderr < 0 and meangraderr > gradtolerance
 
     if perfect:
