@@ -407,7 +407,7 @@ def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, nWf=None):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
-    title = "PSDs {} for Type {} / Wafer {}".format("OK" if perfect else "NOK", nType, nWf)
+    title = "PSDs {} for {} / {}".format("OK" if perfect else "NOK", nType, nWf)
     plt.title(title)
 
 
@@ -460,10 +460,12 @@ def PlotResultsPSD(GrTypes, results, rPSD):
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
         for nWf, vWf in Fpsd.items():
-            PlotPSD(results[nType][nWf][0],  # Fpsd
-                    results[nType][nWf][1],  # PSD
-                    results[nType][nWf][2],  # Fpsd2
-                    results[nType][nWf][3],  # noise
-                    # results[nType][nWf][4],  # ok
-                    results[nType][nWf][5],  # perfect
-                    nType, nWf)
+            r = results[nType].get(nWf)
+            if r is not None:
+                PlotPSD(r[0],  # Fpsd
+                        r[1],  # PSD
+                        r[2],  # Fpsd2
+                        r[3],  # noise
+                        # r[4],  # ok
+                        r[5],  # perfect
+                        nType, nWf)

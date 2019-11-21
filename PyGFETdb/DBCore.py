@@ -704,7 +704,7 @@ class PyFETdb(_PyFETdb):
         for s in set(Ids):
             Cond[idf].append(s)
 
-        thread = Thread.MultiProcess(PyFETdb, 200)
+        thread = Thread.MultiProcess(PyFETdb)
 
         Data = {}
         Keys = []

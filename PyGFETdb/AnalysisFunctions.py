@@ -88,7 +88,7 @@ def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1.5e-22, errortolerance=1.3e-19,
     """
     Fpsd2 = Fpsd
     noise = None
-    if NoA is not None and len(NoA[0].shape) == 1:  # Only a wafer
+    if NoA is not None and len(NoA) > 0 and len(NoA[0].shape) == 1:  # Only a wafer
         NoA = np.array(NoA)
         NoB = np.array(NoB)
 
@@ -142,18 +142,18 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
             PSDt = PSD[nWf]
             NoAt = NoA[nWf]
             NoBt = NoB[nWf]
+            if NoAt is not None and len(NoAt) > 0:
+                Fpsdt = vWf[0:len(PSDt)]
+                Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+                i += 1
+                print('***************************************************')
+                print('{}) Type:{}, Wafer:{}'.format(i, nType, nWf))
+                print('***************************************************')
 
-            Fpsdt = vWf[0:len(PSDt)]
-            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
-            i += 1
-            print('***************************************************')
-            print('{}) Type:{}, Wafer:{}'.format(i, nType, nWf))
-            print('***************************************************')
-
-            [noise, ok, perfect, grad, noisegrad] = processNoise(PSDt, Fpsd2t, NoAt, NoBt,
+                [noise, ok, perfect, grad, noisegrad] = processNoise(PSDt, Fpsd2t, NoAt, NoBt,
                                                                  tolerance, errortolerance, gradtolerance)
-            print(' ')
-            results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+                print(' ')
+                results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
 
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')

@@ -161,7 +161,7 @@ def SearchDB_MP(GrWfs, **kwargs):
     else:
         getclass = PyGFETdb.Multiprocessing.getclass
     print('Searching in DB...')
-    thread = Thread.MultiProcess(getclass, 800)
+    thread = Thread.MultiProcess(getclass)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
@@ -208,7 +208,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
     print("Searching Parameters...")
-    thread = Thread.MultiProcess(getparamclass, 600)
+    thread = Thread.MultiProcess(getparamclass)
     for karg, arg in arguments.items():
         print('Searching Parameter {}'.format(arg.get('Param')))
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
@@ -513,7 +513,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
-        thread = Thread.MultiProcess(selfclass, 500)
+        thread = Thread.MultiProcess(selfclass)
         key = thread.initcall(Thread.key(), selfclass)
         Trts = {}
         Trts['Total'] = Data.keys()
