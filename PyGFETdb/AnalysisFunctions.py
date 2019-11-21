@@ -161,7 +161,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
     return results
 
 
-def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=1.5e-22, errortolerance=1.3, gradtolerance=0.11):
     """
 
        :param PSD: PSD of a Group
