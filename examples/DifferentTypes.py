@@ -304,15 +304,21 @@ def main():
         'remove50Hz': True,
     }
     kwargs3 = {
-        'db': {'remove50Hz': True},
-        'noise': {'tolerance': 1.5e-22, 'noisetolerance': 1.5e-25}
+        'db': {
+            'remove50Hz': True
+        },
+        'noise': {
+            'tolerance': 1.5e-22,
+            'errortolerance': 1.3e-19,
+            'gradtolerance': -2.7e-18
+        }
     }
 
     # PLOTS ####################################################################
 
     ######## ALL THE WAFERS #####################
-    PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-    PlotsPerTypes(GrBase3, **kwargs2)
+    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # PlotsPerTypes(GrBase3, **kwargs2)
     PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
 
     ####### ONE WAFER ##########################

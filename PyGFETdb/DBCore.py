@@ -671,7 +671,7 @@ class PyFETdb(_PyFETdb):
         return res
 
     # FIXME:
-    def __GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
+    def _GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
@@ -704,20 +704,27 @@ class PyFETdb(_PyFETdb):
         for s in set(Ids):
             Cond[idf].append(s)
 
-        thread = Thread.MultiProcess(PyFETdb)
-        key = thread.initcall(Thread.key(), PyFETdb)
+        thread = Thread.MultiProcess(PyFETdb, 200)
+
         Data = {}
+        Keys = []
         for Trt in Trts:
             args = {'args': {'self': self, 'Trt': Trt, 'Cond': Cond, 'Table': Table, 'Output': Output, 'Last': Last,
                              'DataF': DataF, 'remove50Hz': remove50Hz, 'GetGate': GetGate,
                              'GidF': GidF, 'DCidF': DCidF}}
+            key = thread.initcall(Thread.key(), PyFETdb)
+            Keys.append(key)
             thread.call(key, PyFETdb, '_getTrt', args, **args)
 
-        for Trt in Trts:
-            ret = thread.getResults(key)[key]
-            for item in ret:
-                Data.update({Trt: item})
-
+        for key in Keys:
+            ret = thread.getResults(key)
+            if ret is not None and len(ret) > 0:
+                for res in ret[key]:
+                    if res is not None:
+                        # for item in res:
+                        Data.update(res)
+        thread.end()
+        del thread
         return Data
 
     def _getTrt(self, Trt, Cond, Table, Output, Last, DataF, remove50Hz, GetGate, GidF, DCidF):
@@ -765,4 +772,4 @@ class PyFETdb(_PyFETdb):
                     fn = Data[Trt][cy].get(fp[0], {})
                     fn[fp[1]] = re[f]
                     Data[Trt][cy][fp[0]] = fn
-        return Data[Trt]
+        return Data

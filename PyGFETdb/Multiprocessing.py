@@ -19,15 +19,14 @@ import PyGFETdb.DataClass as pData
 from PyGFETdb import qty, multithrds, superthreading, Thread, AnalysisFunctions as analysis
 from PyGFETdb.DataClass import DataCharAC
 
+getParam = 'GetParam'
+getFromDB = 'GetFromDB'
+
 if not superthreading:
-    getParam = 'GetParam'
     getparamclass = DbAn
-    GetFromDB = 'GetFromDB'
     getclass = DbSe
 else:
-    getParam = '_GetParam'
     getparamclass = ''
-    GetFromDB = '_GetFromDB'
     getclass = ''
 
 def SearchDB(GrWfs, **kwargs):
@@ -162,18 +161,18 @@ def SearchDB_MP(GrWfs, **kwargs):
     else:
         getclass = PyGFETdb.Multiprocessing.getclass
     print('Searching in DB...')
-    thread = Thread.MultiProcess(getclass)
+    thread = Thread.MultiProcess(getclass, 800)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
                 key = Wfn + ' ' + Grn
                 thread.initcall(key, getclass)
                 kwargs.update(**Grc)
-                thread.call(key, getclass, GetFromDB, {}, **kwargs)
+                thread.call(key, getclass, getFromDB, {}, **kwargs)
         else:
             thread.initcall(Wfn, DbSe)
             kwargs.update(**Wfc)
-            thread.call(Wfn, getclass, GetFromDB, {}, **kwargs)
+            thread.call(Wfn, getclass, getFromDB, {}, **kwargs)
 
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         ResultsDB[Wfn] = {}
@@ -209,7 +208,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
     print("Searching Parameters...")
-    thread = Thread.MultiProcess(getparamclass)
+    thread = Thread.MultiProcess(getparamclass, 600)
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
@@ -355,7 +354,7 @@ def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
     return results
 
 
-def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     """
     **Multiprocessing Version of GetParam**
 
@@ -409,8 +408,8 @@ def _GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return Vals, results
 
 
-def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
-                    OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
+def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
+              OutilerFilter=None, DataSelectionConfig=None, remove50Hz=False):
     """
 
         **Get data from data base**
@@ -507,13 +506,13 @@ def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
 
     if OutilerFilter is not None:
         #       logging.debug('Look for Outliers %s', OutilerFilter)
-        Data = _RemoveOutilers(Data, OutilerFilter)
+        Data = DbSe.RemoveOutilers(Data, OutilerFilter)
         Trts = Data.keys()
         #      logging.debug('Input Trts %d Output Trts d', Total, len(Trts))
         print('Outlier filter Yield -> ', qty.Divide(len(Trts), Total))
 
     if DataSelectionConfig is not None:
-        thread = Thread.MultiProcess(selfclass)
+        thread = Thread.MultiProcess(selfclass, 500)
         key = thread.initcall(Thread.key(), selfclass)
         Trts = {}
         Trts['Total'] = Data.keys()
@@ -524,7 +523,7 @@ def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
                 DataSel['Name'] = DataSel['Param']
             args = {'args': {'Data': Data}}
             args.update(DataSel)
-            thread.call(key, selfclass, '_DataSelection', args, **args)
+            thread.call(key, selfclass, 'DataSelection', args, **args)
 
         DataFilt = {}
         ret = thread.getResults(key)[key]  # _DataSelection(Data, **DataSel)
@@ -538,26 +537,26 @@ def _GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     return Data, Trts
 
 
-def _DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
-                   ParArgs={'Vgs': None,
+def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Units=None,
+                  ParArgs={'Vgs': None,
                             'Vds': None,
                             'Ud0Norm': False,
                             'Units': None}):
-    rPAr, tPar = _GetParam(Data, Param, **ParArgs)
+    rPAr, tPar = GetParam(Data, Param, **ParArgs)
     DataFilt = {}
     for Trtn, Datas in tPar.items():
         if Datas is not None and Datas.size > 0:
             if type(Datas) is list:
                 for Val in Datas:
-                    if _checkRanges(Val, Units, Range, InSide):
+                    if checkRanges(Val, Units, Range, InSide):
                         DataFilt.update({Trtn: Data[Trtn]})
             else:
-                if _checkRanges(Datas, Units, Range, InSide):
+                if checkRanges(Datas, Units, Range, InSide):
                     DataFilt.update({Trtn: Data[Trtn]})
     return DataFilt
 
 
-def _checkRanges(Val, Units, Range, InSide):
+def checkRanges(Val, Units, Range, InSide):
     # Added extra checks to make scripts compatible
     # begin fix
     if Val is None:
@@ -600,37 +599,5 @@ def _checkRanges(Val, Units, Range, InSide):
     return True
 
 
-def _RemoveOutilers(Data, OutilerFilter):
-    Vals = np.array([])
-    for Trtn, Datas in Data.items():
-        for Dat in Datas:
-            func = Dat.__getattribute__('Get' + OutilerFilter['Param'])
-            Val = func(Vgs=OutilerFilter['Vgs'],
-                       Vds=OutilerFilter['Vds'],
-                       Ud0Norm=OutilerFilter['Ud0Norm'])
-            if Val is not None:
-                Vals = np.hstack((Vals, Val)) if Vals.size else Val
-
-    p25 = np.percentile(Vals, 25)
-    p75 = np.percentile(Vals, 75)
-    lower = p25 - 1.5 * (p75 - p25)
-    upper = p75 + 1.5 * (p75 - p25)
-
-    DataFilt = {}
-    for Trtn, Datas in Data.items():
-        Chars = []
-        for Cyn, Char in enumerate(Datas):
-            func = Char.__getattribute__('Get' + OutilerFilter['Param'])
-            Val = func(Vgs=OutilerFilter['Vgs'],
-                       Vds=OutilerFilter['Vds'],
-                       Ud0Norm=OutilerFilter['Ud0Norm'])
-
-            if (Val <= lower or Val >= upper):
-                print('Outlier Removed ->', Val, Trtn, Cyn)
-            else:
-                Chars.append(Char)
-        DataFilt[Trtn] = Chars
-
-    return DataFilt
 
 

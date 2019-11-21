@@ -221,7 +221,7 @@ def PlotMeanStd(Valx, Valy, Ax=None,
         std = np.std(Valy, axis=1)
         Ax.plot(Valx, avg, color=Color, label=label)
         if PlotStd:
-            Ax.fill_between(Valx, avg + std, avg - std,
+            Ax.fill_between(Valx, avg - std, avg + std,
                             color=Color,
                             linewidth=0.0,
                             alpha=0.3)
@@ -344,7 +344,7 @@ def PlotPerTypeYield(Results, title=None, handles=None, xlabel=None, perType=Non
 
         work = []
         for iType, (Grn, Grc) in enumerate(sorted(dd.items())):  # Param 0
-            work.append((np.array(Grc).size / totalWf) * 100)
+            work.append(qty.Divide((np.array(Grc).size), totalWf) * 100)
             xLab.append(Grn)
             xPos.append(pos)
             _BoxplotValsGroup(ax2, Col, pos, work)
@@ -384,7 +384,7 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
         for iWf, (nWf, cWf) in enumerate(vtype.items()):
             xLab.append(typename)
             xPos.append(nt)
-            work.append(((np.array(cWf)).size / total) * 100)
+            work.append(qty.Divide((np.array(cWf)).size, total) * 100)
         _BoxplotValsGroup(ax2, Col, nt, work, **kwargs)
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% {}]".format(perType), title, **kwargs)
 
