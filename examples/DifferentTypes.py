@@ -371,12 +371,11 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.5,
-            'errortolerance': -1.3,
-            'gradtolerance': 0.05
+            'tolerance': 2.5e-2,
+            'errortolerance': 0.8,
+            'gradtolerance': 0.08
         }
     }
-
     # PLOTS ####################################################################
 
     ######## ALL THE WAFERS #####################
@@ -385,7 +384,7 @@ def main():
     # PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3,**kwargs3)
     # AnalysisPSDperDevice(GrBase3, **kwargs3)
-    AnalysisPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    AnalysisPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
     ####### ONE WAFER ##########################
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
@@ -393,7 +392,7 @@ def main():
     # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
     # AnalysisPSDperDevice(GrBase1, **kwargs3)
-    # AnalysisPSDperDeviceAndTrt(GrBase1, **kwargs3)
+    # AnalysisPSDperDeviceAndTrt(GrBase1, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
