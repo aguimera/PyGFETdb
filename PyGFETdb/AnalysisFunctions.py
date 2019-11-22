@@ -285,7 +285,7 @@ def isPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=-0.1, gradtoleran
     return ok, perfect, grad, noisegrad
 
 
-def processPSDsPerTrt(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def processPSDsPerTrt(GrTypes, rPSD, tolerance=2e-2, errortolerance=-0.1, gradtolerance=0.09):
     """
 
     :param GrTypes: Group to process
