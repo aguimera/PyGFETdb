@@ -172,7 +172,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1):
     return results
 
 
-def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=-0.1, gradtolerance=0.09):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtolerance=0.09):
     """
 
        :param PSD: PSD of a Group
@@ -206,8 +206,8 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=-0.1, gradtol
     # ok1 = minerr > 0 and minerr < errortolerance
     # ok2 = meangraderr < 0 and np.abs(meangraderr) < gradtolerance
 
-    ok1 = minerr < errortolerance
-    ok2 = np.abs(meangraderr) < gradtolerance
+    ok1 = minerr <= errortolerance
+    ok2 = np.abs(meangraderr) <= gradtolerance
 
     ok = ok1 and ok2
 
@@ -260,7 +260,7 @@ def isPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtoleran
     minerr = np.min(error)
     meangraderr = np.mean(graderror)
 
-    ok1 = minerr > errortolerance
+    ok1 = minerr <= errortolerance
     ok2 = np.abs(meangraderr) <= gradtolerance
 
     ok = ok1 and ok2
