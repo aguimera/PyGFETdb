@@ -392,8 +392,8 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.85,
-            'errortolerance': 0.2,
+            'tolerance': 0.75,
+            'errortolerance': 0.6,
             'gradtolerance': 0.09
         }
     }
@@ -402,8 +402,8 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.01,
-            'errortolerance': 0.2,
+            'tolerance': 0.75,
+            'errortolerance': 0.6,
             'gradtolerance': 0.09
         }
     }

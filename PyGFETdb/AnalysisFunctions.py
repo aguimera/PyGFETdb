@@ -180,6 +180,10 @@ def processAllPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1
     """
     results = {}
     i = 0
+    itype = []
+    itypeo = []
+    iwf = []
+    iwfo = []
     okc = 0
     perfectc = 0
     print(' ')
@@ -193,13 +197,21 @@ def processAllPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1
         PSD = rPSD[nType]['PSD']
         NoA = rPSD[nType]['NoA']
         NoB = rPSD[nType]['NoB']
+        perfectct = 0
+        okct = 0
+        it = 0
         for nWf, vWf in Fpsd.items():
             PSDt = PSD[nWf]
             NoAt = NoA[nWf]
             NoBt = NoB[nWf]
+            perfectcw = 0
+            okcw = 0
+            iw = 0
             if NoAt is not None and len(NoAt) > 0:
                 Fpsdt = vWf[0:len(PSDt)]
                 i += 1
+                it += 1
+                iw += 1
                 print('***************************************************')
                 print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
                 print('***************************************************')
@@ -230,22 +242,53 @@ def processAllPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1
                 else:
                     [noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
                                                                             tolerance, errortolerance, gradtolerance)
-                print(' ')
                 Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+
+                print(' ')
                 if ok:
                     okc += 1
+                    okct += 1
+                    okcw += 1
                 if perfect:
                     perfectc += 1
+                    perfectct += 1
+                    perfectcw += 1
                 results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
-
+            if iw > 0:
+                iwf.append((nWf, perfectcw, iw))
+                iwfo.append((nWf, okcw, iw))
+        if it > 0:
+            itype.append((nType, perfectct, it))
+            itypeo.append((nType, okct, it))
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100))
+    print(' ')
+    print('******************************************************************************')
+    print('*** PER SUBGROUP *************************************************************')
+    print('******************************************************************************')
+    for n, (nw, p, t) in enumerate(iwf):
+        o = iwfo[n][1]
+        print('{}:'.format(nw))
+        print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
+        print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
+    print('******************************************************************************')
+    print('*** PER GROUP ****************************************************************')
+    print('******************************************************************************')
+    for n, (nt, p, t) in enumerate(itype):
+        o = itypeo[n][1]
+        print('{}:'.format(nt))
+        print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
+        print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
+    print('******************************************************************************')
+    print('*** TOTAL*********************************************************************')
+    print('******************************************************************************')
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
+
     return results
 
 
@@ -328,7 +371,7 @@ def isPSDok(PSD, Fpsd, noise, tolerance=0.85, errortolerance=-0.01, gradtoleranc
     y2 = np.diff(noise.transpose())
 
     grad = qty.Divide(y, dx) / np.max(mPSD)  # Gradient of the mean PSD
-    perfect = np.all(grad <= tolerance)
+    perfect = np.all(np.abs(grad) <= tolerance)
 
     noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
@@ -346,18 +389,18 @@ def isPSDok(PSD, Fpsd, noise, tolerance=0.85, errortolerance=-0.01, gradtoleranc
 
 
     if perfect:
-        print('PSD Noise OK -> {}'.format(np.max(grad)))
+        print('PSD Noise OK -> {}'.format(np.max(np.abs(grad))))
     else:
-        print('PSD Noise BAD -> {}'.format(np.max(grad)))
+        print('PSD Noise BAD -> {}'.format(np.max(np.abs(grad))))
 
     if ok:
-        print('Noise Fitted OK -> error:{} grad-error:{}'.format(minerr, meangraderr))
+        print('    Noise Fitted OK -> error:{} grad-error:{}'.format(minerr, meangraderr))
     else:
-        print('Noise Fitted BAD -> error:{} grad-error:{}'.format(minerr, meangraderr))
+        print('    Noise Fitted BAD -> error:{} grad-error:{}'.format(minerr, meangraderr))
         if not ok1:
-            print('     Noise Error BAD -> error:{}'.format(minerr))
+            print('         Noise Error BAD -> error:{}'.format(minerr))
         if not ok2:
-            print('     Noise GradError BAD -> grad-error:{}'.format(meangraderr))
+            print('         Noise GradError BAD -> grad-error:{}'.format(meangraderr))
 
     return ok, perfect, grad, noisegrad
 
@@ -374,6 +417,10 @@ def processPSDsPerTrt(GrTypes, rPSD, tolerance=2e-2, errortolerance=-0.1, gradto
     i = 0
     okc = 0
     perfectc = 0
+    itype = []
+    itypeo = []
+    iwf = []
+    iwfo = []
     print(' ')
     print('******************************************************************************')
     print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
@@ -385,14 +432,22 @@ def processPSDsPerTrt(GrTypes, rPSD, tolerance=2e-2, errortolerance=-0.1, gradto
         PSD = rPSD[nType]['PSD']
         NoA = rPSD[nType]['NoA']
         NoB = rPSD[nType]['NoB']
+        perfectct = 0
+        okct = 0
+        it = 0
         for nWf, vWf in Fpsd.items():
             PSDt = PSD[nWf]
             NoAt = NoA[nWf]
             NoBt = NoB[nWf]
+            perfectcw = 0
+            okcw = 0
+            iw = 0
             if NoAt is not None and len(NoAt) > 0:
                 Fpsdt = vWf[0:len(PSDt)]
                 Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
                 i += 1
+                it += 1
+                iw += 1
                 print('***************************************************')
                 print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
                 print('***************************************************')
@@ -402,16 +457,46 @@ def processPSDsPerTrt(GrTypes, rPSD, tolerance=2e-2, errortolerance=-0.1, gradto
                 print(' ')
                 if ok:
                     okc += 1
+                    okct += 1
+                    okcw += 1
                 if perfect:
                     perfectc += 1
+                    perfectct += 1
+                    perfectcw += 1
                 results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
-
+            if iw > 0:
+                iwf.append((nWf, perfectcw, iw))
+                iwfo.append((nWf, okcw, iw))
+        if it > 0:
+            itype.append((nType, perfectct, it))
+            itypeo.append((nType, okct, it))
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100))
+    print(' ')
+    print('******************************************************************************')
+    print('*** PER SUBGROUP *************************************************************')
+    print('******************************************************************************')
+    for n, (nw, p, t) in enumerate(iwf):
+        o = iwfo[n][1]
+        print('{}:'.format(nw))
+        print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
+        print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
+    print('******************************************************************************')
+    print('*** PER GROUP ****************************************************************')
+    print('******************************************************************************')
+    for n, (nt, p, t) in enumerate(itype):
+        o = itypeo[n][1]
+        print('{}:'.format(nt))
+        print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
+        print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
+    print('******************************************************************************')
+    print('*** TOTAL*********************************************************************')
+    print('******************************************************************************')
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
+
     return results
