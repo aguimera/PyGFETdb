@@ -71,7 +71,7 @@ def processFreqs(Array, process):
     return Array
 
 
-def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1, errortolerance=1, gradtolerance=1):
     """
 
     :param PSD: PSD of a Group
@@ -117,7 +117,7 @@ def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1.5e-22, errortolerance=1.3e-19,
     return [noise, ok, perfect, grad, noisegrad]
 
 
-def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+def processPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1):
     """
 
     :param GrTypes: Group to process
@@ -172,7 +172,7 @@ def processPSDs(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradto
     return results
 
 
-def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=0.8, gradtolerance=0.08):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=-0.1, gradtolerance=0.09):
     """
 
        :param PSD: PSD of a Group
@@ -229,7 +229,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=0.8, gradtole
     return ok, perfect, grad, noisegrad
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=0.5, errortolerance=-1.3, gradtolerance=0.05):
+def isPSDok(PSD, Fpsd, noise, tolerance=2.5e-2, errortolerance=-0.1, gradtolerance=0.09):
     """
 
        :param PSD: PSD of a Group
