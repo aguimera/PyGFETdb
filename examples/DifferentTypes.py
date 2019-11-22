@@ -88,7 +88,7 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
 #############################
 # PLOTS PSD
 ############################
-def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
+def PlotsPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -108,12 +108,14 @@ def PlotsPSDperTypeAndWafer(GrBase, **kwargs):
     print(' ')
     GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True)
+    if Plot:
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True)
 
     print('Collect->', gc.collect())
     return results
 
-def PlotsPSDperWaferAndDevice(GrBase, **kwargs):
+
+def PlotsPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -133,13 +135,14 @@ def PlotsPSDperWaferAndDevice(GrBase, **kwargs):
     print(' ')
     GrTypes, rPSD = search.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+    if Plot:
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
     return results
 
 
-def PlotsPSDperDevice(GrBase, **kwargs):
+def PlotsPSDperDevice(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -159,13 +162,14 @@ def PlotsPSDperDevice(GrBase, **kwargs):
     print(' ')
     GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+    if Plot:
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
     return results
 
 
-def PlotsPSDperDeviceAndTrt(GrBase, **kwargs):
+def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -185,7 +189,8 @@ def PlotsPSDperDeviceAndTrt(GrBase, **kwargs):
     print(' ')
     GrTypes, rPSD = search.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processPSDsPerTrt(GrTypes, rPSD, **kwargs.get('noise'))
-    plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+    if Plot:
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
     return results
@@ -404,22 +409,21 @@ def main():
     }
     # PLOTS ####################################################################
 
+    ####### ONE WAFER ##########################
+    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
+    # PlotsPerTypes(GrBase1, **kwargs2)
+
+    PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+
     ######## ALL THE WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
 
-    # PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase3,**kwargs3)
-    # PlotsPSDperDevice(GrBase3, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
-
-    ####### ONE WAFER ##########################
-    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
-    # PlotsPerTypes(GrBase1, **kwargs2)
-    PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
-    PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
-    # PlotsPSDperDevice(GrBase1, **kwargs4)
-    PlotsPSDperDeviceAndTrt(GrBase1, **kwargs4)
+    # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
