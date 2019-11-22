@@ -349,7 +349,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtol
     return ok, perfect, grad, noisegrad
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=0.85, errortolerance=-0.01, gradtolerance=0.09):
+def isPSDok(PSD, Fpsd, noise, tolerance=0.75, errortolerance=0.75, gradtolerance=0.09):
     """
 
        :param PSD: PSD of a Group

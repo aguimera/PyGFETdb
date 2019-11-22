@@ -393,7 +393,7 @@ def main():
         },
         'noise': {
             'tolerance': 0.75,
-            'errortolerance': 0.6,
+            'errortolerance': 0.75,
             'gradtolerance': 0.09
         }
     }
@@ -403,7 +403,7 @@ def main():
         },
         'noise': {
             'tolerance': 0.75,
-            'errortolerance': 0.6,
+            'errortolerance': 0.75,
             'gradtolerance': 0.09
         }
     }
@@ -422,8 +422,8 @@ def main():
     # PlotsPerTypes(GrBase2, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
+    PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
 
     ######## ALL THE WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
