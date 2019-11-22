@@ -283,3 +283,60 @@ def isPSDok(PSD, Fpsd, noise, tolerance=0.5, errortolerance=-1.3, gradtolerance=
             print('     Noise GradError BAD -> grad-error:{}'.format(meangraderr))
 
     return ok, perfect, grad, noisegrad
+
+
+def processPSDsPerTrt(GrTypes, rPSD, tolerance=1.5e-22, errortolerance=1.3e-19, gradtolerance=-2.7e-18):
+    """
+
+    :param GrTypes: Group to process
+    :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
+    :param tolerance:
+    :return: A dict with the results of the processing
+    """
+    results = {}
+    i = 0
+    okc = 0
+    perfectc = 0
+    print(' ')
+    print('******************************************************************************')
+    print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
+    print('******************************************************************************')
+    print(' ')
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        results[nType] = {}
+        PSD = rPSD[nType]['PSD']
+        NoA = rPSD[nType]['NoA']
+        NoB = rPSD[nType]['NoB']
+        for nWf, vWf in Fpsd.items():
+            PSDt = PSD[nWf]
+            NoAt = NoA[nWf]
+            NoBt = NoB[nWf]
+            if NoAt is not None and len(NoAt) > 0:
+                Fpsdt = vWf[0:len(PSDt)]
+                Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+                i += 1
+                print('***************************************************')
+                print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
+                print('***************************************************')
+
+                noise = Fnoise(Fpsd2t, NoAt, NoBt)
+
+                [ok, perfect, grad, noisegrad] = isMeanPSDok(PSDt, Fpsd2t, noise,
+                                                             tolerance, errortolerance, gradtolerance)
+                print(' ')
+                if ok:
+                    okc += 1
+                if perfect:
+                    perfectc += 1
+                results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+
+    print('******************************************************************************')
+    print('*******  NOISE ANALYSIS SUMMARY ********************************************')
+    print('******************************************************************************')
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100))
+    print('******************************************************************************')
+    print('******* END OF THE NOISE ANALYSIS ********************************************')
+    print('******************************************************************************')
+    return results

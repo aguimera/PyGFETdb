@@ -139,7 +139,7 @@ def PlotsPSDperWaferAndDevice(GrBase, **kwargs):
     return results
 
 
-def AnalysisPSDperDevice(GrBase, **kwargs):
+def AnalysisPSDperDeviceAndTrt(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -157,12 +157,13 @@ def AnalysisPSDperDevice(GrBase, **kwargs):
     print('******* NOISE ANALYSIS *******************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    GrTypes, rPSD = search.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processPSDsPerTrt(GrTypes, rPSD, **kwargs.get('noise'))
     # plot.PlotResultsPSD(GrTypes, results, rPSD)
 
     print('Collect->', gc.collect())
     return results
+
 ############################
 # MAIN
 ###########################
@@ -360,9 +361,19 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 2.5e-4,
+            'tolerance': 2.5e-2,
             'errortolerance': 1.3,
             'gradtolerance': 0.11
+        }
+    }
+    kwargs4 = {
+        'db': {
+            'remove50Hz': True
+        },
+        'noise': {
+            'tolerance': 0.5,
+            'errortolerance': -1.3,
+            'gradtolerance': 0.05
         }
     }
 
@@ -374,13 +385,15 @@ def main():
     # PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3,**kwargs3)
     # AnalysisPSDperDevice(GrBase3, **kwargs3)
+    AnalysisPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
     ####### ONE WAFER ##########################
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
-    AnalysisPSDperDevice(GrBase1, **kwargs3)
+    # AnalysisPSDperDevice(GrBase1, **kwargs3)
+    # AnalysisPSDperDeviceAndTrt(GrBase1, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
