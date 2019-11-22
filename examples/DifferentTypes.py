@@ -107,7 +107,7 @@ def PlotsPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True)
 
@@ -134,7 +134,7 @@ def PlotsPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = search.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
@@ -161,7 +161,7 @@ def PlotsPSDperDevice(GrBase, Plot=False, **kwargs):
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
@@ -387,23 +387,23 @@ def main():
         'xlabel': "Wafers",
         'remove50Hz': True,
     }
-    kwargs3 = {
+    kwargs3 = {  # Per Group
         'db': {
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 2.5e-4,
-            'errortolerance': -0.1,
+            'tolerance': 0.85,
+            'errortolerance': 0.2,
             'gradtolerance': 0.09
         }
     }
-    kwargs4 = {
+    kwargs4 = {  # Per Trt
         'db': {
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 3.1e-2,
-            'errortolerance': -0.1,
+            'tolerance': 0.01,
+            'errortolerance': 0.2,
             'gradtolerance': 0.09
         }
     }
@@ -413,9 +413,17 @@ def main():
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
 
-    PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+    # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+
+    ######## 2 WAFERS #####################
+    # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
+    # PlotsPerTypes(GrBase2, **kwargs2)
+
+    # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
 
     ######## ALL THE WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
@@ -423,7 +431,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
