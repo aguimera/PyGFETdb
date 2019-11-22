@@ -189,7 +189,6 @@ def Legend(Ax, legend, handles):
 
 
 def PlotMeanStd(Valx, Valy, Ax=None,
-                Color='r',
                 PlotStd=True,
                 PlotOverlap=False,
                 label=None,
@@ -207,22 +206,22 @@ def PlotMeanStd(Valx, Valy, Ax=None,
     :return:
     """
     scilimits = (-2, 2)
-
+    if PlotStd:
+        Color = 'r'
     if Ax is None:
         fig, Ax = plt.subplots()
 
     if PlotOverlap:
         if Valy is not None:
-            Ax.plot(Valx, Valy, color=Color, alpha=0.2)
+            Ax.plot(Valx, Valy, alpha=0.2)
 
     Valy = np.array(Valy)
     if Valy is not None and Valy.size:
         avg = np.mean(Valy, axis=1)
         std = np.std(Valy, axis=1)
-        Ax.plot(Valx, avg, color=Color, label=label)
+        Ax.plot(Valx, avg, label=label)
         if PlotStd:
             Ax.fill_between(Valx, avg - std, avg + std,
-                            color=Color,
                             linewidth=0.0,
                             alpha=0.3)
 
@@ -389,35 +388,11 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
     _closeBoxplotValsGroup(ax2, xPos, xLab, xlabel, "Yield [% {}]".format(perType), title, **kwargs)
 
 
-def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, nWf=None):
-    """
-
-    :param Fpsd: Data of the x axis
-    :param PSD:  Data of the y axis
-    :param Fpsd2: Data of the x axis for noise fitting
-    :param noise: Data of the y axis for noise fitting
-    :param perfect: Boolean to approve the analysis
-    :param nType: Name of the Type of Trt
-    :param nWf: Name of the Wafer
-    :return: None
-    """
-    fig, ax = plt.subplots()
-    PlotMeanStd(Fpsd, PSD, ax, xscale='log', yscale='log')
-    ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
-    ax.set_xlabel("Frequency [Hz]")
-    ax.set_ylabel('PSD [A^2/Hz]')
-
-    title = "PSDs {} for {} / {}".format("OK" if perfect else "NOK", nType, nWf)
-    plt.title(title)
-
-
 ########################################################################
 ##
 ##  PLOT RESULTS
 ##
 ########################################################################
-
-
 def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, legendTitle=None, **kwargs):
     """
 
@@ -448,7 +423,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                             xlabel=xlabel, **arguments[karg])
 
 
-def PlotResultsPSD(GrTypes, results, rPSD):
+def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False):
     """
         **Plots the results of the Noise Analysis**
 
@@ -459,13 +434,56 @@ def PlotResultsPSD(GrTypes, results, rPSD):
     """
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
+        temp0 = []
+        temp1 = []
+        temp2 = []
+        temp3 = []
+        temp4 = []
+        temp5 = []
+
         for nWf, vWf in Fpsd.items():
             r = results[nType].get(nWf)
             if r is not None:
-                PlotPSD(r[0],  # Fpsd
-                        r[1],  # PSD
-                        r[2],  # Fpsd2
-                        r[3],  # noise
-                        # r[4],  # ok
-                        r[5],  # perfect
-                        nType, nWf)
+                temp0.append(r[0])
+                temp1.append(r[1])
+                temp2.append(r[2])
+                temp3.append(r[3])
+                temp4.append(r[4])
+                temp5.append(r[5])
+
+        if temp3 is not None and len(temp3) > 0:
+            temp3 = np.mean(temp3, 1)
+            temp4 = np.all(temp4)
+            temp5 = np.all(temp5)
+
+            PlotPSDPerType(temp0,  # Fpsd
+                           temp1,  # PSD
+                           temp2[0],  # Fpsd2
+                           temp3,  # noise
+                           # temp4,  # ok
+                           temp5,  # perfect
+                           nType, PlotStd=PlotStd)
+
+
+def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param Fpsd2: Data of the x axis for noise fitting
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :return: None
+    """
+    fig, ax = plt.subplots()
+    for i, item in enumerate(PSD):
+        PlotMeanStd(Fpsd[i], item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+    if PlotStd:
+        ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
+
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
+    plt.title(title)
