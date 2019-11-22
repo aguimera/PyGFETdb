@@ -387,18 +387,8 @@ def main():
         },
         'noise': {
             'tolerance': 2.5e-2,
-            'errortolerance': 1.3,
-            'gradtolerance': 0.11
-        }
-    }
-    kwargs4 = {
-        'db': {
-            'remove50Hz': True
-        },
-        'noise': {
-            'tolerance': 2.5e-2,
-            'errortolerance': 0.8,
-            'gradtolerance': 0.08
+            'errortolerance': -0.1,
+            'gradtolerance': 0.09
         }
     }
     # PLOTS ####################################################################
@@ -406,18 +396,19 @@ def main():
     ######## ALL THE WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
+
     # PlotsPSDperTypeAndWafer(GrBase3, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3,**kwargs3)
-    # AnalysisPSDperDevice(GrBase3, **kwargs4)
-    AnalysisPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    # AnalysisPSDperDevice(GrBase3, **kwargs3)
+    # AnalysisPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
     ####### ONE WAFER ##########################
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
     # PlotsPSDperTypeAndWafer(GrBase1, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, **kwargs3)
-    # AnalysisPSDperDevice(GrBase1, **kwargs4)
-    # AnalysisPSDperDeviceAndTrt(GrBase1, **kwargs4)
+    # AnalysisPSDperDevice(GrBase1, **kwargs3)
+    AnalysisPSDperDeviceAndTrt(GrBase1, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
