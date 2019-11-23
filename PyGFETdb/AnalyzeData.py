@@ -15,7 +15,7 @@ import sys
 import numpy as np
 from scipy import interpolate
 
-import PyGFETdb.GlobalFunctions as g
+import PyGFETdb.AnalysisFunctions as analysis
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
 
@@ -122,7 +122,7 @@ def CheckIsOK (DevDC, DevAC=None, RdsRange = [400,10e3]):
 ###############################################################################
 def InterpolatePSD(DevACVals, Points=100, Process50Hz=False):
     """
-        ** Interpolates the PSD **
+        **Interpolates the PSD**
 
     :param DevACVals: Data to interpolate
     :param Points: Number of points to interpolate
@@ -152,11 +152,11 @@ def InterpolatePSD(DevACVals, Points=100, Process50Hz=False):
             temp = psd(Flog)
             r = []
             for i, item in enumerate(temp):
-                r.append(g.process50Hz(item, Process50Hz))
+                r.append(analysis.process50Hz(item, Process50Hz))
             temp = np.array(r)
             ch['PSD'][Vds] = temp
 
-        ch['Fpsd'] = g.process50Hz(Flog, Process50Hz)
+        ch['Fpsd'] = analysis.process50Hz(Flog, Process50Hz)
         DevACVals[Ch] = ch
 
 ###############################################################################
