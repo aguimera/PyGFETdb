@@ -387,17 +387,17 @@ def main():
         'xlabel': "Wafers",
         'remove50Hz': True,
     }
-    kwargs3 = {  # Per Group
+    kwargs3 = {  # Per Type
         'db': {
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.75,
+            'tolerance': 0.44,  # 50x50
             'errortolerance': 0.75,
             'gradtolerance': 0.09
         }
     }
-    kwargs4 = {  # Per Trt
+    kwargs4 = {  # Per Device
         'db': {
             'remove50Hz': True
         },
@@ -414,15 +414,15 @@ def main():
     # PlotsPerTypes(GrBase1, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs4)
     # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     # PlotsPerTypes(GrBase2, **kwargs2)
 
-    # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-    PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs4)
     # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
 
     ######## ALL THE WAFERS #####################
@@ -430,7 +430,7 @@ def main():
     # PlotsPerTypes(GrBase3, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs4)
     # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 

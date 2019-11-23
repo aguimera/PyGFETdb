@@ -452,7 +452,7 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False):
                 temp5.append(r[5])
 
         if temp3 is not None and len(temp3) > 0:
-            temp3 = np.mean(temp3, 1)
+            # temp3 = np.mean(temp3, 1)
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
@@ -480,7 +480,12 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     for i, item in enumerate(PSD):
         PlotMeanStd(Fpsd[i], item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
     if PlotStd:
-        ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
+        if len(noise) > len(Fpsd2):
+            for i, item in enumerate(noise):
+                ax.loglog(Fpsd2.transpose(), noise[i].transpose(), '--')
+        else:
+            noise = np.array(noise)
+            ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
