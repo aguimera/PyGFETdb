@@ -71,7 +71,7 @@ def processFreqs(Array, process):
     return Array
 
 
-def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1, errortolerance=1, gradtolerance=1):
+def processNoise(PSD, Fpsd, NoA, NoB, tolerance=0.75, errortolerance=0.75, gradtolerance=0.09):
     """
 
     :param PSD: PSD of a Group
@@ -120,7 +120,7 @@ def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1, errortolerance=1, gradtoleran
     return [noise, ok, perfect, grad, noisegrad]
 
 
-def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtolerance=0.09):
+def isMeanPSDok(PSD, Fpsd, noise, tolerance=0.75, errortolerance=0.75, gradtolerance=0.09):
     """
 
     :param PSD: PSD of a Group
@@ -144,7 +144,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtol
     y2 = np.diff(noise)
 
     grad = qty.Divide(y, dx) / np.max(mPSD)  # Gradient of the mean PSD
-    perfect = np.all(grad <= tolerance)
+    perfect = np.all(np.abs(grad) <= tolerance)
 
     noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
 
@@ -162,9 +162,9 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtol
     ok = ok1 and ok2
 
     if perfect:
-        print('Mean PSD Noise PERFECT -> {}'.format(np.max(grad)))
+        print('Mean PSD Noise PERFECT -> {}'.format(np.max(np.abs(grad))))
     else:
-        print('Mean PSD Noise BAD -> {}'.format(np.max(grad)))
+        print('Mean PSD Noise BAD -> {}'.format(np.max(np.abs(grad))))
 
     if ok:
         print('Noise Fitted OK -> error:{} grad-error:{}'.format(minerr, meangraderr))
@@ -178,7 +178,7 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtol
     return ok, perfect, grad, noisegrad
 
 
-def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=1.0, errortolerance=1.0, gradtolerance=1.0):
+def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=0.75, errortolerance=0.75, gradtolerance=0.09):
     """
 
     :param PSD: PSD of a Group
@@ -233,7 +233,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=1.0, errortolerance=1.0, grad
     return [noise, ok, perfect, grad, noisegrad]
 
 
-def processAllPSDs(GrTypes, rPSD, tolerance=1, errortolerance=1, gradtolerance=1):
+def processAllPSDs(GrTypes, rPSD, tolerance=0.75, errortolerance=0.75, gradtolerance=0.09):
     """
 
     :param GrTypes: Group to process
