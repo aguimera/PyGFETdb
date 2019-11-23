@@ -392,9 +392,10 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.44,  # 50x50
-            'errortolerance': 0.75,
-            'gradtolerance': 0.09
+            'tolerance': 0.17,  # 50x50
+            'gradtolerance': 0.15,
+            'errortolerance': 0.31,
+            'errorgradtolerance': 0.15
         }
     }
     kwargs4 = {  # Per Device
@@ -402,9 +403,10 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.75,
-            'errortolerance': 0.75,
-            'gradtolerance': 0.09
+            'tolerance': 0.17,
+            'gradtolerance': 0.15,
+            'errortolerance': 0.31,
+            'errorgradtolerance': 0.15
         }
     }
     # PLOTS ####################################################################
@@ -415,7 +417,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
@@ -431,7 +433,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs4)
-    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
