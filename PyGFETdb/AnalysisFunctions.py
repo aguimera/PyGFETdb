@@ -123,19 +123,19 @@ def processNoise(PSD, Fpsd, NoA, NoB, tolerance=1, errortolerance=1, gradtoleran
 def isMeanPSDok(PSD, Fpsd, noise, tolerance=3.1e-2, errortolerance=-0.1, gradtolerance=0.09):
     """
 
-        :param PSD: PSD of a Group
-        :param Fpsd: Fpsd of a Group
-        :param noise: Mean noise
-        :param tolerance: margin of error allowed on the analysis of the Mean PSD
-        :param errortolerance: Maximum error allowed in the Noise fit
-        :param gradtolerance: Maximum error of the gradient in the Noise fit
+    :param PSD: PSD of a Group
+    :param Fpsd: Fpsd of a Group
+    :param noise: Mean noise
+    :param tolerance: margin of error allowed on the analysis of the Mean PSD
+    :param errortolerance: Maximum error allowed in the Noise fit
+    :param gradtolerance: Maximum error of the gradient in the Noise fit
 
-       :return: ok: True if the noise is fitted well
-       :return: perfect: True if the Mean PSD gradient is acceptable
-       :return: grad: Mean PSD gradient
-       :return: noisegrad: Noise gradient
+    :return: ok: True if the noise is fitted well
+    :return: perfect: True if the Mean PSD gradient is acceptable
+    :return: grad: Mean PSD gradient
+    :return: noisegrad: Noise gradient
 
-       """
+    """
     mPSD = np.mean(PSD, 1)
 
     dx = np.diff(Fpsd)
