@@ -517,7 +517,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
         key = thread.initcall(Thread.key(), selfclass)
         Trts = {}
         Trts['Total'] = Data.keys()
-        print('DataSelection...')
+        # print('DataSelection...')
         for DataSel in DataSelectionConfig:
             #         logging.debug('Look for data in range %s', DataSel)
             if 'Name' not in DataSel:
@@ -532,7 +532,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
             DataFilt.update(item)
         Trts = DataFilt.keys()
         Data = DataFilt
-        print('DataSelection Done.')
+        #print('DataSelection Done.')
         thread.end()
         del thread
     return Data, Trts

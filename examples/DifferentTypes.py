@@ -188,7 +188,7 @@ def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = search.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processPSDsPerTrt(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
 
@@ -421,7 +421,7 @@ def main():
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     # PlotsPerTypes(GrBase2, **kwargs2)
 
-    PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs4)
     # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
 
@@ -431,7 +431,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
