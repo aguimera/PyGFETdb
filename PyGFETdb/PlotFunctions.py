@@ -480,7 +480,7 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     for i, item in enumerate(PSD):
         PlotMeanStd(Fpsd[i], item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
     if PlotStd:
-        if len(noise) > len(Fpsd2):
+        if len(noise) > len(Fpsd2) or noise[0].size > len(Fpsd2):
             for i, item in enumerate(noise):
                 ax.loglog(Fpsd2.transpose(), noise[i].transpose(), '--')
         else:

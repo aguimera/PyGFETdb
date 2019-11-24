@@ -242,7 +242,7 @@ class QuantitySupport(object):
         try:
             ret = np.divide(Dividend, Divisor)
         except ValueError as e:
-            print("Error in Divide:", sys.exc_info())
+            print("Error in Divide:", sys.exc_info()[1])
             raise e
 
         if type(ret) is pq.Quantity:

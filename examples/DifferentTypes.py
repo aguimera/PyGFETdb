@@ -97,7 +97,7 @@ def PlotsPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     """
     arguments = {
         'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05},
         'NoA': {'Param': 'NoA'},
         'NoB': {'Param': 'NoB'},
     }
@@ -387,30 +387,20 @@ def main():
         'xlabel': "Wafers",
         'remove50Hz': True,
     }
-    kwargs3 = {  # Per Type
+
+    kwargs3 = {
         'db': {
             'remove50Hz': True
         },
         'noise': {
-            'fluctuation': 0.646,
-            'peak': 0.166,
-            'gradient': 0.66,
+            'fluctuation': 0.188,
+            'peak': 0.256,  # 0.312,
+            'gradient': 0.354,
             'fiterror': 0.5,
-            'fitgradient': 0.05
+            'fitgradient': 0.009
         }
     }
-    kwargs4 = {  # Per Device
-        'db': {
-            'remove50Hz': True
-        },
-        'noise': {
-            'fluctuation': 0.646,
-            'peak': 0.166,
-            'gradient': 0.66,
-            'fiterror': 0.5,
-            'fitgradient': 0.05
-        }
-    }
+
     # PLOTS ####################################################################
 
     ####### ONE WAFER ##########################
@@ -418,24 +408,24 @@ def main():
     # PlotsPerTypes(GrBase1, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     # PlotsPerTypes(GrBase2, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs4)
+    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
 
     ######## ALL THE WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # PlotsPerTypes(GrBase3, **kwargs2)
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs4)
-    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
