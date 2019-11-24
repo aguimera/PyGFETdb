@@ -380,8 +380,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     mPSD = PSD[1:]
     f = Fpsd.transpose()
     dx = np.diff(f)[1:]
-    y = np.diff(mPSD)
-    y2 = np.diff(noise.transpose())
 
     # Max fluctuation of the PSD
     fluct = np.abs((-mPSD + np.min(mPSD)) / np.max(mPSD))
@@ -391,13 +389,28 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     pk = np.abs((-mPSD + np.mean(mPSD)) / np.max(mPSD))
     maxpeak = 1 - np.max(pk)
 
+    # Gradient of the PSD
+    y = np.diff(mPSD)
     grad = qty.Divide(y, dx) / 1e-16
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
     graderror = maxgrad
 
-    if graderror > 1:
-        raise ValueError('graderror>1')
+    # Error of the noise fitting
+    fitpeak = np.abs((-mPSD + np.mean(noise)) / np.max(mPSD))
+    fitmaxerr = 1 - np.max(fitpeak)
+
+    # Gradient of the noise fitting
+    y2 = np.diff(noise.transpose())
+    noisegrad = qty.Divide(y2, dx) / 1e-16
+    absnoisegrad = np.abs(noisegrad)
+    fitgraderror = absgrad - absnoisegrad
+    absgraderror = np.abs(fitgraderror)
+    fitmaxgraderror = np.mean(absgraderror)
+
+    # Consistency check
+    if maxfluct > 1 or maxpeak > 1 or graderror > 1 or fitmaxerr > 1 or fitmaxgraderror > 1:
+        raise ValueError('Value>1')
 
     # Conditions of the PSD
     perfect1 = np.all(maxfluct <= fluctuation)
@@ -405,25 +418,12 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     perfect3 = np.all(graderror <= gradient)
     perfect = perfect1 and perfect2 and perfect3
 
-    # Error of the noise fitting
-    fitpeak = np.abs((-mPSD + np.mean(noise)) / np.max(mPSD))
-    fitmaxerr = 1 - np.max(fitpeak)
-
-    # Gradient of the noise fitting
-    noisegrad = qty.Divide(y2, dx) / 1e-16
-    absnoisegrad = np.abs(noisegrad)
-    fitgraderror = absgrad - absnoisegrad
-    absgraderror = np.abs(fitgraderror)
-    fitmaxgraderror = np.mean(absgraderror)
-
-    if np.any(absnoisegrad > 1):
-        raise ValueError('noisegrad>1')
-
     # Conditions of the noise fit
     ok1 = fitmaxerr <= fiterror
     ok2 = fitmaxgraderror <= fitgradient
     ok = ok1 and ok2
 
+    # Print output
     if perfect:
         pass
         #print('PSD Noise OK -> fluctuation:{} peak:{} gradient:{}'.format(maxfluct, maxpeak, graderror))
