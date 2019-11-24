@@ -393,8 +393,8 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'fluctuation': 0.736,
-            'peak': 0.31174,  # 0.302,
+            'fluctuation': 0.077,
+            'peak': 0.264,
             'gradient': 0.442,
             'fiterror': 0.4,
             'fitgradient': 9e-4
