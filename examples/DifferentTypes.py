@@ -395,8 +395,8 @@ def main():
             'fluctuation': 0.646,
             'peak': 0.166,
             'gradient': 0.66,
-            'fiterror': 0.31,
-            'fitgradient': 0.09
+            'fiterror': 0.5,
+            'fitgradient': 0.05
         }
     }
     kwargs4 = {  # Per Device
@@ -407,8 +407,8 @@ def main():
             'fluctuation': 0.646,
             'peak': 0.166,
             'gradient': 0.66,
-            'fiterror': 0.31,
-            'fitgradient': 0.09
+            'fiterror': 0.5,
+            'fitgradient': 0.05
         }
     }
     # PLOTS ####################################################################
