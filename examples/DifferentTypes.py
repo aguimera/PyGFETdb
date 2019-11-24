@@ -393,7 +393,7 @@ def main():
         },
         'noise': {
             'fluctuation': 0.646,
-            'peak': 0.176,
+            'peak': 0.166,
             'gradient': 0.66,
             'fiterror': 0.31,
             'fitgradient': 0.09
@@ -405,7 +405,7 @@ def main():
         },
         'noise': {
             'fluctuation': 0.646,
-            'peak': 0.176,
+            'peak': 0.166,
             'gradient': 0.66,
             'fiterror': 0.31,
             'fitgradient': 0.09
@@ -419,7 +419,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs4)
-    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
+    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs4)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
@@ -435,7 +435,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs4)
-    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
+    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs4)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
