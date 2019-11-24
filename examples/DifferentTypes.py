@@ -394,7 +394,7 @@ def main():
         },
         'noise': {
             'fluctuation': 0.077,
-            'peak': 0.264,
+            'peak': 0.265,
             'gradient': 0.442,
             'fiterror': 0.4,
             'fitgradient': 9e-4
