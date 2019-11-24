@@ -380,8 +380,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     mPSD = PSD[1:]
     f = Fpsd.transpose()
     dx = np.diff(f)[1:]
-    # dx2 = np.repeat(dx,mPSD.shape[1])
-    #dx2 = np.reshape(dx2,(dx.size,mPSD.shape[1]))
     y = np.diff(mPSD)
     y2 = np.diff(noise.transpose())
 
@@ -393,8 +391,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     pk = np.abs((-mPSD + np.mean(mPSD)) / np.max(mPSD))
     maxpeak = 1 - np.max(pk)
 
-    # Gradient of the mean PSD
-    # grad = qty.Divide(y, dx2[:,1:]) / np.max(mPSD)
     grad = qty.Divide(y, dx) / 1e-16
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
@@ -414,7 +410,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
     fitmaxerr = 1 - np.max(fitpeak)
 
     # Gradient of the noise fitting
-    # noisegrad = qty.Divide(y2, dx2[:,1:]) / np.max(noise)
     noisegrad = qty.Divide(y2, dx) / 1e-16
     absnoisegrad = np.abs(noisegrad)
     fitgraderror = absgrad - absnoisegrad
