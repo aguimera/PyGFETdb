@@ -392,10 +392,11 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.17,  # 50x50
-            'gradtolerance': 0.15,
-            'errortolerance': 0.31,
-            'errorgradtolerance': 0.15
+            'fluctuation': 0.646,
+            'peak': 0.176,
+            'gradient': 0.66,
+            'fiterror': 0.31,
+            'fitgradient': 0.09
         }
     }
     kwargs4 = {  # Per Device
@@ -403,10 +404,11 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'tolerance': 0.17,
-            'gradtolerance': 0.15,
-            'errortolerance': 0.31,
-            'errorgradtolerance': 0.15
+            'fluctuation': 0.646,
+            'peak': 0.176,
+            'gradient': 0.66,
+            'fiterror': 0.31,
+            'fitgradient': 0.09
         }
     }
     # PLOTS ####################################################################

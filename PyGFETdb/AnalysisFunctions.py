@@ -178,17 +178,18 @@ def isMeanPSDok(PSD, Fpsd, noise, tolerance=0.75, errortolerance=0.75, gradtoler
     return ok, perfect, grad, noisegrad
 
 
-def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=0.75, gradtolerance=0.75, errortolerance=0.75,
-                    errorgradtolerance=0.09):
+def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31, fitgradient=0.09):
     """
 
     :param PSD: PSD of a Group
     :param Fpsd: Fpsd of a Group
     :param NoA: Noise A of a Group
     :param NoB: Noise B of a Group
-    :param tolerance: margin of error allowed on the analysis of the  PSD
-    :param errortolerance: Maximum error allowed in the Noise fit
-    :param gradtolerance: Maximum error of the gradient in the Noise fit
+    :param fluctuation: Maximum change allowed between the maximum value and the minimum value
+    :param peak: Maximum change allowed between the maximum value and the mean value
+    :param gradient: Maximum gradient allowed
+    :param fiterror: Maximum error allowed in the fit
+    :param fitgradient: Maximum error allowed in the gradient of the fit
     :return: noise:
     :return: ok: True if the noise is fitted well
     :return: perfect: True if the PSD gradient is acceptable
@@ -211,7 +212,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=0.75, gradtolerance=0.75, err
         mPSD = np.mean(PSD, 1)
         for item in noise:
             [ok, perfect, grad, noisegrad] = isPSDok(mPSD, Fpsd, item.transpose()[1:],
-                                                     tolerance, gradtolerance, errortolerance, errorgradtolerance)
+                                                     fluctuation, peak, gradient, fiterror, fitgradient)
             temp1.append(ok)
             temp2.append(perfect)
             temp3.append(grad)
@@ -234,14 +235,17 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, tolerance=0.75, gradtolerance=0.75, err
     return [noise, ok, perfect, grad, noisegrad]
 
 
-def processAllPSDs(GrTypes, rPSD, tolerance=0.75, gradtolerance=0.75, errortolerance=0.75, errorgradtolerance=0.09):
+def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09):
+
     """
 
     :param GrTypes: Group to process
     :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
-    :param tolerance: Maximum error allowed in the PSD
-    :param errortolerance: Maximum error allowed in the Noise fit
-    :param gradtolerance: Maximum error of the gradient in the Noise fit
+    :param fluctuation: Maximum change allowed between the maximum value and the minimum value
+    :param peak: Maximum change allowed between the maximum value and the mean value
+    :param gradient: Maximum gradient allowed
+    :param fiterror: Maximum error allowed in the fit
+    :param fitgradient: Maximum error allowed in the gradient of the fit
     :return: A dict with the results of the processing
     """
     results = {}
@@ -290,9 +294,8 @@ def processAllPSDs(GrTypes, rPSD, tolerance=0.75, gradtolerance=0.75, errortoler
                     temp4 = []
                     for i, item in enumerate(NoAt):
                         [noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt[i], NoBt[i],
-                                                                                tolerance, gradtolerance,
-                                                                                errortolerance,
-                                                                                errorgradtolerance)
+                                                                                fluctuation, peak, gradient, fiterror,
+                                                                                fitgradient)
                         temp0.append(noise)
                         temp1.append(ok)
                         temp2.append(perfect)
@@ -308,8 +311,8 @@ def processAllPSDs(GrTypes, rPSD, tolerance=0.75, gradtolerance=0.75, errortoler
                     noisegrad = np.mean(temp4, 1)
                 else:
                     [noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
-                                                                            tolerance, gradtolerance,
-                                                                            errortolerance, errorgradtolerance)
+                                                                            fluctuation, peak, gradient,
+                                                                            fiterror, fitgradient)
                 Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
 
                 print(' ')
@@ -360,14 +363,17 @@ def processAllPSDs(GrTypes, rPSD, tolerance=0.75, gradtolerance=0.75, errortoler
     return results
 
 
-def isPSDok(PSD, Fpsd, noise, tolerance=0.5, gradtolerance=0.75, errortolerance=0.75, errorgradtolerance=0.09):
+def isPSDok(PSD, Fpsd, noise, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09):
     """
-
        :param PSD: PSD of a Group
        :param Fpsd: Fpsd of a Group
        :param noise: Noise
-       :param tolerance: margin of error allowed on the analysis of the PSD
-       :param tolerance: margin of error allowed on the analysis of the Noise
+       :param fluctuation: Maximum change allowed between the maximum value and the minimum value
+       :param peak: Maximum change allowed between the maximum value and the mean value
+       :param gradient: Maximum gradient allowed
+       :param fiterror: Maximum error allowed in the fit
+       :param fitgradient: Maximum error allowed in the gradient of the fit
+
        :return: ok: True if the noise is fitted well
        :return: perfect: True if the PSD gradient is acceptable
        :return: grad: PSD gradient
@@ -381,48 +387,63 @@ def isPSDok(PSD, Fpsd, noise, tolerance=0.5, gradtolerance=0.75, errortolerance=
     y = np.diff(mPSD)
     y2 = np.diff(noise.transpose())
 
-    grad = qty.Divide(y, dx) / np.max(mPSD)  # Gradient of the mean PSD
-    peaks = (-mPSD + np.min(mPSD)) / -np.max(mPSD)
-    maxpeaks = np.min(1 - peaks) * 10
+    # Max fluctuation of the PSD
+    fluct = np.abs((-mPSD + np.min(mPSD)) / np.max(mPSD))
+    maxfluct = (1 - np.max(fluct)) * 10
+
+    # Max peak of the PSD
+    pk = np.abs((-mPSD + np.mean(mPSD)) / np.max(mPSD))
+    maxpeak = 1 - np.max(pk)
+
+    # Gradient of the mean PSD
+    grad = qty.Divide(y, dx) / np.max(mPSD)
     absgrad = 1 - np.abs(grad)
-    maxgraderror = 1 - np.max(absgrad)
-    perfect1 = np.all(maxpeaks <= tolerance)
-    perfect2 = np.all(maxgraderror <= gradtolerance)
+    maxgrad = np.min(absgrad)
+    graderror = maxgrad
 
-    perfect = perfect1 and perfect2
+    # Conditions of the PSD
+    perfect1 = np.all(maxfluct <= fluctuation)
+    perfect2 = np.all(maxpeak <= peak)
+    perfect3 = np.all(graderror <= gradient)
+    perfect = perfect1 and perfect2 and perfect3
 
-    noisegrad = qty.Divide(y2, dx) / np.max(mPSD)  # Gradient of the noise fitting
+    # Error of the noise fitting
+    fitpeak = np.abs((-mPSD + np.mean(noise)))
+    fitpeak = fitpeak + np.min(fitpeak)
+    fitmaxerr = np.max(fitpeak)
 
-    graderror = grad - noisegrad
-    error = (-mPSD + np.mean(noise)) / -np.max(mPSD)
-    maxerr = np.min(1 - error)
-    absgraderror = np.abs(graderror)
-    maxgraderror2 = np.mean(absgraderror)
+    # Gradient of the noise fitting
+    noisegrad = qty.Divide(y2, dx) / np.max(noise)
+    fitgraderror = grad - noisegrad
+    absgraderror = np.abs(fitgraderror)
+    fitmaxgraderror = np.mean(absgraderror)
 
-    ok1 = maxerr <= errortolerance
-    ok2 = maxgraderror2 <= errorgradtolerance
-
+    # Conditions of the noise fit
+    ok1 = fitmaxerr <= fiterror
+    ok2 = fitmaxgraderror <= fitgradient
     ok = ok1 and ok2
 
     if perfect:
         pass
         # print('PSD Noise OK -> error:{} grad-error:{}'.format(np.max(np.abs(peaks)),np.max(np.abs(grad))))
     else:
-        print('PSD Noise BAD -> error:{} grad-error:{}'.format(maxpeaks, maxgraderror))
+        print('PSD Noise BAD -> fluctuation:{} peak:{} gradient:{}'.format(maxfluct, maxpeak, graderror))
         if not perfect1:
-            print('         PSD Error BAD -> error:{}'.format(maxpeaks))
+            print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
         if not perfect2:
-            print('         PSD GradError BAD -> grad-error:{}'.format(maxgraderror))
+            print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
+        if not perfect3:
+            print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
 
     if ok:
         pass
         #print('    Noise Fitted OK -> error:{} grad-error:{}'.format(minerr, meangraderr))
     else:
-        print('    Noise Fitted BAD -> error:{} grad-error:{}'.format(maxerr, maxgraderror2))
+        print('    Noise Fitted BAD -> error:{} grad-error:{}'.format(fitmaxerr, fitmaxgraderror))
         if not ok1:
-            print('         Noise Error BAD -> error:{}'.format(maxerr))
+            print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
         if not ok2:
-            print('         Noise GradError BAD -> grad-error:{}'.format(maxgraderror2))
+            print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
 
     return ok, perfect, grad, noisegrad
 
