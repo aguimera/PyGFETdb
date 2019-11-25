@@ -88,7 +88,7 @@ def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None,
 #############################
 # PLOTS PSD
 ############################
-def PlotsPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
+def PlotsPSDperTypeAndWafer(GrBase, Plot=False, PlotOverlap=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -109,13 +109,13 @@ def PlotsPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True)
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True, PlotOverlap=PlotOverlap)
 
     print('Collect->', gc.collect())
     return results
 
 
-def PlotsPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
+def PlotsPSDperWaferAndDevice(GrBase, Plot=False, PlotOverlap=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -136,13 +136,13 @@ def PlotsPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
     GrTypes, rPSD = search.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True, PlotOverlap=PlotOverlap)
 
     print('Collect->', gc.collect())
     return results
 
 
-def PlotsPSDperDevice(GrBase, Plot=False, **kwargs):
+def PlotsPSDperDevice(GrBase, Plot=False, PlotOverlap=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -163,13 +163,13 @@ def PlotsPSDperDevice(GrBase, Plot=False, **kwargs):
     GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True, PlotOverlap=PlotOverlap)
 
     print('Collect->', gc.collect())
     return results
 
 
-def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
+def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, PlotOverlap=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -190,7 +190,7 @@ def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
     GrTypes, rPSD = search.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD)
+        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=True, PlotOverlap=PlotOverlap)
 
     print('Collect->', gc.collect())
     return results
@@ -398,7 +398,8 @@ def main():
             'gradient': 0.442,
             'fiterror': 0.4,
             'fitgradient': 9e-4
-        }
+        },
+        'PlotOverlap': True,
     }
 
     # PLOTS ####################################################################
@@ -407,9 +408,9 @@ def main():
     # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # PlotsPerTypes(GrBase1, **kwargs2)
 
-    # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)

@@ -216,7 +216,7 @@ def PlotMeanStd(Valx, Valy, Ax=None,
             Ax.plot(Valx, Valy, alpha=0.2)
 
     Valy = np.array(Valy)
-    if Valy is not None and Valy.size:
+    if Valy is not None and Valy.size and Valy.ndim == 2:
         avg = np.mean(Valy, axis=1)
         std = np.std(Valy, axis=1)
         Ax.plot(Valx, avg, label=label)
@@ -423,7 +423,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                             xlabel=xlabel, **arguments[karg])
 
 
-def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False):
+def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotOverlap=False):
     """
         **Plots the results of the Noise Analysis**
 
@@ -462,10 +462,10 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False):
                            temp3,  # noise
                            # temp4,  # ok
                            temp5,  # perfect
-                           nType, PlotStd=PlotStd)
+                           nType, PlotStd=PlotStd, PlotOverlap=PlotOverlap)
 
 
-def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True):
+def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotOverlap=False):
     """
 
     :param Fpsd: Data of the x axis
@@ -477,15 +477,19 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     :return: None
     """
     fig, ax = plt.subplots()
+
     for i, item in enumerate(PSD):
-        PlotMeanStd(Fpsd[i], item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
-    if PlotStd:
-        if len(noise) > len(Fpsd2) or noise[0].size > len(Fpsd2):
-            for i, item in enumerate(noise):
-                ax.loglog(Fpsd2.transpose(), noise[i].transpose(), '--')
+        if PlotOverlap:
+            for item2 in item[0]:
+                PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log', PlotStd=PlotStd)
+                if PlotStd:
+                    tnoise = np.mean(noise[i].transpose(), 1)
+                    ax.loglog(Fpsd2.transpose(), tnoise, '--')
         else:
-            noise = np.array(noise)
-            ax.loglog(Fpsd2.transpose(), noise.transpose(), '--')
+            PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            if PlotStd:
+                tnoise = np.mean(noise[i].transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), tnoise, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
