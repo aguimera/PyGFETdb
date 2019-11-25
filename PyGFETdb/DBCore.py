@@ -671,7 +671,7 @@ class PyFETdb(_PyFETdb):
         return res
 
     # FIXME:
-    def GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
+    def _GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
