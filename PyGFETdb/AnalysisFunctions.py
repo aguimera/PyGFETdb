@@ -368,7 +368,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     return results
 
 
-def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fiterror=0.5, fitgradient=0.009):
+def isPSDok(PSD, Fpsd, noise, fluctuation=0.077, peak=0.265, gradient=0.442e-16, fiterror=0.4, fitgradient=9e-4):
     """
        :param PSD: PSD of a Group
        :param Fpsd: Fpsd of a Group
