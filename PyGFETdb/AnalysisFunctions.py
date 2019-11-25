@@ -179,8 +179,6 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
         perfectct = 0
         okct = 0
         it = 0
-        itypes += 1
-
         for nWf, vWf in Fpsd.items():
             PSDt = PSD[nWf]
             NoAt = NoA[nWf]
@@ -193,6 +191,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                 i += 1
                 it += 1
                 iw += 1
+                itypes += 1
                 print('***************************************************')
                 print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
                 print('***************************************************')
