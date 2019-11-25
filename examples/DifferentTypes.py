@@ -219,7 +219,7 @@ def main():
             'normalization': 1e-22
         },
         'PlotMean': True,
-        'PlotStd': True,
+        'PlotStd': False,
         'PlotNoise': True,
     }
 
@@ -233,6 +233,11 @@ def main():
     # plot.PlotsPSDperDevice(GrBase1,Plot=True,**kwargs3)
     # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs3)
 
+    # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+
+
     ######## 2 WAFERS #####################
     # plot.PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     # plot.PlotsPerTypes(GrBase2, **kwargs2)
@@ -241,13 +246,21 @@ def main():
     # plot.PlotsPSDperDevice(GrBase2,Plot=True,**kwargs3)
     # plot.PlotsPSDperType(GrBase2,Plot=True,**kwargs3)
 
+    # plot.PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
+
     ######## ALL THE WAFERS #####################
     # plot.PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # plot.PlotsPerTypes(GrBase3, **kwargs2)
 
     # plot.PlotsPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    plot.PlotsPSDperDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDevice(GrBase3, Plot=True, **kwargs3)
     # plot.PlotsPSDperType(GrBase3,Plot=True,**kwargs3)
+
+    # plot.PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
