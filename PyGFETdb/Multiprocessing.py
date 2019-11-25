@@ -599,6 +599,3 @@ def checkRanges(Val, Units, Range, InSide):
         return
     return True
 
-
-
-

@@ -216,7 +216,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                         temp4.append(noisegrad)
                         temp5.append(mPSD)
 
-                    noise = np.array(temp0)
+                    noise = temp0
                     ok = np.all(temp1)
                     perfect = np.all(temp2)
                     grad = temp3

@@ -10,210 +10,8 @@ import sys
 
 import matplotlib.pyplot as plt
 import quantities as pq
-from matplotlib.patches import Patch
 
-import PyGFETdb.AnalysisFunctions as analysis
-import PyGFETdb.SearchFunctions as search
-from PyGFETdb import PlotFunctions as plot
-
-
-############################
-# PLOTS PER WAFER AND TYPES
-###########################
-def PlotsPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
-    print(' ')
-    print('******************************************************************************')
-    print('******* PLOTS PER WAFER AND TYPE *********************************************')
-    print('******************************************************************************')
-    print(' ')
-    # DATABASE SEARCH ####################################################################################
-    GrWs, ResultsParams = search.DBSearchPerWaferAndType(GrBase, arguments, **kwargs)
-    # DATA CLASSIFICATION ################################################################################
-    Results = search.DataClassification(GrWs, arguments, ResultsParams)
-    handles = list((Patch(color=Colors[i], label=sorted(list(GrWs.keys()))[i])
-                    for i in range(0, len(list(GrWs.keys())))))
-
-    plot.PlotResults(Results, arguments, Colors=Colors, handles=handles, xlabel=xlabel,
-                     legendTitle=legendTitle, **kwargs)
-
-    data = Results['arg5']
-    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, handles=handles, Colors=Colors, perType="x Wafer",
-                          xlabel=xlabel, **kwargs)
-    # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel=xlabel,
-                          legendTitle=legendTitle, perType=" x Wafer", handles=handles, **kwargs)
-    # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, Colors=Colors, title="Working SGFETs x Wafer", xlabel="Wafers",
-                               legendTitle=legendTitle, perType="Overall", handles=handles, **kwargs)
-
-    print('Collect->', gc.collect())
-
-
-############################
-# PLOTS PER TYPES
-###########################
-def PlotsPerTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
-    print(' ')
-    print('******************************************************************************')
-    print('******* PLOTS PER TYPE *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    # DATABASE SEARCH ####################################################################################
-    GrTypes, ResultsParams = search.DBSearchPerType(GrBase, arguments, **kwargs)
-    # DATA CLASSIFICATION ################################################################################
-    Results = search.DataClassification(GrTypes, arguments, ResultsParams)
-    # PLOTTING ######
-    handles = list((Patch(color=Colors[i], label=sorted(list(GrTypes.keys()))[i])
-                    for i in range(0, len(list(GrTypes.keys())))))
-
-    plot.PlotResults(Results, arguments, Colors=Colors, handles=handles, xlabel=xlabel,
-                     legendTitle=legendTitle, **kwargs)
-
-    data = Results['arg5']
-    # PLOT 1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeNoise(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel, handles=handles,
-                          perType="x Type", **kwargs)
-    # PLOT 2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYield(data, legendTitle=legendTitle, Colors=Colors, xlabel=xlabel, title="Working SGFETs x Type",
-                          perType="x Type", handles=handles, **kwargs)
-    # PLOT 3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    plot.PlotPerTypeYieldTotal(data, legendTitle=legendTitle, Colors=Colors, xlabel="Types",
-                               title="Working SGFETs x Type",
-                               perType="Overall", handles=handles, **kwargs)
-
-    print('Collect->', gc.collect())
-
-
-#############################
-# PLOTS PSD
-############################
-def PlotsPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise Mean
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = search.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def PlotsPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = search.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def PlotsPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = search.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def PlotsPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = search.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
+import PyGFETdb.PlotFunctions as plot
 
 
 ############################
@@ -420,36 +218,36 @@ def main():
             'fitgradient': 1e3,  # <=
             'normalization': 1e-22
         },
-        'PlotMean': True,
-        'PlotStd': True,
+        'PlotMean': False,
+        'PlotStd': False,
         'PlotNoise': True,
     }
 
     # PLOTS ####################################################################
 
     ####### ONE WAFER ##########################
-    # PlotsPerWaferAndTypes(GrBase1, **kwargs1)
-    # PlotsPerTypes(GrBase1, **kwargs2)
+    # plot.PlotsPerWaferAndTypes(GrBase1, **kwargs1)
+    # plot.PlotsPerTypes(GrBase1, **kwargs2)
 
-    # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
-    # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    # PlotsPerTypes(GrBase2, **kwargs2)
+    # plot.PlotsPerWaferAndTypes(GrBase2, **kwargs1)
+    # plot.PlotsPerTypes(GrBase2, **kwargs2)
 
-    # PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
-    # PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
+    # plot.PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
 
     ######## ALL THE WAFERS #####################
-    # PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-    # PlotsPerTypes(GrBase3, **kwargs2)
+    # plot.PlotsPerWaferAndTypes(GrBase3, **kwargs1)
+    # plot.PlotsPerTypes(GrBase3, **kwargs2)
 
-    PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-    # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    # plot.PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    #plot.PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
