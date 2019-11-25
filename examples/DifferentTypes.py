@@ -218,8 +218,8 @@ def main():
             'fitgradient': 1e3,  # <=
             'normalization': 1e-22
         },
-        'PlotMean': False,
-        'PlotStd': False,
+        'PlotMean': True,
+        'PlotStd': True,
         'PlotNoise': True,
     }
 
@@ -229,9 +229,9 @@ def main():
     # plot.PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # plot.PlotsPerTypes(GrBase1, **kwargs2)
 
-    plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    # plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
     # plot.PlotsPerWaferAndTypes(GrBase2, **kwargs1)
@@ -247,7 +247,7 @@ def main():
 
     # plot.PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # plot.PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    #plot.PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    plot.PlotsPSDperDeviceAndTrt(GrBase3, Plot=True, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
