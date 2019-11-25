@@ -218,8 +218,9 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
     print("Searching Parameters...")
-    thread = Thread.MultiProcess(getparamclass, 10)
+    thread = Thread.MultiProcess(getparamclass)
     for karg, arg in arguments.items():
+        print('Searching Parameter {}'.format(arg.get('Param')))
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
                 for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
