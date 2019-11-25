@@ -295,7 +295,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.077, peak=0.265, gradient=0.442e-16,
     dx = np.diff(f)[1:]
 
     if normalization is None:
-        maxmPSD = np.max(mPSD)
+        maxmPSD = 1
     else:
         maxmPSD = normalization
 
