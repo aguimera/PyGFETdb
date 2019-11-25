@@ -123,12 +123,15 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
                 temp3.append(grad)
                 temp4.append(noisegrad)
 
-        noise = noise.reshape(len(noise), len(PSD))
+        noise = np.mean(noise.transpose(), 1)
+        # noise = noise.reshape(1,len(noise))
+
+        # noise = noise.reshape(len(noise), len(PSD))
 
         ok = np.all(temp1)
         perfect = np.all(temp2)
-        grad = temp3  # grad.reshape(len(PSD))
-        noisegrad = temp4  #noisegrad.reshape(len(PSD))
+        grad = temp3
+        noisegrad = temp4
 
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
