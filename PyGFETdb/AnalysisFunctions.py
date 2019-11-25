@@ -149,6 +149,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     """
     results = {}
     i = 0
+    iw = 0
     itype = []
     itypeo = []
     iwf = []
@@ -246,24 +247,24 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     print('******************************************************************************')
     print('*** PER SUBGROUP *************************************************************')
     print('******************************************************************************')
-    for n, (nw, p, t) in enumerate(iwf):
-        o = iwfo[n][1]
+    for iw, (nw, p, t) in enumerate(iwf):
+        o = iwfo[iw][1]
         print('{}:'.format(nw))
         print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
         print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
     print('******************************************************************************')
     print('*** PER GROUP ****************************************************************')
     print('******************************************************************************')
-    for n, (nt, p, t) in enumerate(itype):
-        o = itypeo[n][1]
+    for it, (nt, p, t) in enumerate(itype):
+        o = itypeo[it][1]
         print('{}:'.format(nt))
         print('     Perfect PSDs -> {} of {} : {} %'.format(p, t, (p / t) * 100 if t > 0 else 0))
         print('     Noise Fitted OK -> {} of {} : {} %'.format(o, t, (o / t) * 100 if t > 0 else 0))
     print('******************************************************************************')
     print('*** TOTAL*********************************************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, iw, (perfectc / iw) * 100 if iw > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, iw, (okc / iw) * 100 if iw > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
@@ -324,7 +325,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.077, peak=0.265, gradient=0.442e-16,
     absnoisegrad = np.abs(noisegrad)
     fitgraderror = absgrad - absnoisegrad
     absgraderror = np.abs(fitgraderror)
-    fitmaxgraderror = np.mean(absgraderror)
+    fitmaxgraderror = np.mean(absgraderror) / maxmPSD
 
     # Conditions of the PSD
     perfect1 = np.all(maxfluct > fluctuation)
