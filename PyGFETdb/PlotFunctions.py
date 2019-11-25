@@ -423,13 +423,16 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                             xlabel=xlabel, **arguments[karg])
 
 
-def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotOverlap=False):
+def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotOverlap=False, PlotNoise=False):
     """
         **Plots the results of the Noise Analysis**
 
     :param GrTypes: Group to plot
     :param results: results of Noise Analysis
     :param rPSD: results of a PSD search in the database
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotOverlap: Plot All the PSDs
+    :param PlotNoise: Plot Noise Mean
     :return: None
     """
     for nType, vType in GrTypes.items():
@@ -462,10 +465,11 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotOverlap=Fal
                            temp3,  # noise
                            # temp4,  # ok
                            temp5,  # perfect
-                           nType, PlotStd=PlotStd, PlotOverlap=PlotOverlap)
+                           nType, PlotStd=PlotStd, PlotOverlap=PlotOverlap, PlotNoise=PlotNoise)
 
 
-def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotOverlap=False):
+def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotOverlap=False,
+                   PlotNoise=False):
     """
 
     :param Fpsd: Data of the x axis
@@ -474,6 +478,9 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     :param noise: Data of the y axis for noise fitting
     :param perfect: Boolean to approve the analysis
     :param nType: Name of the Type of Trt
+    :param PlotStd: Plot Standard Deviation
+    :param PlotOverlap: Plot All the PSDs
+    :param PlotNoise: Plot Noise Mean
     :return: None
     """
     fig, ax = plt.subplots()
@@ -482,12 +489,12 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
         if PlotOverlap:
             for item2 in item[0]:
                 PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log', PlotStd=PlotStd)
-                if PlotStd:
+                if PlotNoise:
                     tnoise = np.mean(noise[i].transpose(), 1)
                     ax.loglog(Fpsd2.transpose(), tnoise, '--')
         else:
             PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
-            if PlotStd:
+            if PlotNoise:
                 tnoise = np.mean(noise[i].transpose(), 1)
                 ax.loglog(Fpsd2.transpose(), tnoise, '--')
 

@@ -399,7 +399,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
 
     # Gradient of the PSD
     y = np.diff(mPSD)
-    grad = qty.Divide(y, dx) / 1e-16
+    grad = qty.Divide(y, dx)
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
     graderror = maxgrad
@@ -410,16 +410,16 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.188, peak=0.256, gradient=0.354, fit
 
     # Gradient of the noise fitting
     y2 = np.diff(noise.transpose())
-    noisegrad = qty.Divide(y2, dx) / 1e-16
+    noisegrad = qty.Divide(y2, dx)
     absnoisegrad = np.abs(noisegrad)
     fitgraderror = absgrad - absnoisegrad
     absgraderror = np.abs(fitgraderror)
     fitmaxgraderror = np.mean(absgraderror)
 
     # Consistency check
-    # if maxfluct > 1 or maxpeak > 1 or graderror > 1 or fitmaxerr > 1 or fitmaxgraderror > 1:
-    #    raise ValueError(
-    #        'Value>1 -> f:{} p:{} g:{} fe:{} fg:{}'.format(maxfluct, maxpeak, graderror, fitmaxerr, fitmaxgraderror))
+    if maxfluct > 1 or maxpeak > 1 or graderror > 1 or fitmaxerr > 1 or fitmaxgraderror > 1:
+        raise ValueError(
+            'Value>1 -> f:{} p:{} g:{} fe:{} fg:{}'.format(maxfluct, maxpeak, graderror, fitmaxerr, fitmaxgraderror))
 
     # Conditions of the PSD
     perfect1 = np.all(maxfluct <= fluctuation)
