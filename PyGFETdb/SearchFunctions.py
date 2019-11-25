@@ -29,7 +29,7 @@ def DBSearchPerWaferAndType(GrBase, args, **kwargs):
     ResultsParams = {}
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
         print('')
-        print('Searching Waffer {}...'.format(Grwn))
+        print('Searching Wafer {}...'.format(Grwn))
         GrTypes = DbSe.GenGroups(Grwc, 'TrtTypes.Name', LongName=False)
         ResultsDB = search(GrTypes, **kwargs)
         ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
@@ -62,16 +62,34 @@ def DBSearchPerDevice(GrBase, args, **kwargs):
     :return: a group of conditions and the results of the search
     """
     GrWs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
+    ResultsDB = search(GrWs, **kwargs)
     ResultsParams = {}
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
         print('')
-        print('Searching Device {}...'.format(Grwn))
-        ResultsDB = search(GrWs, **kwargs)
+        print('Getting Parameters from Device {}...'.format(Grwn))
+        kwargs.update(**Grwc)
         ResultsParams[Grwn] = getparams(ResultsDB, GrWs, args)
     return GrWs, ResultsParams
 
 
 def DBSearchPerType(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: a group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
+    ResultsDB = search(GrTypes, **kwargs)
+    ResultsParams = {}
+    for iType, (nType, cType) in enumerate(GrTypes.items()):
+        print('')
+        print('Getting Parameters of Type {}...'.format(nType))
+        ResultsParams[nType] = getparams(ResultsDB, GrTypes, args)
+    return GrTypes, ResultsParams
+
+
+def DBSearchPerTypeAndWafer(GrBase, args, **kwargs):
     """
 
     :param GrBase: a group of conditions
@@ -114,18 +132,6 @@ def DataClassification(GrWs, arguments, ResultsParams):
     return clssfResults
 
 
-def DBSearchPerWafer(GrBase, args):
-    """
-
-    :param GrBase: a group of conditions
-    :param args: a dict with the parameters to search
-    :return: a group of conditions and the results of the search
-    """
-    GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
-    ResultsDB = search(GrTypes)
-    argParams = {'ResultsDB': dict(ResultsDB), 'GrWfs': GrTypes, 'arguments': args, 'args': args}
-    ResultsParams = getparams(**argParams)
-    return GrTypes, ResultsParams
 
 
 def DBSearchPerDeviceAndTrt(GrBase, args, **kwargs):
@@ -143,4 +149,21 @@ def DBSearchPerDeviceAndTrt(GrBase, args, **kwargs):
         GrTypes = DbSe.GenGroups(Grwc, 'Trts.Name', LongName=False)
         ResultsDB = search(GrTypes, **kwargs)
         ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
+    return GrWs, ResultsParams
+
+
+def DBSearchPerWafer(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: A group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
+    ResultsDB = search(GrWs, **kwargs)
+    ResultsParams = {}
+    for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
+        print('')
+        print('Getting Parameters from Wafer {}...'.format(Grwn))
+        ResultsParams[Grwn] = getparams(ResultsDB, GrWs, args)
     return GrWs, ResultsParams
