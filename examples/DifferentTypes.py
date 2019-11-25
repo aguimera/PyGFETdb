@@ -432,7 +432,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    #PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
@@ -448,7 +448,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
