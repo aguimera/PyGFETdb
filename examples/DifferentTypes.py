@@ -421,8 +421,8 @@ def main():
             'normalization': 1e-22
         },
         'PlotMean': True,
-        'PlotStd': False,
-        'PlotNoise': False,
+        'PlotStd': True,
+        'PlotNoise': True,
     }
 
     # PLOTS ####################################################################
