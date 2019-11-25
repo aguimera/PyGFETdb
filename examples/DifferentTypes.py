@@ -413,15 +413,16 @@ def main():
             'remove50Hz': True
         },
         'noise': {
-            'fluctuation': 0.077,
-            'peak': 0.265,
-            'gradient': 0.442e-16,
-            'fiterror': 0.4,
-            'fitgradient': 9e-4
+            'fluctuation': 38,  # >
+            'peak': 58.95,  # >
+            'gradient': 2e5,  # <=
+            'fiterror': 40,  # >
+            'fitgradient': 0.9e-3,  # <=
+            'normalization': 1e-22
         },
-        'PlotOverlap': True,
+        'PlotOverlap': False,
         'PlotStd': False,
-        'PlotNoise': True,
+        'PlotNoise': False,
     }
 
     # PLOTS ####################################################################
@@ -432,7 +433,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    # PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     ######## 2 WAFERS #####################
     # PlotsPerWaferAndTypes(GrBase2, **kwargs1)
@@ -448,7 +449,7 @@ def main():
 
     # PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    # PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
