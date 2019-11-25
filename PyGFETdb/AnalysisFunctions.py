@@ -191,7 +191,6 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                 i += 1
                 it += 1
                 iw += 1
-                itypes += 1
                 print('***************************************************')
                 print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
                 print('***************************************************')
@@ -266,8 +265,8 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     print('******************************************************************************')
     print('*** TOTAL*********************************************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, itypes, (perfectc / itypes) * 100 if itypes > 0 else 0))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, itypes, (okc / itypes) * 100 if itypes > 0 else 0))
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
