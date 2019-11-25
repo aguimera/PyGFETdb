@@ -88,9 +88,9 @@ class Thread(pool.ThreadPool):
         :return: None
         """
 
-        self.lock.acquire()
+        # self.lock.acquire()
         self._rets.append(result)
-        self.lock.release()
+        # self.lock.release()
 
     def errorlog(self, e):
         """

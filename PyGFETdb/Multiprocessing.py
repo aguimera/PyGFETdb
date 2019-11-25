@@ -224,6 +224,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
                 for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
+                    # print('Searching Parameter {} for {}/{}'.format(arg.get('Param'), Wfn,Grn))
                     Data = ResultsDB.get(Grn)
                     if Data is not None:
                         key = str(karg + ' ' + Wfn + ' ' + Grn)
@@ -232,6 +233,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                         thread.call(key, getparamclass, getParam, kargs, **kargs)
 
             else:
+                # print('Searching Parameter {} for {}'.format(arg.get('Param'),Wfn))
                 Data = ResultsDB.get(Wfn)
                 if Data is not None:
                     key = str(karg + ' ' + Wfn)
@@ -239,15 +241,18 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
                     kargs = {'Data': Data, 'args': arg}
                     thread.call(key, getparamclass, getParam, kargs, **kargs)
 
+    print('Retrieving Parameters...')
     # """""
     res = {}
     for karg, arg in arguments.items():
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
             if type(Wfc) is dict and Wfc.get('Conditions') is None:
                 for iGr, (Grn, Grc) in enumerate(sorted(Wfc.items())):
+                    print('Searching Parameter {} for {}/{}'.format(arg.get('Param'), Wfn, Grn))
                     key = str(karg + ' ' + Wfn + ' ' + Grn)
                     res[key] = thread.getResults(key)
             else:
+                print('Retrieving Parameter {} for {}'.format(arg.get('Param'), Wfn))
                 key = str(karg + ' ' + Wfn)
                 res[key] = thread.getResults(key)
     thread.end()
