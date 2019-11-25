@@ -212,13 +212,13 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
         noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
         if PSD.ndim == 3:
             PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = PSD[:, :, -noise.shape[1]:]  # np.mean(PSD, 1)
+            mPSD = PSD[:, :, -noise.shape[1]:]
         elif PSD.ndim == 2:
             mPSD = np.array([PSD.transpose()])
         else:
             mPSD = np.array([PSD])
             mPSD = mPSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = mPSD[:, :, -noise.shape[1]:]  # np.mean(PSD, 1)
+            mPSD = mPSD[:, :, -noise.shape[1]:]
         for psd in mPSD:
             for i, item in enumerate(noise):
                 [ok, perfect, grad, noisegrad] = isPSDok(psd[i], Fpsd, item.transpose()[1:],
