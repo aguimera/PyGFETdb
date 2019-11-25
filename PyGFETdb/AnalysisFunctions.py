@@ -12,6 +12,11 @@ from PyGFETdb import qty, GlobalFunctions as g
 from PyGFETdb.NoiseModel import Fnoise
 
 
+########################################################################
+#
+#  FREQUENCY FILTERS
+#
+########################################################################
 def process50Hz(Array, process):
     """
         **Removes the frequency 50Hz**
@@ -71,6 +76,12 @@ def processFreqs(Array, process):
     return Array
 
 
+########################################################################
+#
+#  PSD ANALYSIS
+#
+########################################################################
+
 def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31, fitgradient=0.09,
                     normalization=None):
     """
@@ -124,9 +135,6 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
                 temp4.append(noisegrad)
 
         noise = np.mean(noise.transpose(), 1)
-        # noise = noise.reshape(1,len(noise))
-
-        # noise = noise.reshape(len(noise), len(PSD))
 
         ok = np.all(temp1)
         perfect = np.all(temp2)

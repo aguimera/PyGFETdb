@@ -16,7 +16,7 @@ import PyGFETdb.DBAnalyze as DbAn
 import PyGFETdb.DBCore as PyFETdb
 import PyGFETdb.DBSearch as DbSe
 import PyGFETdb.DataClass as pData
-from PyGFETdb import qty, multithrds, superthreading, Thread, AnalysisFunctions as analysis
+from PyGFETdb import qty, multithrds, superthreading, Thread
 from PyGFETdb.DataClass import DataCharAC
 
 getParam = 'GetParam'
@@ -29,6 +29,12 @@ else:
     getparamclass = ''
     getclass = ''
 
+
+########################################################################
+#
+#  NORMAL FUNCTIONS
+#
+########################################################################
 def SearchDB(GrWfs, **kwargs):
     """
 
@@ -84,42 +90,6 @@ def GetParams(ResultsDB, GrWfs, args: dict, **kwargs):
     return processResults(Results, args)
 
 
-
-def processGetFromDB(results):
-    """
-        **Gathers the results of different processes after a search in the database**
-
-    :param results: Results obtained with multi-processing from the database
-    :return: All the results from the search gathered in a tuple
-    """
-    ret = (None, None)
-    if not multithrds:
-        ret = results
-    else:
-        if type(results) is dict:
-            Data = {}
-            Trts = []
-            try:
-                for i, (data, trts) in results.items():
-                    Data.update(data)
-                    Trts.append(trts)
-                ret = (Data, Trts)
-            except ValueError:
-                print(sys.exc_info())
-        elif type(results) is list:
-            Data = {}
-            Trts = []
-            try:
-                for data, trts in results:
-                    Data.update(data)
-                    Trts.append(trts)
-                ret = (Data, Trts)
-            except ValueError:
-                print(sys.exc_info())
-
-    return ret
-
-
 def processResults(Results, args):
     """
 
@@ -148,6 +118,11 @@ def processResults(Results, args):
     return Ret
 
 
+########################################################################
+#
+#  MULTIPROCESSING
+#
+########################################################################
 def SearchDB_MP(GrWfs, **kwargs):
     """
 
@@ -189,6 +164,41 @@ def SearchDB_MP(GrWfs, **kwargs):
     del thread
     print('DB Search... Done')
     return ResultsDB
+
+
+def processGetFromDB(results):
+    """
+        **Gathers the results of different processes after a search in the database**
+
+    :param results: Results obtained with multi-processing from the database
+    :return: All the results from the search gathered in a tuple
+    """
+    ret = (None, None)
+    if not multithrds:
+        ret = results
+    else:
+        if type(results) is dict:
+            Data = {}
+            Trts = []
+            try:
+                for i, (data, trts) in results.items():
+                    Data.update(data)
+                    Trts.append(trts)
+                ret = (Data, Trts)
+            except ValueError:
+                print(sys.exc_info())
+        elif type(results) is list:
+            Data = {}
+            Trts = []
+            try:
+                for data, trts in results:
+                    Data.update(data)
+                    Trts.append(trts)
+                ret = (Data, Trts)
+            except ValueError:
+                print(sys.exc_info())
+
+    return ret
 
 
 def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
@@ -293,66 +303,6 @@ def processOneArg(GrWfs, Results, Ret, karg):
                     if k is not None:
                         l = list(itertools.chain(k))
                         Ret[karg][Wfn] = l[0][0]
-
-
-def processPSDs_MP(GrTypes, rPSD, tolerance=1.5e-22, noisetolerance=1.5e-25):
-    """
-
-    :param GrTypes: Group to process
-    :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
-    :param tolerance:
-    :param noisetolerance:
-    :return: A dict with the results of the processing
-    """
-    results = {}
-    keys = {}
-    i = 0
-    print('******************************************************************************')
-    print('******* RESULTS OF THE ANALYSIS **********************************************')
-    print('******************************************************************************')
-    print(' ')
-    thread = Thread.MultiProcess(analysis)
-
-    for nType, vType in GrTypes.items():
-        Fpsd = rPSD[nType].get('Fpsd')
-        PSD = rPSD[nType]['PSD']
-        NoA = rPSD[nType]['NoA']
-        NoB = rPSD[nType]['NoB']
-        keys[nType] = {}
-        for nWf, vWf in Fpsd.items():
-            PSDt = PSD[nWf]
-            NoAt = NoA[nWf]
-            NoBt = NoB[nWf]
-
-            Fpsdt = vWf[0:len(PSDt)]
-            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
-            args = {
-                'PSD': PSDt,
-                'Fpsd': Fpsd2t,
-                'NoA': NoAt,
-                'NoB': NoBt,
-                'tolerance': tolerance,
-                'noisetolerance': noisetolerance
-            }
-            key = thread.initcall(Thread.key(), analysis)
-            keys[nType][nWf] = key
-            thread.call(key, analysis, 'processNoise', args, **args)
-
-    for nType, vType in GrTypes.items():
-        Fpsd = rPSD[nType].get('Fpsd')
-        PSD = rPSD[nType]['PSD']
-        results[nType] = {}
-        for nWf, vWf in Fpsd.items():
-            PSDt = PSD[nWf]
-            Fpsdt = vWf[0:len(PSDt)]
-            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
-            key = keys[nType][nWf]
-            r = thread.getResults(key)
-            [noise, ok, perfect, grad, gradnoise] = r[key][0]
-            results[nType][nWf] = [Fpsdt, PSDt, Fpsd2t, noise, ok, perfect, grad, gradnoise]
-    thread.end()
-    del thread
-    return results
 
 
 def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
@@ -598,4 +548,3 @@ def checkRanges(Val, Units, Range, InSide):
         # logging.debug('Meas Out %s %s %f', Trtn, Dat.GetTime(), Val)
         return
     return True
-

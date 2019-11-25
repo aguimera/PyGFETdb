@@ -9,6 +9,8 @@ from multiprocessing import pool, Lock
 
 from PyGFETdb import multithrds, numprocs
 
+lock = Lock()
+
 
 class Thread(pool.ThreadPool):
     def __init__(self, package, processes=numprocs):
@@ -104,12 +106,13 @@ class Thread(pool.ThreadPool):
         self.pool.join()
         self.pool.terminate()
 
-##########################################################
 
-lock = Lock()
-
-
-class MultiProcess():
+########################################################################
+#
+# MULTIPROCESSING
+#
+########################################################################
+class MultiProcess(object):
     def __init__(self, klass, processes=numprocs):
         self.pool = Thread(klass, processes)
         self.tasks = {}
@@ -178,6 +181,12 @@ class MultiProcess():
     def end(self):
         self.pool.end()
 
+
+########################################################################
+#
+# MULTIPROCESSING UTILITY FUNCTIONS
+#
+########################################################################
 def key():
     """
 

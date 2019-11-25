@@ -613,6 +613,12 @@ class _PyFETdb(object):
 #        return Data
 #        
 
+########################################################################
+#
+#  MULTIPROCESSING AND FREQUENCY FILTER
+#
+########################################################################
+
 class PyFETdb(_PyFETdb):
     """
         Subclass maintained by dragc for db optimisation tests

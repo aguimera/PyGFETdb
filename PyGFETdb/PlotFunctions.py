@@ -16,9 +16,9 @@ from PyGFETdb import qty, SearchFunctions as s, AnalysisFunctions as analysis
 
 
 ########################################################################
-##
-## PLOT UTILITY FUNCTIONS
-##
+#
+# PLOT UTILITY FUNCTIONS
+#
 ########################################################################
 
 def _BoxplotValsGroup(ax, Col, iGroup, Vals, **kwargs):
@@ -277,9 +277,9 @@ def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
 
 
 ########################################################################
-##
-## PLOTS PER TYPE
-##
+#
+# PLOTS PER TYPE
+#
 ########################################################################
 
 def PlotPerTypeNoise(Results, handles=None, xlabel=None, legendTitle=None, Colors=None, perType="", **kwargs):
@@ -391,9 +391,9 @@ def PlotPerTypeYieldTotal(Results, title=None, Colors=None, xlabel=None, perType
 
 
 ########################################################################
-##
-##  PLOT RESULTS
-##
+#
+#  PLOT RESULTS
+#
 ########################################################################
 def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, legendTitle=None, **kwargs):
     """
@@ -505,6 +505,12 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
 
+
+########################################################################
+#
+# SEARCH, GETPARAMS AND PLOT RESULTS COMBOS
+#
+########################################################################
 
 ############################
 # PLOTS PER WAFER AND TYPES
