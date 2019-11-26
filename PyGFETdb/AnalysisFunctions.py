@@ -431,7 +431,12 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     # Gradient of the PSD
     y = np.diff(mPSD)
-    grad = qty.Divide(y[:, :dx.shape[1]], dx[:, :y.shape[1]])
+
+    if y.ndim == 2:
+        grad = qty.Divide(y[:, :dx.shape[1]], dx[:, :y.shape[1]])
+    else:
+        grad = qty.Divide(y, dx)
+
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
     graderror = maxgrad / maxmPSD
@@ -442,9 +447,17 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     # Gradient of the noise fitting
     y2 = np.diff(noise.transpose())
-    noisegrad = qty.Divide(y2[:, :dx.shape[1]], dx[:, :y2.shape[1]])
+
+    if y2.ndim == 2:
+        noisegrad = qty.Divide(y2[:, :dx.shape[1]], dx[:, :y2.shape[1]])
+    else:
+        noisegrad = qty.Divide(y2, dx)
+
     absnoisegrad = np.abs(noisegrad)
-    fitgraderror = absgrad[:, :absnoisegrad.shape[1]] - absnoisegrad[:, :absgrad.shape[1]]
+    if absgrad.ndim == 2:
+        fitgraderror = absgrad[:, :absnoisegrad.shape[1]] - absnoisegrad[:, :absgrad.shape[1]]
+    else:
+        fitgraderror = absgrad - absnoisegrad
     absgraderror = np.abs(fitgraderror)
     fitmaxgraderror = np.mean(absgraderror) / maxmPSD
 
