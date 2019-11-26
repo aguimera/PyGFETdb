@@ -111,7 +111,6 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
     temp2 = []
     temp3 = []
     temp4 = []
-    mPSD = None
     if NoA is not None and len(NoA) > 0:
         f = np.array(Fpsd[:NoA.shape[0]])
         noise = Fnoise(f, NoA, NoB)
@@ -134,7 +133,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
         grad = temp3
         noisegrad = temp4
 
-    return [mPSD, noise, ok, perfect, grad, noisegrad]
+    return [PSD, noise, ok, perfect, grad, noisegrad]
 
 
 def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09,
@@ -150,7 +149,7 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     :return: A dict with the results of the processing
     """
     results = {}
-    i = 0
+    ic = 0
     itypes = 0
     itype = []
     itypeo = []
@@ -183,10 +182,10 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
         iw = 0
         if NoAt is not None and len(NoAt) > 0:
             Fpsdt = vWf[0:len(PSDt)]
-            i += 1
+            ic += 1
             iw += 1
             print('***************************************************')
-            print('{}) Group:{}'.format(i, nWf))
+            print('{}) Group:{}'.format(ic, nWf))
             print('***************************************************')
 
             if type(NoAt) is list:
@@ -218,7 +217,7 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                 [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
                                                                               fluctuation, peak, gradient,
                                                                               fiterror, fitgradient, maxpsd)
-            Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+            Fpsd2t = np.array(Fpsdt)
 
             print(' ')
             if ok:
@@ -246,8 +245,8 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     print('******************************************************************************')
     print('*** TOTAL*********************************************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, ic, (perfectc / ic) * 100 if ic > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, ic, (okc / ic) * 100 if ic > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
@@ -271,7 +270,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     :return: A dict with the results of the processing
     """
     results = {}
-    i = 0
+    ic = 0
     itypes = 0
     itype = []
     itypeo = []
@@ -308,11 +307,11 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
             iw = 0
             if NoAt is not None and len(NoAt) > 0:
                 Fpsdt = vWf[0:len(PSDt)]
-                i += 1
+                ic += 1
                 it += 1
                 iw += 1
                 print('***************************************************')
-                print('{}) Group:{}, Subgroup:{}'.format(i, nType, nWf))
+                print('{}) Group:{}, Subgroup:{}'.format(ic, nType, nWf))
                 print('***************************************************')
 
                 if type(NoAt) is list:
@@ -344,7 +343,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                     [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
                                                                                   fluctuation, peak, gradient,
                                                                                   fiterror, fitgradient, maxpsd)
-                Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+                Fpsd2t = np.array(Fpsdt)
 
                 print(' ')
                 if ok:
@@ -385,8 +384,8 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     print('******************************************************************************')
     print('*** TOTAL*********************************************************************')
     print('******************************************************************************')
-    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, i, (perfectc / i) * 100 if i > 0 else 0))
-    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, i, (okc / i) * 100 if i > 0 else 0))
+    print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, ic, (perfectc / ic) * 100 if ic > 0 else 0))
+    print('Noise Fitted OK -> {} of {} : {} %'.format(okc, ic, (okc / ic) * 100 if ic > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
@@ -445,7 +444,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     y2 = np.diff(noise.transpose())
     noisegrad = qty.Divide(y2, dx[:, :y2.shape[1]])
     absnoisegrad = np.abs(noisegrad)
-    fitgraderror = absgrad - absnoisegrad
+    fitgraderror = absgrad[:, :absnoisegrad.shape[1]] - absnoisegrad[:, :absgrad.shape[1]]
     absgraderror = np.abs(fitgraderror)
     fitmaxgraderror = np.mean(absgraderror) / maxmPSD
 

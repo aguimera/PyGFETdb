@@ -468,91 +468,6 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, 
                            nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
-def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
-                     PlotNoise=False):
-    """
-
-    :param Fpsd: Data of the x axis
-    :param PSD:  Data of the y axis
-    :param Fpsd2: Data of the x axis for noise fitting
-    :param noise: Data of the y axis for noise fitting
-    :param perfect: Boolean to approve the analysis
-    :param nType: Name of the Type of Trt
-    :param PlotStd: Plot Standard Deviation
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :return: None
-    """
-    fig, ax = plt.subplots()
-
-    for i, item in enumerate(PSD):
-        if PlotMean:
-            PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
-            if PlotNoise:
-                ax.loglog(Fpsd2.transpose(), noise, '--')
-        else:
-            for item2 in item[0]:
-                PlotMeanStd(Fpsd[i], item2.transpose(), ax, PlotOverlap=True, xscale='log', yscale='log',
-                            PlotStd=PlotStd)
-                if PlotNoise:
-                    ax.loglog(Fpsd2.transpose(), noise, '--')
-
-    ax.set_xlabel("Frequency [Hz]")
-    ax.set_ylabel('PSD [A^2/Hz]')
-
-    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
-    plt.title(title)
-
-
-def PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
-    """
-        **Plots the results of the Noise Analysis**
-
-    :param GrTypes: Group to plot
-    :param results: results of Noise Analysis
-    :param rPSD: results of a PSD search in the database
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :return: None
-    """
-    for nType, vType in GrTypes.items():
-        Fpsd = rPSD.get('Fpsd')
-        temp0 = []
-        temp1 = []
-        temp2 = []
-        temp3 = []
-        temp4 = []
-        temp5 = []
-
-        for nWf, vWf in Fpsd.items():
-            r = results.get(nType)
-            if r is not None:
-                temp0.append(r[0])
-                temp1.append(r[1])
-                temp2.append(r[2])
-                temp3.append(r[3])
-                temp4.append(r[4])
-                temp5.append(r[5])
-
-        if temp3 is not None and len(temp3) > 0:
-            temp1 = np.array(temp1)
-            temp3 = np.array(temp3)
-            temp4 = np.all(temp4)
-            temp5 = np.all(temp5)
-
-            if temp3.ndim > 2:
-                temp3 = np.mean(temp3, 1)
-
-            PlotPSDPerType(temp0,  # Fpsd
-                           temp1,  # PSD
-                           temp2[0],  # Fpsd2
-                           temp3,  # noise
-                           # temp4,  # ok
-                           temp5,  # perfect
-                           nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
-
-
 def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
                    PlotNoise=False):
     """
@@ -574,7 +489,8 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
         if PlotMean:
             PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                ax.loglog(Fpsd2.transpose(), noise[i].transpose(), '--')
+                noisei = np.mean(noise[i].transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), noisei.transpose(), '--')
         else:
             for item2 in item[0]:
                 PlotMeanStd(Fpsd[i], item2.transpose(), ax, PlotOverlap=True, xscale='log', yscale='log',
@@ -588,3 +504,63 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
     title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
 
+
+def PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
+    """
+        **Plots the results of the Noise Analysis**
+
+    :param GrTypes: Group to plot
+    :param results: results of Noise Analysis
+    :param rPSD: results of a PSD search in the database
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    for nType, vType in GrTypes.items():
+        r = results.get(nType)
+        PlotPSDPerDevice(r[0],  # Fpsd
+                         r[1],  # PSD
+                         r[2][0],  # Fpsd2
+                         r[3],  # noise
+                         # r[4],  # ok
+                         r[5],  # perfect
+                         nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+
+
+def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
+                     PlotNoise=False):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param Fpsd2: Data of the x axis for noise fitting
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param PlotStd: Plot Standard Deviation
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    fig, ax = plt.subplots()
+
+    for i, item in enumerate(PSD):
+        if PlotMean:
+            PlotMeanStd(Fpsd[i], item[0], ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            if PlotNoise:
+                noisei = np.array(noise)
+                noisei = np.mean(noisei.transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), noisei, '--')
+        else:
+            for item2 in item[0]:
+                PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+                            PlotStd=PlotStd)
+                if PlotNoise:
+                    ax.loglog(Fpsd2.transpose(), noise[i], '--')
+
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
+    plt.title(title)
