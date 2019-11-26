@@ -121,6 +121,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
         elif PSD.ndim == 2:
             PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
             mPSD = PSD.transpose()
+            # mPSD = [PSD.transpose()]
         else:
             mPSD = np.array([PSD])
             mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
@@ -136,6 +137,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
                 temp4.append(noisegrad)
 
         noise = np.mean(noise.transpose(), 1)
+        noise = noise.reshape(noise.size)
 
         ok = np.all(temp1)
         perfect = np.all(temp2)
@@ -469,10 +471,10 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     ok = ok1 and ok2
 
     # Print output
-    # print(' ')
+    print(' ')
     if perfect:
         pass
-        """""
+
         print('PSD Noise OK ->')
         if perfect1:
             print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
@@ -480,7 +482,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
             print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
         if perfect3:
             print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
-        """
+
     else:
         print('PSD Noise BAD ->')
         if not perfect1:
@@ -489,7 +491,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
             print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
         if not perfect3:
             print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
-    """""
+
     if ok:
         print('    Noise Fitted OK -> error:{} grad-error:{}'.format(fitmaxerr, fitmaxgraderror))
         if ok1:
@@ -503,6 +505,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
         if not ok2:
             print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
     print(' ')
-    """
+
     return ok, perfect, grad, noisegrad
 

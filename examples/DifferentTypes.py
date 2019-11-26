@@ -11,7 +11,7 @@ import sys
 import matplotlib.pyplot as plt
 import quantities as pq
 
-import PyGFETdb.PlotFunctions as plot
+import PyGFETdb.SearchAndPlots as plot
 
 
 ############################
@@ -98,11 +98,15 @@ def main():
                    'Devices.Name  != ': ('B12142W15-DUT',),
                    }
 
-    Conditions2 = Conditions1
-    Conditions2.update({'Wafers.Name = ': Wafers2})
+    Conditions2 = {'Wafers.Name = ': Wafers2,
+                   'Devices.Name != ': ('B12708W2-M6',),
+                   'Devices.Name  != ': ('B12142W15-DUT',),
+                   }
 
-    Conditions3 = Conditions1
-    Conditions3.update({'Wafers.Name = ': Wafers3})
+    Conditions3 = {'Wafers.Name = ': Wafers3,
+                   'Devices.Name != ': ('B12708W2-M6',),
+                   'Devices.Name  != ': ('B12142W15-DUT',),
+                   }
 
     CharTable = 'ACcharacts'
 
@@ -112,14 +116,23 @@ def main():
                'DataSelectionConfig': DataSelectionConfig
                }
 
-    GrBase2 = GrBase1
-    GrBase2.update({'Conditions': Conditions2})
+    GrBase2 = {'Conditions': Conditions2,
+               'Table': CharTable,
+               'Last': True,
+               'DataSelectionConfig': DataSelectionConfig
+               }
 
-    GrBase3 = GrBase1
-    GrBase3.update({'Conditions': Conditions3})
+    GrBase3 = {'Conditions': Conditions3,
+               'Table': CharTable,
+               'Last': True,
+               'DataSelectionConfig': DataSelectionConfig
+               }
 
-    GrBase4 = GrBase1
-    GrBase4.update({'DataSelectionConfig': DataSelectionConfig2})
+    GrBase4 = {'Conditions': Conditions1,
+               'Table': CharTable,
+               'Last': True,
+               'DataSelectionConfig': DataSelectionConfig2
+               }
 
     # PLOT GLOBALS ####################################################################
     Colors = ('r', 'g', 'b', 'm', 'y', 'k')
@@ -173,7 +186,6 @@ def main():
         },
     }
 
-    # PLOT GLOBALS FOR PLOTS PER WAFER
     kwargs1 = {
         'arguments': arguments1,
         'Colors': Colors,
@@ -181,18 +193,15 @@ def main():
         'xlabel': "Types",
         'remove50Hz': True,
     }
+    kwargs2 = {
+        'arguments': arguments1,
+        'Colors': Colors,
+        'legendTitle': "Types",
+        'xlabel': "Wafers",
+        'remove50Hz': True,
+    }
 
-    # PLOT GLOBALS FOR PLOTS PER TYPES
-    kwargs2 = kwargs1
-    kwargs2.update(
-        {
-            'legendTitle': "Types",
-            'xlabel': "Wafers",
-        }
-    )
-
-    # PLOT GLOBALS FOR PLOTS PSD PER GROUP AND SUBGROUP
-    kwargs3 = {
+    kwargs3 = {  # Per Trt
         'db': {
             'remove50Hz': True
         },
@@ -210,49 +219,60 @@ def main():
         'PlotNoise': True,
     }
 
-    # PLOT GLOBALS FOR PLOTS PSD PER GROUP ONLY
-    kwargs4 = kwargs3
-    kwargs4.update(
-        {'PlotStd': True}
-    )
+    kwargs4 = {  # Per Device
+        'db': {
+            'remove50Hz': True
+        },
+        'noise': {
+            'fluctuation': 38,  # >
+            'peak': 58.95,  # >
+            'gradient': 2e5,  # <=
+            'fiterror': 90,  # >
+            'fitgradient': 1e3,  # <=
+            'normalization': 1e-22
+        },
+        'PlotMean': True,
+        'PlotStd': True,
+        'PlotNoise': True,
+    }
 
     # PLOTS ####################################################################
 
     # ###### ONE WAFER ##########################
-    # plot.PlotsPerWaferAndTypes(GrBase1, **kwargs1)
-    # plot.PlotsPerTypes(GrBase1, **kwargs2)
+    # plot.SearchAndPlotPerWaferAndTypes(GrBase1, **kwargs1)
+    # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
-    plot.PlotsPSDperWafer(GrBase1, Plot=True, **kwargs4)
-    # plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs4)
-    # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs4)
+    plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs4)
+    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs4)
+    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs4)
 
-    # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-    # plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     # ####### 2 WAFERS #####################
-    # plot.PlotsPerWaferAndTypes(GrBase2, **kwargs1)
-    # plot.PlotsPerTypes(GrBase2, **kwargs2)
+    # plot.SearchAndPlotPerWaferAndTypes(GrBase2, **kwargs1)
+    # plot.SearchAndPlotPerTypes(GrBase2, **kwargs2)
 
-    # plot.PlotsPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDevice(GrBase2,Plot=True,**kwargs4)
-    # plot.PlotsPSDperType(GrBase2,Plot=True,**kwargs3)
+    # plot.SearchAndPlotPSDperWafer(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase2,Plot=True,**kwargs4)
+    # plot.SearchAndPlotPSDperType(GrBase2,Plot=True,**kwargs3)
 
-    # plot.PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
 
     # ####### ALL THE WAFERS #####################
-    # plot.PlotsPerWaferAndTypes(GrBase3, **kwargs1)
-    # plot.PlotsPerTypes(GrBase3, **kwargs2)
+    # plot.SearchAndPlotPerWaferAndTypes(GrBase3, **kwargs1)
+    # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
 
-    # plot.PlotsPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDevice(GrBase3, Plot=True, **kwargs4)
-    # plot.PlotsPSDperType(GrBase3,Plot=True,**kwargs3)
+    # plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs4)
+    # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
 
-    # plot.PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotsPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
