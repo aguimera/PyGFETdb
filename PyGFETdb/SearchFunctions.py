@@ -63,12 +63,9 @@ def DBSearchPerDevice(GrBase, args, **kwargs):
     """
     GrWs = DbSe.GenGroups(GrBase, 'Devices.Name', LongName=False)
     ResultsDB = search(GrWs, **kwargs)
-    ResultsParams = {}
-    for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
-        print('')
-        print('Getting Parameters from Device {}...'.format(Grwn))
-        kwargs.update(**Grwc)
-        ResultsParams[Grwn] = getparams(ResultsDB, GrWs, args)
+    print('')
+    print('Getting Parameters of Devices...')
+    ResultsParams = getparams(ResultsDB, GrWs, args)
     return GrWs, ResultsParams
 
 

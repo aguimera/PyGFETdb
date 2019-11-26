@@ -230,12 +230,12 @@ def main():
     # plot.PlotsPerTypes(GrBase1, **kwargs2)
 
     # plot.PlotsPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDevice(GrBase1,Plot=True,**kwargs3)
+    plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs3)
     # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs3)
 
     # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-    plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
 
     ######## 2 WAFERS #####################

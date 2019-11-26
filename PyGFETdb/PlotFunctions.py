@@ -470,6 +470,87 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, 
                            nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
+def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
+                     PlotNoise=False):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param Fpsd2: Data of the x axis for noise fitting
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param PlotStd: Plot Standard Deviation
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    fig, ax = plt.subplots()
+
+    for i, item in enumerate(PSD):
+        if PlotMean:
+            PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            if PlotNoise:
+                ax.loglog(Fpsd2.transpose(), noise, '--')
+        else:
+            for item2 in item[0]:
+                PlotMeanStd(Fpsd[i], item2.transpose(), ax, PlotOverlap=True, xscale='log', yscale='log',
+                            PlotStd=PlotStd)
+                if PlotNoise:
+                    ax.loglog(Fpsd2.transpose(), noise, '--')
+
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
+    plt.title(title)
+
+
+def PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
+    """
+        **Plots the results of the Noise Analysis**
+
+    :param GrTypes: Group to plot
+    :param results: results of Noise Analysis
+    :param rPSD: results of a PSD search in the database
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD.get('Fpsd')
+        temp0 = []
+        temp1 = []
+        temp2 = []
+        temp3 = []
+        temp4 = []
+        temp5 = []
+
+        for nWf, vWf in Fpsd.items():
+            r = results.get(nType)
+            if r is not None:
+                temp0.append(r[0])
+                temp1.append(r[1])
+                temp2.append(r[2])
+                temp3.append(r[3])
+                temp4.append(r[4])
+                temp5.append(r[5])
+
+        if temp3 is not None and len(temp3) > 0:
+            temp3 = np.array(temp3)
+            temp4 = np.all(temp4)
+            temp5 = np.all(temp5)
+
+            PlotPSDPerType(temp0,  # Fpsd
+                           temp1,  # PSD
+                           temp2[0],  # Fpsd2
+                           temp3,  # noise
+                           # temp4,  # ok
+                           temp5,  # perfect
+                           nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+
+
 def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
                    PlotNoise=False):
     """
@@ -709,6 +790,7 @@ def PlotsPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise
     print('Collect->', gc.collect())
     return results
 
+
 def PlotsPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False, **kwargs):
     """
 
@@ -732,10 +814,10 @@ def PlotsPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNois
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
     if Plot:
-        PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                              PlotNoise=PlotNoise)
+        PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
