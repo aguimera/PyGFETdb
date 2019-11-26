@@ -338,7 +338,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                     perfect = np.all(temp2)
                     grad = temp3
                     noisegrad = temp4
-                    mPSD = temp5
+                    mPSD = PSDt
                 else:
                     [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
                                                                                   fluctuation, peak, gradient,
@@ -354,7 +354,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                     perfectc += 1
                     perfectct += 1
                     perfectcw += 1
-                results[nType][nWf] = [Fpsdt, mPSD, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+                results[nType][nWf] = [Fpsdt[0], mPSD, Fpsd2t[0], noise, ok, perfect, grad, noisegrad]
             if iw > 0:
                 iwf.append((nWf, perfectcw, iw))
                 iwfo.append((nWf, okcw, iw))

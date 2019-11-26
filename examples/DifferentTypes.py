@@ -213,27 +213,11 @@ def main():
             'fitgradient': 1e3,  # <=
             'normalization': 1e-22
         },
-        'PlotMean': True,
-        'PlotStd': False,
-        'PlotNoise': True,
-    }
-
-    kwargs4 = {  # Per Device
-        'db': {
-            'remove50Hz': True
-        },
-        'noise': {
-            'fluctuation': 38,  # >
-            'peak': 58.95,  # >
-            'gradient': 2e5,  # <=
-            'fiterror': 90,  # >
-            'fitgradient': 1e3,  # <=
-            'normalization': 1e-22
-        },
-        'PlotMean': True,
+        'PlotMean': False,
         'PlotStd': True,
         'PlotNoise': True,
     }
+
 
     # PLOTS ####################################################################
 
@@ -241,9 +225,9 @@ def main():
     # plot.SearchAndPlotPerWaferAndTypes(GrBase1, **kwargs1)
     # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
-    # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs4)
-    plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs4)
-    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs4)
+    # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
@@ -254,8 +238,8 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase2, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDevice(GrBase2,Plot=True,**kwargs4)
-    # plot.SearchAndPlotPSDperType(GrBase2,Plot=True,**kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase2,Plot=True,**kwargs3)
+    plot.SearchAndPlotPSDperType(GrBase2, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
@@ -266,7 +250,7 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs4)
+    # plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)

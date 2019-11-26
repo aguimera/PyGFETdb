@@ -487,16 +487,19 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
 
     for i, item in enumerate(PSD):
         if PlotMean:
-            PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            PlotMeanStd(Fpsd[i], item[0], ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.mean(noise[i].transpose(), 1)
-                ax.loglog(Fpsd2.transpose(), noisei.transpose(), '--')
+                noisei = np.array(noise[i])
+                noisei = np.mean(noisei.transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), noisei, '--')
         else:
-            for item2 in item[0]:
-                PlotMeanStd(Fpsd[i], item2.transpose(), ax, PlotOverlap=True, xscale='log', yscale='log',
+            for item2 in item[0].transpose():
+                PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
-                if PlotNoise:
-                    ax.loglog(Fpsd2.transpose(), noise[i].transpose(), '--')
+            if PlotNoise:
+                noisei = np.array(noise[i])
+                noisei = np.mean(noisei.transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
@@ -558,7 +561,9 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
                 PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
                 if PlotNoise:
-                    ax.loglog(Fpsd2.transpose(), noise[i], '--')
+                    noisei = np.array(noise)
+                    noisei = np.mean(noisei.transpose(), 1)
+                    ax.loglog(Fpsd2.transpose(), noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
