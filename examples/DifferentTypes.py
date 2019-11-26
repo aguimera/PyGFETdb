@@ -210,7 +210,8 @@ def main():
         'db': {
             'remove50Hz': True
         },
-        'noise': {
+
+        'noise': {  # Per Trt
             'fluctuation': 38,  # >
             'peak': 58.95,  # >
             'gradient': 2e5,  # <=
@@ -223,6 +224,23 @@ def main():
         'PlotNoise': True,
     }
 
+    kwargs4 = {
+        'db': {
+            'remove50Hz': True
+        },
+        'noise': {  # Per Device
+            'fluctuation': 38,  # >
+            'peak': 58.95,  # >
+            'gradient': 2e5,  # <=
+            'fiterror': 90,  # >
+            'fitgradient': 1e3,  # <=
+            'normalization': 1e-22
+        },
+        'PlotMean': True,
+        'PlotStd': True,
+        'PlotNoise': True,
+    }
+
     # PLOTS ####################################################################
 
     ####### ONE WAFER ##########################
@@ -230,7 +248,7 @@ def main():
     # plot.PlotsPerTypes(GrBase1, **kwargs2)
 
     # plot.PlotsPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs3)
+    plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs4)
     # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs3)
 
     # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
@@ -243,7 +261,7 @@ def main():
     # plot.PlotsPerTypes(GrBase2, **kwargs2)
 
     # plot.PlotsPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDevice(GrBase2,Plot=True,**kwargs3)
+    # plot.PlotsPSDperDevice(GrBase2,Plot=True,**kwargs4)
     # plot.PlotsPSDperType(GrBase2,Plot=True,**kwargs3)
 
     # plot.PlotsPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
@@ -255,7 +273,7 @@ def main():
     # plot.PlotsPerTypes(GrBase3, **kwargs2)
 
     # plot.PlotsPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotsPSDperDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotsPSDperDevice(GrBase3, Plot=True, **kwargs4)
     # plot.PlotsPSDperType(GrBase3,Plot=True,**kwargs3)
 
     # plot.PlotsPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)

@@ -181,9 +181,6 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     PSD = rPSD['PSD']
     NoA = rPSD['NoA']
     NoB = rPSD['NoB']
-    perfectct = 0
-    okct = 0
-    it = 0
     for nWf, vWf in Fpsd.items():
         PSDt = PSD[nWf]
         NoAt = NoA[nWf]
@@ -194,7 +191,6 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
         if NoAt is not None and len(NoAt) > 0:
             Fpsdt = vWf[0:len(PSDt)]
             i += 1
-            it += 1
             iw += 1
             print('***************************************************')
             print('{}) Group:{}'.format(i, nWf))
@@ -234,11 +230,9 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
             print(' ')
             if ok:
                 okc += 1
-                okct += 1
                 okcw += 1
             if perfect:
                 perfectc += 1
-                perfectct += 1
                 perfectcw += 1
             results[nWf] = [Fpsdt, mPSD, Fpsd2t, noise, ok, perfect, grad, noisegrad]
         if iw > 0:
