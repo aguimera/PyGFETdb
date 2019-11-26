@@ -78,11 +78,9 @@ def DBSearchPerType(GrBase, args, **kwargs):
     """
     GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
     ResultsDB = search(GrTypes, **kwargs)
-    ResultsParams = {}
-    for iType, (nType, cType) in enumerate(GrTypes.items()):
-        print('')
-        print('Getting Parameters of Type {}...'.format(nType))
-        ResultsParams[nType] = getparams(ResultsDB, GrTypes, args)
+    print('')
+    print('Getting Parameters of Types...')
+    ResultsParams = getparams(ResultsDB, GrTypes, args)
     return GrTypes, ResultsParams
 
 
@@ -158,9 +156,7 @@ def DBSearchPerWafer(GrBase, args, **kwargs):
     """
     GrWs = DbSe.GenGroups(GrBase, 'Wafers.Name', LongName=False)
     ResultsDB = search(GrWs, **kwargs)
-    ResultsParams = {}
-    for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
-        print('')
-        print('Getting Parameters from Wafer {}...'.format(Grwn))
-        ResultsParams[Grwn] = getparams(ResultsDB, GrWs, args)
+    print('')
+    print('Getting Parameters of Wafers...')
+    ResultsParams = getparams(ResultsDB, GrWs, args)
     return GrWs, ResultsParams

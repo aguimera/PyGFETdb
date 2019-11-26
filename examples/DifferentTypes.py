@@ -24,17 +24,10 @@ def main():
 
     Wafers1 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
-        # 'B12142W46',  # (in vivo Rob) # High doping
-        # 'B12142W15',  # (in vivo Rob)
-        # 'B11870W8',  # (IDIBAPS implants)
-        # 'B11601W4',
     )
     Wafers2 = (
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
         'B12142W46',  # (in vivo Rob) # High doping
-        # 'B12142W15',  # (in vivo Rob)
-        # 'B11870W8',  # (IDIBAPS implants)
-        # 'B11601W4',
     )
 
     Wafers3 = (
@@ -45,6 +38,7 @@ def main():
         'B11601W4',
     )
 
+    # With Quantities
     DataSelectionConfig = [
         {'Param': 'Ud0',  # Parameter to evaluate
          'Range': (200, 500),  # Range of allowed values, (Min, Max)
@@ -74,6 +68,7 @@ def main():
          }
     ]
 
+    # Without Quantities
     DataSelectionConfig2 = [
         {'Param': 'Ud0',  # Parameter to evaluate
          'Range': (200e-3, 500e-3),  # Range of allowed values, (Min, Max)
@@ -103,15 +98,11 @@ def main():
                    'Devices.Name  != ': ('B12142W15-DUT',),
                    }
 
-    Conditions2 = {'Wafers.Name = ': Wafers2,
-                   'Devices.Name != ': ('B12708W2-M6',),
-                   'Devices.Name  != ': ('B12142W15-DUT',),
-                   }
+    Conditions2 = Conditions1
+    Conditions2.update({'Wafers.Name = ': Wafers2})
 
-    Conditions3 = {'Wafers.Name = ': Wafers3,
-                   'Devices.Name != ': ('B12708W2-M6',),
-                   'Devices.Name  != ': ('B12142W15-DUT',),
-                   }
+    Conditions3 = Conditions1
+    Conditions3.update({'Wafers.Name = ': Wafers3})
 
     CharTable = 'ACcharacts'
 
@@ -121,23 +112,14 @@ def main():
                'DataSelectionConfig': DataSelectionConfig
                }
 
-    GrBase2 = {'Conditions': Conditions2,
-               'Table': CharTable,
-               'Last': True,
-               'DataSelectionConfig': DataSelectionConfig
-               }
+    GrBase2 = GrBase1
+    GrBase2.update({'Conditions': Conditions2})
 
-    GrBase3 = {'Conditions': Conditions3,
-               'Table': CharTable,
-               'Last': True,
-               'DataSelectionConfig': DataSelectionConfig
-               }
+    GrBase3 = GrBase1
+    GrBase3.update({'Conditions': Conditions3})
 
-    GrBase4 = {'Conditions': Conditions1,
-               'Table': CharTable,
-               'Last': True,
-               'DataSelectionConfig': DataSelectionConfig2
-               }
+    GrBase4 = GrBase1
+    GrBase4.update({'DataSelectionConfig': DataSelectionConfig2})
 
     # PLOT GLOBALS ####################################################################
     Colors = ('r', 'g', 'b', 'm', 'y', 'k')
@@ -191,6 +173,7 @@ def main():
         },
     }
 
+    # PLOT GLOBALS FOR PLOTS PER WAFER
     kwargs1 = {
         'arguments': arguments1,
         'Colors': Colors,
@@ -198,15 +181,18 @@ def main():
         'xlabel': "Types",
         'remove50Hz': True,
     }
-    kwargs2 = {
-        'arguments': arguments1,
-        'Colors': Colors,
-        'legendTitle': "Types",
-        'xlabel': "Wafers",
-        'remove50Hz': True,
-    }
 
-    kwargs3 = {  # Per Trt
+    # PLOT GLOBALS FOR PLOTS PER TYPES
+    kwargs2 = kwargs1
+    kwargs2.update(
+        {
+            'legendTitle': "Types",
+            'xlabel': "Wafers",
+        }
+    )
+
+    # PLOT GLOBALS FOR PLOTS PSD PER GROUP AND SUBGROUP
+    kwargs3 = {
         'db': {
             'remove50Hz': True
         },
@@ -224,39 +210,27 @@ def main():
         'PlotNoise': True,
     }
 
-    kwargs4 = {  # Per Device
-        'db': {
-            'remove50Hz': True
-        },
-        'noise': {
-            'fluctuation': 38,  # >
-            'peak': 58.95,  # >
-            'gradient': 2e5,  # <=
-            'fiterror': 90,  # >
-            'fitgradient': 1e3,  # <=
-            'normalization': 1e-22
-        },
-        'PlotMean': True,
-        'PlotStd': True,
-        'PlotNoise': True,
-    }
+    # PLOT GLOBALS FOR PLOTS PSD PER GROUP ONLY
+    kwargs4 = kwargs3
+    kwargs4.update(
+        {'PlotStd': True}
+    )
 
     # PLOTS ####################################################################
 
-    ####### ONE WAFER ##########################
+    # ###### ONE WAFER ##########################
     # plot.PlotsPerWaferAndTypes(GrBase1, **kwargs1)
     # plot.PlotsPerTypes(GrBase1, **kwargs2)
 
-    # plot.PlotsPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs4)
-    # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs3)
+    plot.PlotsPSDperWafer(GrBase1, Plot=True, **kwargs4)
+    # plot.PlotsPSDperDevice(GrBase1, Plot=True, **kwargs4)
+    # plot.PlotsPSDperType(GrBase1,Plot=True,**kwargs4)
 
     # plot.PlotsPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # plot.PlotsPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
     # plot.PlotsPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
-
-    ######## 2 WAFERS #####################
+    # ####### 2 WAFERS #####################
     # plot.PlotsPerWaferAndTypes(GrBase2, **kwargs1)
     # plot.PlotsPerTypes(GrBase2, **kwargs2)
 
@@ -268,7 +242,7 @@ def main():
     # plot.PlotsPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
     # plot.PlotsPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
 
-    ######## ALL THE WAFERS #####################
+    # ####### ALL THE WAFERS #####################
     # plot.PlotsPerWaferAndTypes(GrBase3, **kwargs1)
     # plot.PlotsPerTypes(GrBase3, **kwargs2)
 

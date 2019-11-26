@@ -687,10 +687,10 @@ def PlotsPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
     if Plot:
-        PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                              PlotNoise=PlotNoise)
+        PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
@@ -782,10 +782,10 @@ def PlotsPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerWafer(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
     if Plot:
-        PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                              PlotNoise=PlotNoise)
+        PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
