@@ -412,9 +412,8 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
        """
 
-    mPSD = PSD[1:]
-    f = Fpsd.transpose()
-    dx = np.diff(f)[1:]
+    mPSD = PSD
+    dx = np.diff(Fpsd)
 
     if normalization is None:
         maxmPSD = 1
@@ -451,13 +450,13 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     if y2.ndim == 2:
         noisegrad = qty.Divide(y2[:, :dx.shape[1]], dx[:, :y2.shape[1]])
     else:
-        noisegrad = qty.Divide(y2, dx)
+        noisegrad = qty.Divide(y2, dx[1:])
 
     absnoisegrad = np.abs(noisegrad)
     if absgrad.ndim == 2:
-        fitgraderror = absgrad[:, :absnoisegrad.shape[1]] - absnoisegrad[:, :absgrad.shape[1]]
+        fitgraderror = absgrad[1:, :absnoisegrad.shape[1]] - absnoisegrad[:, :absgrad.shape[1]]
     else:
-        fitgraderror = absgrad - absnoisegrad
+        fitgraderror = absgrad[1:] - absnoisegrad
     absgraderror = np.abs(fitgraderror)
     fitmaxgraderror = np.mean(absgraderror) / maxmPSD
 
