@@ -113,28 +113,18 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
     temp4 = []
     mPSD = None
     if NoA is not None and len(NoA) > 0:
-        f = np.array(Fpsd).reshape((1, len(PSD)))
-        noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
-        if PSD.ndim == 3:
-            PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = PSD[:, :, -noise.shape[1]:]
-        elif PSD.ndim == 2:
-            PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = PSD.transpose()
-            # mPSD = [PSD.transpose()]
-        else:
-            mPSD = np.array([PSD])
-            mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
-            mPSD = mPSD[:, :, -noise.shape[1]:]
-        for psd in mPSD:
-            for i, item in enumerate(noise):
-                [ok, perfect, grad, noisegrad] = isPSDok(psd[i], Fpsd, item.transpose()[1:],
-                                                         fluctuation, peak, gradient, fiterror, fitgradient,
-                                                         normalization)
-                temp1.append(ok)
-                temp2.append(perfect)
-                temp3.append(grad)
-                temp4.append(noisegrad)
+        f = np.array(Fpsd[:NoA.shape[0]])
+        noise = Fnoise(f, NoA, NoB)
+        fpsd = np.array(Fpsd[:len(PSD)])
+        for psd in PSD:
+            tnoise = noise.transpose()[1:]
+            [ok, perfect, grad, noisegrad] = isPSDok(psd, fpsd, tnoise.transpose(),
+                                                     fluctuation, peak, gradient, fiterror, fitgradient,
+                                                     normalization)
+            temp1.append(ok)
+            temp2.append(perfect)
+            temp3.append(grad)
+            temp4.append(noisegrad)
 
         noise = np.mean(noise.transpose(), 1)
         noise = noise.reshape(noise.size)
@@ -442,7 +432,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     # Gradient of the PSD
     y = np.diff(mPSD)
-    grad = qty.Divide(y, dx)
+    grad = qty.Divide(y, dx[:, :y.shape[1]])
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
     graderror = maxgrad / maxmPSD
@@ -453,7 +443,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     # Gradient of the noise fitting
     y2 = np.diff(noise.transpose())
-    noisegrad = qty.Divide(y2, dx)
+    noisegrad = qty.Divide(y2, dx[:, :y2.shape[1]])
     absnoisegrad = np.abs(noisegrad)
     fitgraderror = absgrad - absnoisegrad
     absgraderror = np.abs(fitgraderror)

@@ -6,7 +6,6 @@ Python Quantities Support Class
 
 """
 
-import sys
 from itertools import chain
 
 import numpy as np
@@ -239,11 +238,7 @@ class QuantitySupport(object):
         :returns: Divides Dividend by Divisor avoiding division by zero.
         """
         units = None
-        try:
-            ret = np.divide(Dividend, Divisor)
-        except ValueError as e:
-            print("Error in Divide:", sys.exc_info()[1])
-            raise e
+        ret = np.divide(Dividend, Divisor)
 
         if type(ret) is pq.Quantity:
             units = ret.units

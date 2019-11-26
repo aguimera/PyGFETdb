@@ -8,7 +8,6 @@
 import itertools
 import sys
 
-import numpy as np
 import quantities as pq
 
 import PyGFETdb
@@ -342,20 +341,11 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         results[Trtn] = thread.getResults(key)[key][0]
     for Trtn, Val in results.items():
         if Val is not None:
-            if type(Val) is pq.Quantity:
-                Vals = qty.appendQuantity(Vals, Val)
-            else:
-                Vals = np.array(Vals)
-                try:
-                    Vals = np.hstack(((Vals), Val)) if Vals.size else Val
-                except ValueError:
-                    # print(sys.exc_info())
-                    ret.append(Vals)
-                    Vals = qty.createQuantityList()
-                    Vals = qty.appendQuantity(Vals, Val)
-                    # raise ArithmeticError # FIXME:
+            Vals = qty.appendQuantity(Vals, Val)
+
     thread.end()
     del thread
+
     # print("Getting Parameter {} Done.".format(Param))
     if len(ret) > 1:
         return ret, results
