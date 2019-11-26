@@ -206,12 +206,12 @@ def main():
         'remove50Hz': True,
     }
 
-    kwargs3 = {
+    kwargs3 = {  # Per Trt
         'db': {
             'remove50Hz': True
         },
 
-        'noise': {  # Per Trt
+        'noise': {
             'fluctuation': 38,  # >
             'peak': 58.95,  # >
             'gradient': 2e5,  # <=
@@ -224,11 +224,11 @@ def main():
         'PlotNoise': True,
     }
 
-    kwargs4 = {
+    kwargs4 = {  # Per Device
         'db': {
             'remove50Hz': True
         },
-        'noise': {  # Per Device
+        'noise': {
             'fluctuation': 38,  # >
             'peak': 58.95,  # >
             'gradient': 2e5,  # <=

@@ -119,7 +119,8 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
             PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
             mPSD = PSD[:, :, -noise.shape[1]:]
         elif PSD.ndim == 2:
-            mPSD = np.array([PSD.transpose()])
+            PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
+            mPSD = PSD.transpose()
         else:
             mPSD = np.array([PSD])
             mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
