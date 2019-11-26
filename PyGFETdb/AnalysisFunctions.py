@@ -114,7 +114,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
     if NoA is not None and len(NoA) > 0:
         f = np.array(Fpsd[:NoA.shape[0]])
         noise = Fnoise(f, NoA[:len(f), :], NoB[:len(f), :])
-        fpsd = np.array(Fpsd[:len(PSD)])
+        fpsd = np.array(Fpsd[:1])
         for psd in PSD:
             tnoise = noise.transpose()[1:]
             [ok, perfect, grad, noisegrad] = isPSDok(psd, fpsd, tnoise.transpose(),
