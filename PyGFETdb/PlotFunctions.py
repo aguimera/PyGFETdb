@@ -519,13 +519,14 @@ def PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=False, PlotMean=True
     """
     for nType, vType in GrTypes.items():
         r = results.get(nType)
-        PlotPSDPerDevice(r[0],  # Fpsd
-                         r[1],  # PSD
-                         r[2][0],  # Fpsd2
-                         r[3],  # noise
-                         # r[4],  # ok
-                         r[5],  # perfect
-                         nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+        if r is not None:
+            PlotPSDPerDevice(r[0],  # Fpsd
+                             r[1],  # PSD
+                             r[2][0],  # Fpsd2
+                             r[3],  # noise
+                             # r[4],  # ok
+                             r[5],  # perfect
+                             nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
 def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
