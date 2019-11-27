@@ -82,70 +82,8 @@ def processFreqs(Array, process):
 #
 ########################################################################
 
-def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31, fitgradient=0.09,
-                    normalization=None):
-    """
-
-    :param PSD: PSD of a Group
-    :param Fpsd: Fpsd of a Group
-    :param NoA: Noise A of a Group
-    :param NoB: Noise B of a Group
-    :param fluctuation: Maximum change allowed between the maximum value and the minimum value
-    :param peak: Maximum change allowed between the maximum value and the mean value
-    :param gradient: Maximum gradient allowed
-    :param fiterror: Maximum error allowed in the fit
-    :param fitgradient: Maximum error allowed in the gradient of the fit
-    :return: noise:
-    :return: ok: True if the noise is fitted well
-    :return: perfect: True if the PSD gradient is acceptable
-    :return: grad: PSD gradient
-    :return: noisegrad: Noise gradient
-
-    """
-    noise = np.array([])
-    ok = False
-    perfect = False
-    grad = 0
-    noisegrad = np.array([])
-    temp1 = []
-    temp2 = []
-    temp3 = []
-    temp4 = []
-    mPSD = None
-    if NoA is not None and len(NoA) > 0:
-        f = np.array(Fpsd).reshape((1, len(PSD)))
-        noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
-        if PSD.ndim == 3:
-            PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = PSD[:, :, -noise.shape[1]:]
-        elif PSD.ndim == 2:
-            mPSD = np.array([PSD.transpose()])
-        else:
-            mPSD = np.array([PSD])
-            mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
-            mPSD = mPSD[:, :, -noise.shape[1]:]
-        for psd in mPSD:
-            for i, item in enumerate(noise):
-                [ok, perfect, grad, noisegrad] = isPSDok(psd[i], Fpsd, item.transpose()[1:],
-                                                         fluctuation, peak, gradient, fiterror, fitgradient,
-                                                         normalization)
-                temp1.append(ok)
-                temp2.append(perfect)
-                temp3.append(grad)
-                temp4.append(noisegrad)
-
-        noise = np.mean(noise.transpose(), 1)
-        noise = noise.reshape(len(noise))
-        ok = np.all(temp1)
-        perfect = np.all(temp2)
-        grad = temp3
-        noisegrad = temp4
-
-    return [PSD, noise, ok, perfect, grad, noisegrad]
-
-
-def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09,
-                            normalization=None):
+def processAllPSDsPerGroup(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09,
+                           normalization=None):
     """
 
     :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
@@ -196,9 +134,9 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
             print('{}) Group:{}'.format(ic, nWf))
             print('***************************************************')
 
-            [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt, NoBt,
-                                                                                   fluctuation, peak, gradient,
-                                                                                   fiterror, fitgradient, maxpsd)
+            [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
+                                                                          fluctuation, peak, gradient,
+                                                                          fiterror, fitgradient, maxpsd)
             mPSD = [mPSD]
 
             Fpsd2t = np.array(Fpsdt)
@@ -238,9 +176,9 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
     return results
 
 
-def processAllNoisePerDevice(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31,
-                             fitgradient=0.09,
-                             normalization=None):
+def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31,
+                    fitgradient=0.09,
+                    normalization=None):
     """
 
     :param PSD: PSD of a Group
@@ -371,8 +309,9 @@ def processNoA(NoAlist, PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, grad
     return [noise, ok, perfect, grad, noisegrad]
 
 
-def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09,
-                   normalization=None):
+def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31,
+                              fitgradient=0.09,
+                              normalization=None):
 
     """
 
@@ -438,11 +377,11 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                     temp4 = []
                     temp5 = []
                     for i, item in enumerate(NoAt):
-                        [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt[i],
-                                                                                               NoBt[i],
-                                                                                               fluctuation, peak, gradient,
-                                                                                               fiterror,
-                                                                                               fitgradient, maxpsd)
+                        [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt[i],
+                                                                                      NoBt[i],
+                                                                                      fluctuation, peak, gradient,
+                                                                                      fiterror,
+                                                                                      fitgradient, maxpsd)
 
                         temp0.append(noise)
                         temp1.append(ok)
@@ -458,9 +397,9 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                     noisegrad = temp4
                     mPSD = temp5
                 else:
-                    [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt, NoBt,
-                                                                                           fluctuation, peak, gradient,
-                                                                                           fiterror, fitgradient, maxpsd)
+                    [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
+                                                                                  fluctuation, peak, gradient,
+                                                                                  fiterror, fitgradient, maxpsd)
                 Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
 
                 print(' ')

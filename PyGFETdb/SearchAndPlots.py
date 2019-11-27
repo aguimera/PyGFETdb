@@ -105,74 +105,10 @@ def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, Pl
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                     PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise Mean
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = s.DBSearchPerTypeAndWafer(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = s.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                    PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
@@ -201,10 +137,10 @@ def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, P
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerWafer(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                     PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                    PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
@@ -233,10 +169,74 @@ def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, 
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerDevice(rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                     PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                    PlotNoise=PlotNoise)
+
+    print('Collect->', gc.collect())
+    return results
+
+
+def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param PlotStd: Plot Standard Deviation and Noise Mean
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05},
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerTypeAndWafer(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
+    if Plot:
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                       PlotNoise=PlotNoise)
+
+    print('Collect->', gc.collect())
+    return results
+
+
+def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
+    if Plot:
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                       PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results
@@ -265,10 +265,10 @@ def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDs(GrTypes, rPSD, **kwargs.get('noise'))
+    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                   PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
+                                       PlotNoise=PlotNoise)
 
     print('Collect->', gc.collect())
     return results

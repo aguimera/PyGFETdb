@@ -214,7 +214,7 @@ def main():
             'normalization': 1e-22
         },
         'PlotMean': True,
-        'PlotStd': False,
+        'PlotStd': True,
         'PlotNoise': True,
     }
 
