@@ -459,13 +459,13 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, 
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
-            PlotPSDPerType(temp0,  # Fpsd
-                           temp1,  # PSD
-                           temp2[0],  # Fpsd2
-                           temp3,  # noise
-                           # temp4,  # ok
-                           temp5,  # perfect
-                           nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+            PlotPSDPerDevice(temp0[0],  # Fpsd
+                             temp1,  # PSD
+                             temp2[0],  # Fpsd2
+                             temp3,  # noise
+                             # temp4,  # ok
+                             temp5,  # perfect
+                             nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
 def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,

@@ -10,6 +10,8 @@ import gc
 import matplotlib.pyplot as plt
 import quantities as pq
 
+import PyGFETdb.SearchAndPlots as plot
+
 
 ############################
 # MAIN
@@ -212,7 +214,7 @@ def main():
             'normalization': 1e-22
         },
         'PlotMean': True,
-        'PlotStd': True,
+        'PlotStd': False,
         'PlotNoise': True,
     }
 
@@ -252,7 +254,7 @@ def main():
     # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
