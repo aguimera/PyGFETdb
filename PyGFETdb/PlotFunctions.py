@@ -459,13 +459,51 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
-            PlotPSD(temp0[0],  # Fpsd
-                    temp1,  # PSD
-                    temp2[0],  # Fpsd2
-                    temp3,  # noise
-                    # temp4,  # ok
-                    temp5,  # perfect
-                    nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+            PlotPSDPerSubGroup(temp0[0],  # Fpsd
+                               temp1,  # PSD
+                               temp3,  # noise
+                               # temp4,  # ok
+                               temp5,  # perfect
+                               nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+
+
+def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
+                       PlotNoise=False):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param PlotStd: Plot Standard Deviation
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    fig, ax = plt.subplots()
+
+    for i, item in enumerate(PSD):
+        if PlotMean:
+            PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            if PlotNoise:
+                noisei = processNoiseForPlot(noise[i])
+                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                    ax.loglog(Fpsd, noisei, '--')
+        else:
+            for item2 in item.transpose():
+                PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+                            PlotStd=PlotStd)
+            if PlotNoise:
+                noisei = processNoiseForPlot(noise[i])
+                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                    ax.loglog(Fpsd, noisei, '--')
+
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
+    plt.title(title)
 
 
 def PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
@@ -483,22 +521,20 @@ def PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True,
     for nType, vType in GrTypes.items():
         r = results.get(nType)
         if r is not None:
-            PlotPSD(r[0],  # Fpsd
-                    r[1],  # PSD
-                    r[2][0],  # Fpsd2
-                    [r[3]],  # noise
-                    # r[4],  # ok
-                    r[5],  # perfect
-                    nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+            PlotPSDPerGroup(r[0],  # Fpsd
+                            r[1],  # PSD
+                            [r[3]],  # noise
+                            # r[4],  # ok
+                            r[5],  # perfect
+                            nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
-def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
+def PlotPSDPerGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
                      PlotNoise=False):
     """
 
     :param Fpsd: Data of the x axis
     :param PSD:  Data of the y axis
-    :param Fpsd2: Data of the x axis for noise fitting
     :param noise: Data of the y axis for noise fitting
     :param perfect: Boolean to approve the analysis
     :param nType: Name of the Type of Trt
@@ -514,7 +550,7 @@ def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, Pl
             PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
                 noisei = processNoiseForPlot(noise[i])
-                if noisei is not None and Fpsd.size == noisei.size:
+                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
                     ax.loglog(Fpsd, noisei, '--')
         else:
             for item2 in item.transpose():
@@ -522,8 +558,8 @@ def PlotPSD(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=True, Pl
                             PlotStd=PlotStd)
             if PlotNoise:
                 noisei = processNoiseForPlot(noise[i])
-                if noisei is not None and Fpsd.size == noisei.size:
-                    ax.loglog(Fpsd2, noisei, '--')
+                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                    ax.loglog(Fpsd, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')

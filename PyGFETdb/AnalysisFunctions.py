@@ -96,9 +96,6 @@ def processAllPSDsPerGroup(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fi
     """
     results = {}
     ic = 0
-    itypes = 0
-    itype = []
-    itypeo = []
     iwf = []
     iwfo = []
     okc = 0
@@ -115,7 +112,6 @@ def processAllPSDsPerGroup(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fi
         maxpsd = 1
 
     Fpsd = rPSD.get('Fpsd')
-    results = {}
     PSD = rPSD['PSD']
     NoA = rPSD['NoA']
     NoB = rPSD['NoB']
@@ -139,7 +135,7 @@ def processAllPSDsPerGroup(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fi
                                                                           fiterror, fitgradient, maxpsd)
             mPSD = [mPSD]
 
-            Fpsd2t = np.array(Fpsdt)
+            Fpsdt = np.array(Fpsdt)
 
             print(' ')
             if ok:
@@ -148,7 +144,7 @@ def processAllPSDsPerGroup(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fi
             if perfect:
                 perfectc += 1
                 perfectcw += 1
-            results[nWf] = [Fpsdt, mPSD, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+            results[nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
         if iw > 0:
             iwf.append((nWf, perfectcw, iw))
             iwfo.append((nWf, okcw, iw))
@@ -326,7 +322,6 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradi
     """
     results = {}
     ic = 0
-    itypes = 0
     itype = []
     itypeo = []
     iwf = []
@@ -400,7 +395,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradi
                     [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt,
                                                                                   fluctuation, peak, gradient,
                                                                                   fiterror, fitgradient, maxpsd)
-                Fpsd2t = np.array(Fpsdt).reshape((1, len(PSDt)))
+                Fpsdt = np.array(Fpsdt).reshape(len(PSDt))
 
                 print(' ')
                 if ok:
@@ -411,7 +406,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradi
                     perfectc += 1
                     perfectct += 1
                     perfectcw += 1
-                results[nType][nWf] = [Fpsdt, mPSD, Fpsd2t, noise, ok, perfect, grad, noisegrad]
+                results[nType][nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
             if iw > 0:
                 iwf.append((nWf, perfectcw, iw))
                 iwfo.append((nWf, okcw, iw))
