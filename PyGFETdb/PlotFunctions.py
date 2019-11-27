@@ -455,7 +455,7 @@ def PlotResultsPSDPerType(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, 
                 temp5.append(r[5])
 
         if temp3 is not None and len(temp3) > 0:
-            temp3 = np.array(temp3)
+            temp3 = temp3
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
@@ -489,16 +489,18 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
         if PlotMean:
             PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise.transpose())
-                noisei = np.mean(noisei, 1)
-                ax.loglog(Fpsd2.transpose(), noisei, '--')
+                noisei = np.array(noise)
+                if noisei.ndim > 1:
+                    noisei = np.mean(noisei.transpose(), 1)
+                ax.loglog(Fpsd2.transpose(), noisei.transpose(), '--')
         else:
             for item2 in item[0]:
                 PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise.transpose())
-                noisei = np.mean(noisei, 1)
+                noisei = np.array(noise[i])
+                if noisei.ndim > 1:
+                    noisei = np.mean(noisei.transpose(), 1)
                 ax.loglog(Fpsd2.transpose(), noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")

@@ -135,7 +135,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
                 temp4.append(noisegrad)
 
         noise = np.mean(noise.transpose(), 1)
-
+        noise = noise.reshape(len(noise))
         ok = np.all(temp1)
         perfect = np.all(temp2)
         grad = temp3
@@ -215,6 +215,7 @@ def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
                                                                                       fluctuation, peak, gradient,
                                                                                       fiterror,
                                                                                       fitgradient, maxpsd)
+
                         temp0.append(noise)
                         temp1.append(ok)
                         temp2.append(perfect)
