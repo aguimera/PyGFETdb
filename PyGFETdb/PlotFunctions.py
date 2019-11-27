@@ -566,7 +566,8 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
                     noisei = np.mean(noisei.transpose(), 1)
                 Fpsd2 = Fpsd
                 noisei = noisei.transpose()
-                ax.loglog(Fpsd2, noisei, '--')
+                if noisei is not None and noisei.size > 1:
+                    ax.loglog(Fpsd2, noisei, '--')
         else:
             for item2 in item.transpose():
                 PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
@@ -577,7 +578,8 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
                     noisei = np.mean(noisei.transpose(), 1)
                 Fpsd2 = Fpsd
                 noisei = noisei.transpose()
-                ax.loglog(Fpsd2, noisei, '--')
+                if noisei is not None and noisei.size > 1:
+                    ax.loglog(Fpsd2, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')

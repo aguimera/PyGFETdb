@@ -196,37 +196,10 @@ def processAllPSDsPerDevice(rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, f
             print('{}) Group:{}'.format(ic, nWf))
             print('***************************************************')
 
-            if type(NoAt) is list:
-                temp0 = []
-                temp1 = []
-                temp2 = []
-                temp3 = []
-                temp4 = []
-                temp5 = []
-                for i, item in enumerate(NoAt):
-                    [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt[i],
-                                                                                           NoBt[i],
-                                                                                           fluctuation, peak, gradient,
-                                                                                           fiterror,
-                                                                                           fitgradient, maxpsd)
-                    temp0.append(noise)
-                    temp1.append(ok)
-                    temp2.append(perfect)
-                    temp3.append(grad)
-                    temp4.append(noisegrad)
-                    temp5.append(mPSD)
-
-                noise = temp0
-                ok = np.all(temp1)
-                perfect = np.all(temp2)
-                grad = temp3
-                noisegrad = temp4
-                mPSD = temp5
-            else:
-                [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt, NoBt,
-                                                                                       fluctuation, peak, gradient,
-                                                                                       fiterror, fitgradient, maxpsd)
-                mPSD = [mPSD]
+            [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoisePerDevice(PSDt, Fpsdt, NoAt, NoBt,
+                                                                                   fluctuation, peak, gradient,
+                                                                                   fiterror, fitgradient, maxpsd)
+            mPSD = [mPSD]
 
             Fpsd2t = np.array(Fpsdt)
 
@@ -291,22 +264,80 @@ def processAllNoisePerDevice(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355,
     perfect = False
     grad = 0
     noisegrad = np.array([])
+    temp0 = []
     temp1 = []
     temp2 = []
     temp3 = []
     temp4 = []
-    mPSD = None
+
+    if type(NoA) is list():
+        for i, item in enumerate(NoA):
+            [mPSD, noise, ok, perfect, grad, noisegrad] = processNoA(NoA, PSD, Fpsd, NoA[i], NoB[i],
+                                                                     fluctuation, peak, gradient,
+                                                                     fiterror,
+                                                                     fitgradient, normalization)
+
+            temp0.append(noise)
+            temp1.append(ok)
+            temp2.append(perfect)
+            temp3.append(grad)
+            temp4.append(noisegrad)
+
+        noise = temp0
+        ok = np.all(temp1)
+        perfect = np.all(temp2)
+        grad = temp3
+        noisegrad = temp4
+    else:
+        [noise, ok, perfect, grad, noisegrad] = processNoA(NoA, PSD, Fpsd, NoA, NoB, fluctuation, peak, gradient,
+                                                           fiterror, fitgradient, normalization)
+
+    return [PSD, noise, ok, perfect, grad, noisegrad]
+
+
+def processNoA(NoAlist, PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31,
+               fitgradient=0.09, normalization=None):
+    noise = np.array([])
+    ok = False
+    perfect = False
+    grad = 0
+    noisegrad = np.array([])
+
+    temp1 = []
+    temp2 = []
+    temp3 = []
+    temp4 = []
     if NoA is not None and len(NoA) > 0:
-        f = np.array(Fpsd).reshape((1, len(PSD)))
-        noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
+        try:
+            f = np.array(Fpsd).reshape((1, len(PSD)))
+            noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
+        except:
+            print(" ")
+            print("Noise Error: The Devices doesn't have the same number of Transistors.")
+            print(" ")
+            return [None, False, False, [], []]
         if PSD.ndim == 3:
             PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
             mPSD = PSD[:, :, -noise.shape[1]:]
         elif PSD.ndim == 2:
-            mPSD = PSD.transpose()
-            mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
-            mPSD = np.array([mPSD])
-            # mPSD = np.array([PSD.transpose()])
+            try:
+                mPSD = PSD.transpose()
+                mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
+                mPSD = np.array([mPSD])
+            except:
+                print(" ")
+                print("PSD Error: The Devices doesn't have the same number of Transistors.")
+                print(" ")
+                return [noise, False, False, [], []]
+                # TODO
+            """""
+                tpsd=[]
+                for i,item in enumerate(NoAlist):
+                    mPSD = PSD.transpose()
+                    mPSDt = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
+                    tpsd.append(mPSDt)
+                mPSD = np.array(tpsd)
+            #"""
         else:
             mPSD = np.array([PSD])
             mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
@@ -337,7 +368,7 @@ def processAllNoisePerDevice(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355,
         grad = temp3
         noisegrad = temp4
 
-    return [PSD, noise, ok, perfect, grad, noisegrad]
+    return [noise, ok, perfect, grad, noisegrad]
 
 
 def processAllPSDs(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31, fitgradient=0.09,

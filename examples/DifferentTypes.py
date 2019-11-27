@@ -10,8 +10,6 @@ import gc
 import matplotlib.pyplot as plt
 import quantities as pq
 
-import PyGFETdb.SearchAndPlots as plot
-
 
 ############################
 # MAIN
@@ -226,7 +224,7 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
