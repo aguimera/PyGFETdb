@@ -226,11 +226,12 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
-
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     # ####### 2 WAFERS #####################
@@ -238,23 +239,26 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase2, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDevice(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperType(GrBase2, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperType(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperDevice(GrBase2, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
+
 
     # ####### ALL THE WAFERS #####################
     # plot.SearchAndPlotPerWaferAndTypes(GrBase3, **kwargs1)
     # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
 
     plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
-
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
+    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+
+    # plot.SearchAndPlotPSDperDevice(GrBase3, **kwargs3)
     # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 

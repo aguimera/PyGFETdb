@@ -277,38 +277,42 @@ def processNoA(PSD, Fpsd, NoA, NoB,
                 f = np.array(f0).reshape((1, len(f0)))
                 noise = Fnoise(f, NoA, NoB)
 
-                retnoise = np.mean(noise.transpose(), 1)
-                retnoise = retnoise.reshape(len(retnoise))
+                retnoise = np.array([np.zeros(len(Fpsd))])
                 temp0.append(retnoise)
             except:
                 noise = None  # TODO: Better Fit Calculation? or Bad Fit Data?
+                retnoise = np.array([np.zeros(len(Fpsd))])
+                temp0.append(retnoise)
+        try:
+            if PSD.ndim == 3:
+                PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
+                mPSD = PSD[:, :, -noise.shape[1]:]
+            elif PSD.ndim == 2:
+                mPSD = PSD.transpose()
+                mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
+                mPSD = np.array([mPSD])
+            else:
+                mPSD = PSD
+                mPSD = np.array([mPSD, mPSD])
+                mPSD = np.array([mPSD.transpose()])
+        except ValueError:
+            print("Warning: Possible wrong analysis. Noise fit data insufficient.")
+            mPSD = np.array([PSD.transpose()])
 
-        if PSD.ndim == 3:
-            PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
-            mPSD = PSD[:, :, -noise.shape[1]:]
-        elif PSD.ndim == 2:
-            mPSD = PSD.transpose()
-            mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
-            mPSD = np.array([mPSD])
-        else:
-            mPSD = PSD
-            mPSD = np.array([mPSD, mPSD])
-            mPSD = np.array([mPSD.transpose()])
-
-        for psd in mPSD:
+        for tpsd in mPSD:
             if noise is None:
-                [ok, perfect, grad, noisegrad] = processIsPSDok(psd, psd, None, Fpsd,
-                                                                fluctuation, peak, gradient,
-                                                                fiterror, fitgradient, normalization)
+                ok, perfect, grad, noisegrad = processIsPSDok(tpsd, tpsd, None, Fpsd,
+                                                              fluctuation, peak, gradient,
+                                                              fiterror, fitgradient, normalization)
                 temp1.append(ok)
                 temp2.append(perfect)
                 temp3.append(grad)
                 temp4.append(noisegrad)
             else:
                 for i, item in enumerate(noise):
-                    [ok, perfect, grad, noisegrad] = processIsPSDok(psd, psd[i], item, Fpsd,
-                                                                    fluctuation, peak, gradient,
-                                                                    fiterror, fitgradient, normalization)
+                    ok, perfect, grad, noisegrad = processIsPSDok(tpsd, tpsd[i], item, Fpsd,
+                                                                  fluctuation, peak, gradient,
+                                                                  fiterror, fitgradient, normalization)
                     temp1.append(ok)
                     temp2.append(perfect)
                     temp3.append(grad)
@@ -354,6 +358,7 @@ def processIsPSDok(psd, psdi, noise, Fpsd,
         temp4.append(noisegrad)
 
     return temp1, temp2, temp3, temp4
+
 
 def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradient=0.94, fiterror=0.31,
                               fitgradient=0.09,
