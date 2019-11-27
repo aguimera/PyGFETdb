@@ -487,18 +487,18 @@ def PlotPSDPerType(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd=T
 
     for i, item in enumerate(PSD):
         if PlotMean:
-            PlotMeanStd(Fpsd[i], item[0], ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            PlotMeanStd(Fpsd[i], item[0].transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise[i])
-                noisei = np.mean(noisei.transpose(), 1)
+                noisei = np.array(noise.transpose())
+                noisei = np.mean(noisei, 1)
                 ax.loglog(Fpsd2.transpose(), noisei, '--')
         else:
-            for item2 in item[0].transpose():
+            for item2 in item[0]:
                 PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise[i])
-                noisei = np.mean(noisei.transpose(), 1)
+                noisei = np.array(noise.transpose())
+                noisei = np.mean(noisei, 1)
                 ax.loglog(Fpsd2.transpose(), noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
