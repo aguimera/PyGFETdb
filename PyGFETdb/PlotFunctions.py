@@ -534,7 +534,7 @@ def PlotResultsPSDPerDevice(GrTypes, results, rPSD, PlotStd=False, PlotMean=True
             PlotPSDPerDevice(r[0],  # Fpsd
                              r[1],  # PSD
                              r[2][0],  # Fpsd2
-                             r[3],  # noise
+                             [r[3]],  # noise
                              # r[4],  # ok
                              r[5],  # perfect
                              nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
@@ -561,24 +561,16 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
         if PlotMean:
             PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise)
-                if noisei.ndim > 1:
-                    noisei = np.mean(noisei.transpose(), 1)
-                Fpsd2 = Fpsd
-                noisei = noisei.transpose()
-                if noisei is not None and noisei.size > 1:
-                    ax.loglog(Fpsd2, noisei, '--')
+                noisei = processNoiseForPlot(noise)
+                if noisei is not None and len(Fpsd) == len(noisei):
+                    ax.loglog(Fpsd, noisei, '--')
         else:
             for item2 in item.transpose():
                 PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
             if PlotNoise:
-                noisei = np.array(noise)
-                if noisei.ndim > 1:
-                    noisei = np.mean(noisei.transpose(), 1)
-                Fpsd2 = Fpsd
-                noisei = noisei.transpose()
-                if noisei is not None and noisei.size > 1:
+                noisei = processNoiseForPlot(noise)
+                if noisei is not None and len(Fpsd) == len(noisei):
                     ax.loglog(Fpsd2, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
@@ -586,3 +578,17 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
 
     title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
+
+
+def processNoiseForPlot(noise):
+    noisei = np.array(noise)
+    if noisei.ndim == 2:
+        noisei = np.mean(noisei.transpose(), 1)
+    if noisei.ndim == 2 and noisei.shape[1] > 1:
+        tn = []
+        for n in noisei:
+            nm = np.mean(n.transpose(), 1)
+            tn.append([nm])
+        tn = np.array(tn)
+        noisei = np.mean(tn, 1)
+    return noisei.transpose()
