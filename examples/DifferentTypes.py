@@ -25,7 +25,7 @@ def main():
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
     )
     Wafers2 = (
-        'B12708W2',  # (in vivo Rob, slices Mavi) Very good
+        # 'B12708W2',  # (in vivo Rob, slices Mavi) Very good
         'B12142W46',  # (in vivo Rob) # High doping
     )
 
@@ -238,12 +238,12 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase2, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    plot.SearchAndPlotPSDperDevice(GrBase2, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase2, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperType(GrBase2, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
 
     # ####### ALL THE WAFERS #####################
     # plot.SearchAndPlotPerWaferAndTypes(GrBase3, **kwargs1)
