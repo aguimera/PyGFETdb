@@ -237,41 +237,44 @@ def processNoA(NoAlist, PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, grad
     grad = 0
     noisegrad = np.array([])
 
+    temp0 = []
     temp1 = []
     temp2 = []
     temp3 = []
     temp4 = []
     if NoA is not None and len(NoA) > 0:
+        if type(NoA) is list:
+            for i in range(0, len(NoA) - 1):
+                [noise, ok, perfect, grad, noisegrad] = processNoA(PSD, Fpsd, NoA[i], NoB[i],
+                                                                   fluctuation, peak, gradient,
+                                                                   fiterror, fitgradient, normalization)
+                temp0.append(noise)
+                temp1.append(ok)
+                temp2.append(perfect)
+                temp3.append(grad)
+                temp4.append(noisegrad)
+
         try:
-            f = np.array(Fpsd).reshape((1, len(PSD)))
-            noise = Fnoise(f, NoA[:, -len(f):], NoB[:, -len(f):])
+            f = np.array(Fpsd).reshape((1, len(Fpsd)))
+            noise = Fnoise(f, NoA[:, -len(Fpsd):], NoB[:, -len(Fpsd):])
         except:
-            print(" ")
-            print("Noise Error: The Devices doesn't have the same number of Transistors.")
-            print(" ")
-            return [None, False, False, [], []]
+            try:
+                f0 = Fpsd[:NoA.shape[1]]
+                f = np.array(f0).reshape((1, len(f0)))
+                noise = Fnoise(f, NoA, NoB)
+            except:
+                noise = None
+                raise ValueError
+                # return [None, False, False, [], []]
+
         if PSD.ndim == 3:
             PSD = PSD.reshape(PSD.shape[0], NoA.shape[0], NoA.shape[1])
             mPSD = PSD[:, :, -noise.shape[1]:]
         elif PSD.ndim == 2:
-            try:
-                mPSD = PSD.transpose()
-                mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
-                mPSD = np.array([mPSD])
-            except:
-                print(" ")
-                print("PSD Error: The Devices doesn't have the same number of Transistors.")
-                print(" ")
-                return [noise, False, False, [], []]
-                # TODO
-            """""
-                tpsd=[]
-                for i,item in enumerate(NoAlist):
-                    mPSD = PSD.transpose()
-                    mPSDt = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
-                    tpsd.append(mPSDt)
-                mPSD = np.array(tpsd)
-            #"""
+            # try:
+            mPSD = PSD.transpose()
+            mPSD = mPSD.reshape(NoA.shape[0], NoA.shape[1], mPSD.shape[1])
+            mPSD = np.array([mPSD])
         else:
             mPSD = np.array([PSD])
             mPSD = mPSD.reshape((PSD.shape[0], NoA.shape[0], NoA.shape[1]))
@@ -297,6 +300,8 @@ def processNoA(NoAlist, PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, grad
                     temp4.append(noisegrad)
         noise = np.mean(noise.transpose(), 1)
         noise = noise.reshape(len(noise))
+        temp0.append(noise)
+        noise = temp0
         ok = np.all(temp1)
         perfect = np.all(temp2)
         grad = temp3
@@ -468,6 +473,9 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     f = Fpsd.transpose()
     dx = np.diff(f)[1:]
 
+    f2 = noise.transpose()
+    dx2 = np.diff(f2)
+
     if normalization is None:
         maxmPSD = 1
     else:
@@ -488,27 +496,31 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     maxgrad = np.max(absgrad)
     graderror = maxgrad / maxmPSD
 
-    # Error of the noise fitting
-    fitpeak = np.abs((mPSD - np.abs(np.mean(noise))) / maxmPSD)
-    fitmaxerr = np.max(fitpeak)
-
-    # Gradient of the noise fitting
-    y2 = np.diff(noise.transpose())
-    noisegrad = qty.Divide(y2, dx)
-    absnoisegrad = np.abs(noisegrad)
-    fitgraderror = absgrad - absnoisegrad
-    absgraderror = np.abs(fitgraderror)
-    fitmaxgraderror = np.mean(absgraderror) / maxmPSD
-
     # Conditions of the PSD
     perfect1 = np.all(maxfluct > fluctuation)
     perfect2 = np.all(maxpeak > peak)
     perfect3 = np.all(graderror <= gradient)
     perfect = perfect1 and perfect2 and perfect3
 
-    # Conditions of the noise fit
+    # Error of the noise fitting
+    fitpeak = np.abs((mPSD - np.abs(np.mean(noise))) / maxmPSD)
+    fitmaxerr = np.max(fitpeak)
+
+    # Gradient of the noise fitting
+    y2 = np.diff(noise.transpose())
+    noisegrad = qty.Divide(y2, dx2)
+    absnoisegrad = np.abs(noisegrad)
+    try:
+        fitgraderror = absgrad[:absnoisegrad.shape[0]] - absnoisegrad
+        absgraderror = np.abs(fitgraderror)
+        fitmaxgraderror = np.mean(absgraderror) / maxmPSD
+        # Conditions of the noise fit
+        ok2 = fitmaxgraderror <= fitgradient
+    except ValueError as e:
+        ok2 = False
+        fitmaxgraderror = np.nan
+
     ok1 = fitmaxerr > fiterror
-    ok2 = fitmaxgraderror <= fitgradient
     ok = ok1 and ok2
 
     # Print output
@@ -542,5 +554,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
         if not ok2:
             print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
     print(' ')
+
     return ok, perfect, grad, noisegrad
 
