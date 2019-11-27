@@ -559,19 +559,25 @@ def PlotPSDPerDevice(Fpsd, PSD, Fpsd2, noise, perfect=False, nType=None, PlotStd
 
     for i, item in enumerate(PSD):
         if PlotMean:
-            PlotMeanStd(Fpsd[i], item[0], ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
                 noisei = np.array(noise)
-                noisei = np.mean(noisei.transpose(), 1)
-                ax.loglog(Fpsd2.transpose(), noisei, '--')
+                if noisei.ndim > 1:
+                    noisei = np.mean(noisei.transpose(), 1)
+                Fpsd2 = Fpsd
+                noisei = noisei.transpose()
+                ax.loglog(Fpsd2, noisei, '--')
         else:
-            for item2 in item[0].transpose():
-                PlotMeanStd(Fpsd[i], item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+            for item2 in item.transpose():
+                PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
             if PlotNoise:
                 noisei = np.array(noise)
-                noisei = np.mean(noisei.transpose(), 1)
-                ax.loglog(Fpsd2.transpose(), noisei, '--')
+                if noisei.ndim > 1:
+                    noisei = np.mean(noisei.transpose(), 1)
+                Fpsd2 = Fpsd
+                noisei = noisei.transpose()
+                ax.loglog(Fpsd2, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
