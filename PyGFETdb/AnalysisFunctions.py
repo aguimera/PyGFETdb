@@ -233,7 +233,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gradient
 def processNoA(PSD, Fpsd, NoA, NoB,
                fluctuation=0.905, peak=0.355, gradient=0.94, fiterror=0.31,
                fitgradient=0.09, normalization=None):
-    retnoise = np.array([])
+    noise = np.array([])
     ok = False
     perfect = False
     grad = np.array([])
@@ -251,7 +251,7 @@ def processNoA(PSD, Fpsd, NoA, NoB,
         mPSD = reshapePSD(PSD, NoA, noise)
 
         if mPSD is None:
-            return [retnoise, False, False, [], []]
+            return [noise, False, False, [], []]
 
         if mPSD.ndim == 4:
             ok, perfect, grad, noisegrad = processPSDlist(Fpsd, mPSD, noise, fluctuation, peak,
@@ -293,36 +293,12 @@ def reshapePSD(PSD, NoA, noise):
 
 
 def calculateNoise(Fpsd, NoA, NoB):
-    # try:
-
     f = np.array([Fpsd])
     tnoise = []
     for i, item in enumerate(NoA):
         noise = Fnoise(f.transpose(), [NoA[i]], [NoB[i]])
         tnoise.append(noise.transpose())
     noise = np.array(tnoise)
-    # except:
-    """""
-        try:
-            f0 = Fpsd[:NoA.shape[1]]
-            f = np.array(f0).reshape((1, len(f0)))
-            noise = Fnoise(f, NoA, NoB)
-            tnoise = []
-            f2 = np.linspace(np.min(Fpsd), np.max(Fpsd), NoA.shape[1])
-            f2 = f2.reshape(f2.size)
-            for n in noise:
-                fi = interpolate.interp1d(f2, n)
-                retn = fi(Fpsd)
-                tnoise.append(retn)
-            tnoise = np.array(tnoise)
-            noise = np.array([tnoise])
-            retnoise = np.mean(tnoise.transpose(), 1)
-            retnoise = retnoise.reshape(retnoise.size)
-        except:
-            noise = None  # TODO: Better Fit Calculation? or Bad Fit Data?
-            retnoise = np.array([np.zeros(len(Fpsd))])
-            retnoise = retnoise.reshape(retnoise.size)
-        """
     return noise
 
 
