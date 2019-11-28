@@ -577,7 +577,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     try:
         # Gradient of the noise fitting
         f = Fpsd.transpose()
-        dx = np.diff(f)[1:]
+        dx = np.diff(f)[1:noise.size]
 
         y2 = np.diff(noise.transpose())
         noisegrad = qty.Divide(y2, dx)

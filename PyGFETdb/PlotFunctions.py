@@ -572,7 +572,7 @@ def processNoiseForPlot(noise):
     noisei = np.array(noise)
     if noisei.ndim == 2:
         noisei = np.mean(noisei.transpose(), 1)
-    if noisei.ndim == 2 and noisei.shape[1] > 1:
+    if noisei.ndim == 3:
         tn = []
         for n in noisei:
             nm = np.mean(n.transpose(), 1)
