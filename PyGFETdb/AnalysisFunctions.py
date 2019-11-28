@@ -281,6 +281,7 @@ def processNoA(PSD, Fpsd, NoA, NoB,
                 temp0.append(retnoise)
             except:
                 noise = None  # TODO: Better Fit Calculation? or Bad Fit Data?
+
                 retnoise = np.array([np.zeros(len(Fpsd))])
                 temp0.append(retnoise)
         try:
@@ -523,9 +524,6 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
         return False, False, [], []
 
     mPSD = PSD[1:]
-    f = Fpsd.transpose()
-    dx = np.diff(f)[1:]
-
 
     if normalization is None:
         maxmPSD = 1
@@ -552,6 +550,9 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     try:
         # Gradient of the PSD
+        f = Fpsd.transpose()
+        dx = np.diff(f)[1:]
+
         y = np.diff(mPSD)
         grad = qty.Divide(y, dx)
         absgrad = np.abs(grad)
@@ -575,11 +576,11 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
 
     try:
         # Gradient of the noise fitting
-        f2 = noise.transpose()
-        dx2 = np.diff(f2)
+        f = Fpsd.transpose()
+        dx = np.diff(f)[1:]
 
         y2 = np.diff(noise.transpose())
-        noisegrad = qty.Divide(y2, dx2)
+        noisegrad = qty.Divide(y2, dx)
         absnoisegrad = np.abs(noisegrad)
 
         fitgraderror = absgrad[:absnoisegrad.shape[0]] - absnoisegrad
