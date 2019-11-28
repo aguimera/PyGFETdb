@@ -576,7 +576,7 @@ def processNoiseForPlot(noise):
         tn = []
         for n in noisei:
             nm = np.mean(n.transpose(), 1)
-            tn.append([nm])
+            tn.append(nm)
         tn = np.array(tn)
-        noisei = np.mean(tn, 1)
+        noisei = np.mean(tn.transpose(), 1)
     return noisei.transpose()
