@@ -577,6 +577,6 @@ def processNoiseForPlotPSD(noise):
         for n in noisei:
             nm = processNoiseForPlotPSD(n)
             tn.append(nm)
-            tn = np.array(tn)
+        tn = np.array(tn)
         noisei = np.mean(tn.transpose(), 1)
     return noisei.transpose()
