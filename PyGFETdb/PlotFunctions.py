@@ -486,21 +486,29 @@ def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True
     noise = np.array(noise)
 
     for i, item in enumerate(PSD):
-        item0 = item[0][0]
-        if PlotMean:
-            PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
-            if PlotNoise:
-                noisei = processNoiseForPlotSubgroup(noise[i][0])
-                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                    ax.loglog(Fpsd, noisei, '--')
-        else:
-            for item2 in item0.transpose():
-                PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
-                            PlotStd=PlotStd)
-            if PlotNoise:
-                noisei = processNoiseForPlotSubgroup(noise[i][0])
-                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                    ax.loglog(Fpsd, noisei, '--')
+        item = np.array(item)
+        noisei = noise[i]
+        if len(item) > 1 and PlotMean:
+            item = [np.mean(item, 0)]
+            noisei = np.mean(noisei, 0)
+        if item.ndim > 2:
+            item = item[0]
+            noisei = noisei[0]
+        for i2, item0 in enumerate(item):
+            if PlotMean:
+                PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+                if PlotNoise:
+                    noisei = processNoiseForPlotSubgroup(noisei)
+                    if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                        ax.loglog(Fpsd, noisei, '--')
+            else:
+                for item2 in item0.transpose():
+                    PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+                                PlotStd=PlotStd)
+                if PlotNoise:
+                    noisei = processNoiseForPlotSubgroup(noisei)
+                    if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                        ax.loglog(Fpsd, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
