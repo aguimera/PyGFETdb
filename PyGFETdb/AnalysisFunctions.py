@@ -587,7 +587,8 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradi
 def processVgs(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5,
                fiterror=10.0, fitgradient=1e3, normalization=1e-22):
     if noise is None:
-        return isPSDok(PSD, Fpsd, [], fluctuation, peak, gradient, fiterror, fitgradient,
+        noise = np.array([])
+        return isPSDok(PSD, Fpsd, noise, fluctuation, peak, gradient, fiterror, fitgradient,
                        normalization)
 
     temp1 = []
