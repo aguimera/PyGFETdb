@@ -206,16 +206,15 @@ def main():
         },
 
         'noise': {
-            'fluctuation': 38,  # >
-            'peak': 58.95,  # >
-            'gradient': 2e5,  # <=
-            'fiterror': 45,  # >
-            'fitgradient': 2e5,  # <=
-            'normalization': 1e-22
+            'fluctuation': 0.23,
+            'peak': 0.57,
+            'gradient': 2e5,
+            'fiterror': 45,
+            'fitgradient': 2e5,
         },
         'PlotMean': True,
-        'PlotStd': True,
-        'PlotNoise': True,
+        'PlotStd': False,
+        'PlotNoise': False,
     }
 
     # PLOTS ####################################################################
@@ -225,12 +224,12 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
 
-    plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     # ####### 2 WAFERS #####################
