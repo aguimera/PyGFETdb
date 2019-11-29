@@ -241,7 +241,6 @@ def PlotMeanStd(Valx, Valy, Ax=None,
         Ax.ticklabel_format(axis='y', style='sci', scilimits=scilimits)
 
 
-
 def PlotGroup(ResultsParams, Group, arguments, handles=None, **kwargs):
     """
 
@@ -459,7 +458,9 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
-            PlotPSDPerSubGroup(temp0[0],  # Fpsd
+            fig, ax = plt.subplots()
+            PlotPSDPerSubGroup(ax,
+                               temp0[0],  # Fpsd
                                temp1,  # PSD
                                temp3,  # noise
                                # temp4,  # ok
@@ -467,7 +468,7 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
                                nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
 
 
-def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
+def PlotPSDPerSubGroup(ax, Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
                        PlotNoise=False):
     """
 
@@ -481,22 +482,22 @@ def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True
     :param PlotNoise: Plot Noise Mean
     :return: None
     """
-    fig, ax = plt.subplots()
 
     noise = np.array(noise)
 
     for i, item in enumerate(PSD):
-        item = np.array(item)
+        item = np.array(item[0])
         noisei = noise[i]
-        if len(item) > 1 and PlotMean:
-            item = [np.mean(item, 0)]
-            noisei = np.mean(noisei, 0)
         if item.ndim > 2:
             item = item[0]
             noisei = noisei[0]
+        if len(item) > 1 and PlotMean:
+            item = [np.mean(item, 0)]
+            noisei = np.mean(noisei, 0)
+            item = np.array(item)
         for i2, item0 in enumerate(item):
             if PlotMean:
-                PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+                PlotMeanStd(Fpsd, item0.transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
                 if PlotNoise:
                     noisei = processNoiseForPlotSubgroup(noisei)
                     if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
@@ -559,41 +560,10 @@ def PlotPSDPerGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, P
     mPSD = np.array(PSD)
 
     if PlotMean:
-        PSD = [np.mean(mPSD, 0)]
-        noise = np.array([processNoiseForPlot(noise)])
+        mPSD = [np.mean(mPSD.transpose(), 5).transpose()]
+        noise = np.array([[processNoiseForPlotSubgroup(noise)]])
 
-    plot1PSDGroup(ax, Fpsd, PSD, noise, PlotStd, PlotNoise)
-
-    ax.set_xlabel("Frequency [Hz]")
-    ax.set_ylabel('PSD [A^2/Hz]')
-
-    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
-    plt.title(title)
-
-
-def plot1PSDGroup(ax, Fpsd, PSD, noise, PlotStd=True, PlotNoise=False):
-    for i, item in enumerate(PSD):
-        PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
-        if PlotNoise:
-            noisei = noise[i].transpose()
-            if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                ax.loglog(Fpsd, noisei, '--')
-
-
-def processNoiseForPlot(noise):
-    noisei = np.array(noise)
-    if noisei.ndim == 2:
-        noisei = np.mean(noisei.transpose(), 1)
-    if noisei.ndim == 3:
-        tn = []
-        for n in noisei:
-            nm = np.mean(n, 1)
-            tn.append(nm)
-        tn = np.array(tn)
-        noisei = np.mean(tn.transpose(), 1)
-    if noisei.ndim == 4:
-        pass
-    return noisei.transpose()
+    PlotPSDPerSubGroup(ax, Fpsd, mPSD, noise, perfect, nType, PlotStd, PlotMean, PlotNoise)
 
 
 def processNoiseForPlotSubgroup(noise):
@@ -608,5 +578,11 @@ def processNoiseForPlotSubgroup(noise):
         tn = np.array(tn)
         noisei = np.mean(tn.transpose(), 1)
     if noisei.ndim == 4:
-        pass
+        if noisei.ndim == 4:
+            tn = []
+            for n in noisei:
+                nm = processNoiseForPlotSubgroup(n)
+                tn.append(nm)
+            tn = np.array(tn)
+            noisei = np.mean(tn.transpose(), 1)
     return noisei.transpose()
