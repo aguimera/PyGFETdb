@@ -230,8 +230,8 @@ def main():
     # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
 
-    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
-    plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     # ####### 2 WAFERS #####################
     # plot.SearchAndPlotPerWaferAndTypes(GrBase2, **kwargs1)

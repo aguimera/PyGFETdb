@@ -177,17 +177,15 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, fluctuation=0.905, peak=0.355, gra
     temp2 = []
     temp3 = []
     temp4 = []
-    temp5 = []
     for i, item in enumerate(PSD):
         [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(item, Fpsd[i], NoA[i], NoB[i],
                                                                       fluctuation, peak, gradient,
                                                                       fiterror, fitgradient, normalization)
-        temp0.append(mPSD)
-        temp1.append(noise)
-        temp2.append(ok)
-        temp3.append(perfect)
-        temp4.append(grad)
-        temp5.append(noisegrad)
+        temp0.append(noise)
+        temp1.append(ok)
+        temp2.append(perfect)
+        temp3.append(grad)
+        temp4.append(noisegrad)
 
     noise = temp0
     ok = np.all(temp1)
@@ -589,7 +587,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, fluctuation=0.905, peak=0.35, gradi
 def processVgs(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5,
                fiterror=10.0, fitgradient=1e3, normalization=1e-22):
     if noise is None:
-        return isPSDok(PSD, Fpsd, None, fluctuation, peak, gradient, fiterror, fitgradient,
+        return isPSDok(PSD, Fpsd, [], fluctuation, peak, gradient, fiterror, fitgradient,
                        normalization)
 
     temp1 = []
