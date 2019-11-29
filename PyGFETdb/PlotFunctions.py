@@ -422,7 +422,7 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                             xlabel=xlabel, **arguments[karg])
 
 
-def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
+def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
     """
         **Plots the results of the Noise Analysis**
 
@@ -434,6 +434,7 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
     :param PlotNoise: Plot Noise Mean
     :return: None
     """
+    title = ""
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
         temp0 = []
@@ -446,6 +447,8 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
         for nWf, vWf in Fpsd.items():
             r = results[nType].get(nWf)
             if r is not None:
+                title = "PSDs {} for {}".format("OK" if r[5] else "NOK", nType)
+
                 temp0.append(r[0])
                 temp1.append(r[1])
                 temp2.append(r[2])
@@ -458,18 +461,19 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=Tr
             temp4 = np.all(temp4)
             temp5 = np.all(temp5)
 
+
             fig, ax = plt.subplots()
-            PlotPSDPerSubGroup(ax,
-                               temp0[0],  # Fpsd
-                               temp1,  # PSD
-                               temp3,  # noise
-                               # temp4,  # ok
-                               temp5,  # perfect
-                               nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+
+            PlotPSDMean(ax,
+                        temp0[0],  # Fpsd
+                        temp1,  # PSD
+                        temp3,  # noise
+                        title=title,
+                        **kwargs)
 
 
-def PlotPSDPerSubGroup(ax, Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
-                       PlotNoise=False):
+def PlotPSD(ax, Fpsd, PSD, noise, title=None, PlotStd=True, PlotMean=True,
+            PlotNoise=False, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -499,26 +503,25 @@ def PlotPSDPerSubGroup(ax, Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=
             if PlotMean:
                 PlotMeanStd(Fpsd, item0.transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
                 if PlotNoise:
-                    noisei = processNoiseForPlotSubgroup(noisei)
+                    noisei = processNoiseForPlotPSD(noisei)
                     if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
                         ax.loglog(Fpsd, noisei, '--')
             else:
-                for item2 in item0.transpose():
+                for item2 in item0:
                     PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                                 PlotStd=PlotStd)
                 if PlotNoise:
-                    noisei = processNoiseForPlotSubgroup(noisei)
+                    noisei = processNoiseForPlotPSD(noisei)
                     if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
                         ax.loglog(Fpsd, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
-    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
 
 
-def PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True, PlotNoise=False):
+def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
     """
         **Plots the results of the Noise Analysis**
 
@@ -533,16 +536,15 @@ def PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True,
     for nType, vType in GrTypes.items():
         r = results.get(nType)
         if r is not None:
-            PlotPSDPerGroup(r[0][0],  # Fpsd
-                            r[1],  # PSD
-                            r[3],  # noise
-                            # r[4],  # ok
-                            r[5],  # perfect
-                            nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
+            title = "PSDs {} for {}".format("OK" if r[5] else "NOK", nType)
+            PlotPSDMean(r[0][0],  # Fpsd
+                        r[1],  # PSD
+                        r[3],  # noise
+                        title=title,
+                        **kwargs)
 
 
-def PlotPSDPerGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, PlotMean=True,
-                     PlotNoise=False):
+def PlotPSDMean(Fpsd, PSD, noise, PlotSuperMean=None, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -559,30 +561,22 @@ def PlotPSDPerGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, P
 
     mPSD = np.array(PSD)
 
-    if PlotMean:
-        mPSD = [np.mean(mPSD.transpose(), 5).transpose()]
-        noise = np.array([[processNoiseForPlotSubgroup(noise)]])
+    if PlotSuperMean:
+        mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
+        noise = np.array([[processNoiseForPlotPSD(noise)]])
 
-    PlotPSDPerSubGroup(ax, Fpsd, mPSD, noise, perfect, nType, PlotStd, PlotMean, PlotNoise)
+    PlotPSD(ax, Fpsd, mPSD, noise, **kwargs)
 
 
-def processNoiseForPlotSubgroup(noise):
+def processNoiseForPlotPSD(noise):
     noisei = np.array(noise)
     if noisei.ndim == 2:
         noisei = np.mean(noisei.transpose(), 1)
-    if noisei.ndim == 3:
+    if noisei.ndim > 2:
         tn = []
         for n in noisei:
-            nm = np.mean(n.transpose(), 1)
+            nm = processNoiseForPlotPSD(n)
             tn.append(nm)
-        tn = np.array(tn)
-        noisei = np.mean(tn.transpose(), 1)
-    if noisei.ndim == 4:
-        if noisei.ndim == 4:
-            tn = []
-            for n in noisei:
-                nm = processNoiseForPlotSubgroup(n)
-                tn.append(nm)
             tn = np.array(tn)
-            noisei = np.mean(tn.transpose(), 1)
+        noisei = np.mean(tn.transpose(), 1)
     return noisei.transpose()

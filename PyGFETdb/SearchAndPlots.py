@@ -82,7 +82,8 @@ def SearchAndPlotPerTypesAndWafer(GrBase, arguments, Colors=None, legendTitle=No
 #############################
 # SEARCH AND PLOT PSD
 ############################
-def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, PlotSuperMean=False,
+                            **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -107,14 +108,14 @@ def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, Pl
     GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                    PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
 
     print('Collect->', gc.collect())
     return results
 
 
-def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, PlotSuperMean=False,
+                             **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -139,14 +140,14 @@ def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, P
     GrTypes, rPSD = s.DBSearchPerWafer(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                    PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
 
     print('Collect->', gc.collect())
     return results
 
 
-def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False,
+                              PlotSuperMean=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -171,14 +172,14 @@ def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, 
     GrTypes, rPSD = s.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                    PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
 
     print('Collect->', gc.collect())
     return results
 
 
-def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False,
+                                    PlotSuperMean=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -203,14 +204,14 @@ def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=
     GrTypes, rPSD = s.DBSearchPerTypeAndWafer(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                       PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
 
     print('Collect->', gc.collect())
     return results
 
 
-def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False,
+                                      PlotSuperMean=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -235,14 +236,14 @@ def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMea
     GrTypes, rPSD = s.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                       PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
 
     print('Collect->', gc.collect())
     return results
 
 
-def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False, **kwargs):
+def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False,
+                                    PlotSuperMean=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -267,8 +268,7 @@ def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=
     GrTypes, rPSD = s.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
     results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, PlotStd=PlotStd, PlotMean=PlotMean,
-                                       PlotNoise=PlotNoise)
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
 
     print('Collect->', gc.collect())
     return results
