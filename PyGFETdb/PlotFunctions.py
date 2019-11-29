@@ -472,7 +472,7 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                         **kwargs)
 
 
-def PlotPSD(ax, Fpsd, PSD, noise, title=None, PlotStd=True, PlotMean=True,
+def PlotPSD(ax, Fpsd, PSD, noisefit, title=None, PlotStd=True, PlotMean=True,
             PlotNoise=False, **kwargs):
     """
 
@@ -487,7 +487,7 @@ def PlotPSD(ax, Fpsd, PSD, noise, title=None, PlotStd=True, PlotMean=True,
     :return: None
     """
 
-    noise = np.array(noise)
+    noise = np.array(noisefit)
 
     for i, item in enumerate(PSD):
         item = np.array(item[0])
@@ -544,7 +544,7 @@ def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
                         **kwargs)
 
 
-def PlotPSDMean(Fpsd, PSD, noise, PlotSuperMean=None, **kwargs):
+def PlotPSDMean(Fpsd, PSD, noisefit, PlotSuperMean=None, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -563,9 +563,9 @@ def PlotPSDMean(Fpsd, PSD, noise, PlotSuperMean=None, **kwargs):
 
     if PlotSuperMean:
         mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
-        noise = np.array([[processNoiseForPlotPSD(noise)]])
+        noisefit = np.array([[processNoiseForPlotPSD(noisefit)]])
 
-    PlotPSD(ax, Fpsd, mPSD, noise, **kwargs)
+    PlotPSD(ax, Fpsd, mPSD, noisefit, **kwargs)
 
 
 def processNoiseForPlotPSD(noise):
