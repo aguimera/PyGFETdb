@@ -486,18 +486,19 @@ def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True
     noise = np.array(noise)
 
     for i, item in enumerate(PSD):
+        item0 = item[0][0]
         if PlotMean:
-            PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+            PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
             if PlotNoise:
-                noisei = processNoiseForPlot(noise[i])
+                noisei = processNoiseForPlotSubgroup(noise[i][0])
                 if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
                     ax.loglog(Fpsd, noisei, '--')
         else:
-            for item2 in item.transpose():
+            for item2 in item0.transpose():
                 PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                             PlotStd=PlotStd)
             if PlotNoise:
-                noisei = processNoiseForPlot(noise[i])
+                noisei = processNoiseForPlotSubgroup(noise[i][0])
                 if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
                     ax.loglog(Fpsd, noisei, '--')
 
@@ -582,4 +583,22 @@ def processNoiseForPlot(noise):
             tn.append(nm)
         tn = np.array(tn)
         noisei = np.mean(tn.transpose(), 1)
+    if noisei.ndim == 4:
+        pass
+    return noisei.transpose()
+
+
+def processNoiseForPlotSubgroup(noise):
+    noisei = np.array(noise)
+    if noisei.ndim == 2:
+        noisei = np.mean(noisei.transpose(), 1)
+    if noisei.ndim == 3:
+        tn = []
+        for n in noisei:
+            nm = np.mean(n.transpose(), 1)
+            tn.append(nm)
+        tn = np.array(tn)
+        noisei = np.mean(tn.transpose(), 1)
+    if noisei.ndim == 4:
+        pass
     return noisei.transpose()
