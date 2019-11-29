@@ -342,7 +342,8 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         results[Trtn] = thread.getResults(key)[key][0]
     for Trtn, Val in results.items():
         if Val is not None:
-            if type(Val) is pq.Quantity:
+            if type(Val) is pq.Quantity \
+                    or Param == 'PSD' or Param == 'Fpsd' or Param == 'NoA' or Param == 'NoB':
                 Vals = qty.appendQuantity(Vals, Val)
             else:
                 Vals = np.array(Vals)

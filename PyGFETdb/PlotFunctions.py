@@ -483,6 +483,8 @@ def PlotPSDPerSubGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True
     """
     fig, ax = plt.subplots()
 
+    noise = np.array(noise)
+
     for i, item in enumerate(PSD):
         if PlotMean:
             PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
@@ -521,9 +523,9 @@ def PlotResultsPSDPerGroup(GrTypes, results, rPSD, PlotStd=False, PlotMean=True,
     for nType, vType in GrTypes.items():
         r = results.get(nType)
         if r is not None:
-            PlotPSDPerGroup(r[0],  # Fpsd
+            PlotPSDPerGroup(r[0][0],  # Fpsd
                             r[1],  # PSD
-                            [r[3]],  # noise
+                            r[3],  # noise
                             # r[4],  # ok
                             r[5],  # perfect
                             nType, PlotStd=PlotStd, PlotMean=PlotMean, PlotNoise=PlotNoise)
@@ -545,27 +547,28 @@ def PlotPSDPerGroup(Fpsd, PSD, noise, perfect=False, nType=None, PlotStd=True, P
     """
     fig, ax = plt.subplots()
 
-    for i, item in enumerate(PSD):
-        if PlotMean:
-            PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
-            if PlotNoise:
-                noisei = processNoiseForPlot(noise[i])
-                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                    ax.loglog(Fpsd, noisei, '--')
-        else:
-            for item2 in item.transpose():
-                PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
-                            PlotStd=PlotStd)
-            if PlotNoise:
-                noisei = processNoiseForPlot(noise[i])
-                if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                    ax.loglog(Fpsd, noisei, '--')
+    mPSD = np.array(PSD)
+
+    if PlotMean:
+        PSD = [np.mean(mPSD, 0)]
+        noise = np.array([processNoiseForPlot(noise)])
+
+    plot1PSDGroup(ax, Fpsd, PSD, noise, PlotStd, PlotNoise)
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
     title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
+
+
+def plot1PSDGroup(ax, Fpsd, PSD, noise, PlotStd=True, PlotNoise=False):
+    for i, item in enumerate(PSD):
+        PlotMeanStd(Fpsd, item, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+        if PlotNoise:
+            noisei = noise[i].transpose()
+            if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
+                ax.loglog(Fpsd, noisei, '--')
 
 
 def processNoiseForPlot(noise):
@@ -575,7 +578,7 @@ def processNoiseForPlot(noise):
     if noisei.ndim == 3:
         tn = []
         for n in noisei:
-            nm = np.mean(n.transpose(), 1)
+            nm = np.mean(n, 1)
             tn.append(nm)
         tn = np.array(tn)
         noisei = np.mean(tn.transpose(), 1)
