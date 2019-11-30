@@ -212,6 +212,8 @@ def main():
             'fiterror': 0.4,
             'fitgradient': 0.15,
             # 'normalization': 1e-17
+            'printok': False,
+            'debug': False
         },
         'PlotSuperMean': False,
         'PlotMean': True,

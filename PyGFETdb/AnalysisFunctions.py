@@ -254,6 +254,8 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
         [mPSD, noise, ok, perfect, grad, noisegrad] = processNoA(PSD, Fpsd, NoA, NoB,
                                                                  **kwargs)
 
+    printReportPerSubgroup(perfect, ok)
+
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
 
@@ -701,18 +703,18 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.304, gradient=2e5, fiter
     # Conditions of the noise fit
     ok = ok1 and ok2
 
-    printReport(True, False, perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
+    printReport(perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
                 fitmaxerr,
-                fitmaxgraderror)
+                fitmaxgraderror, **kwargs)
 
     return ok, perfect, grad, noisegrad
 
 
-def printReport(debug, printok,
+def printReport(
                 perfect, perfect1, perfect2, perfect3,
                 ok, ok1, ok2,
                 maxfluct, maxpeak, graderror,
-                fitmaxerr, fitmaxgraderror):
+        fitmaxerr, fitmaxgraderror, debug=True, printok=True, **kwargs):
     if debug:
         # Print output
         if perfect:
@@ -749,3 +751,18 @@ def printReport(debug, printok,
             if not ok2:
                 print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
             print()
+
+
+def printReportPerSubgroup(perfect, ok):
+    if perfect:
+        print()
+        print('PSD Noise OK.')
+    else:
+        print()
+        print('PSD Noise BAD.')
+    if ok:
+        print('    Noise Fitted OK.')
+        print()
+    else:
+        print('    Noise Fitted BAD.')
+        print()
