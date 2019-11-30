@@ -210,8 +210,10 @@ def main():
             'peak': 0.58,
             'gradient': 6.5e-18,
             'meangradient': 0.5,
+
             'fiterror': 0.4,
             'fitgradient': 0.15,
+
             'debug': True,
             'printok': False,
         },
