@@ -25,7 +25,7 @@ def main():
         'B12708W2',  # (in vivo Rob, slices Mavi) Very good
     )
     Wafers2 = (
-        # 'B12708W2',  # (in vivo Rob, slices Mavi) Very good
+        'B12708W2',  # (in vivo Rob, slices Mavi) Very good
         'B12142W46',  # (in vivo Rob) # High doping
     )
 
@@ -209,8 +209,8 @@ def main():
             'fluctuation': 0.023,
             'peak': 0.304,
             'gradient': 2e5,
-            'fiterror': 45,
-            'fitgradient': 2e5,
+            'fiterror': 0.4,
+            'fitgradient': 0.15,
             # 'normalization': 1e-17
         },
         'PlotSuperMean': False,
