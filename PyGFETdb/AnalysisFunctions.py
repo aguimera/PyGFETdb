@@ -194,7 +194,7 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, **kwargs):
 
 
 def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
-    thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions, 500)
+    thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions)
     key = thread.initcall(mp.key(), PyGFETdb.AnalysisFunctions)
     args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB}
     args.update(kwargs)
