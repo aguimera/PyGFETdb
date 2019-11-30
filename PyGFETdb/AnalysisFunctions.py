@@ -262,19 +262,52 @@ def processNoA(PSD, Fpsd, NoA, NoB,
         mPSD = reshapePSD(PSD, NoA)
 
         if mPSD is None:
-            return [noise, False, False, [], []]
+            return [PSD, retnoise, False, False, [], []]
 
-        if mPSD.ndim == 4:
-            ok, perfect, grad, noisegrad = processPSDlist(Fpsd, mPSD, noise, **kwargs)
-        elif mPSD.ndim == 5:
-            ok, perfect, grad, noisegrad = processListPSDlist(Fpsd, mPSD, noise, **kwargs)
-        else:
-            raise BaseException("PSD number of dimensions insufficient.")
-
+        try:
+            if mPSD.ndim == 4:
+                ok, perfect, grad, noisegrad = processPSDlist(Fpsd, mPSD, noise, **kwargs)
+            elif mPSD.ndim == 5:
+                ok, perfect, grad, noisegrad = processListPSDlist(Fpsd, mPSD, noise, **kwargs)
+            else:
+                raise BaseException("PSD number of dimensions insufficient.")
+        except AttributeError:
+            temp0 = []
+            # temp1=[]
+            temp2 = []
+            temp3 = []
+            temp4 = []
+            temp5 = []
+            for item in mPSD:
+                tmPSD, retnoise, ok, perfect, grad, noisegrad = processNoA(item, Fpsd, NoA, NoB, **kwargs)
+                temp0.append(tmPSD)
+                # temp1.append(retnoise)
+                temp2.append(ok)
+                temp3.append(perfect)
+                temp4.append(grad)
+                temp5.append(noisegrad)
+            mPSD = temp0
+            ok = np.all(temp2)
+            perfect = np.all(temp3)
+            grad = temp4
+            noisegrad = temp5
     return [mPSD, retnoise, ok, perfect, grad, noisegrad]
 
 
 def reshapePSD(PSD, NoA):
+    mPSD = None
+    try:
+        if PSD is not None:
+            mPSD = _reshapePSD(PSD, NoA)
+    except AttributeError:
+        mPSD = []
+        for item in PSD:
+            r = reshapePSD(item, NoA)
+            mPSD.append(r)
+    return mPSD
+
+
+def _reshapePSD(PSD, NoA):
     if PSD.ndim == 3:
         mPSD = PSD
         n = int(mPSD.size / mPSD.shape[1] / NoA.shape[0] / NoA.shape[1])
@@ -294,6 +327,10 @@ def reshapePSD(PSD, NoA):
             except ValueError:
                 print("Warning: Possible wrong analysis measures. PSDs not equally distributed.")
                 mPSD = None
+    elif PSD.ndim == 4:
+        mPSD = PSD
+    elif PSD.ndim == 5:
+        mPSD = PSD
     else:
         mPSD = PSD
         mPSD = np.array([mPSD, mPSD])
@@ -465,7 +502,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs):
             iw = 0
             if NoAt is not None and len(NoAt) > 0:
                 Fpsdt = np.array(vWf[0])
-                PSDt = np.array(PSDt)
+                PSDt = [PSDt]
                 ic += 1
                 it += 1
                 iw += 1
@@ -473,7 +510,6 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs):
                 print('{}) Group:{}, Subgroup:{}'.format(ic, nType, nWf))
                 print('***************************************************')
 
-                mPSD = PSDt
                 if type(NoAt) is list:
                     temp0 = []
                     temp1 = []
