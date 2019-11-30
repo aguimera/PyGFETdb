@@ -654,7 +654,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.304, gradient=2e5, fiter
         maxmPSD = normalization
 
         # Max fluctuation of the PSD
-    fluct = (mPSD - np.min(mPSD)) / maxmPSD
+    fluct = np.abs(mPSD - np.min(mPSD)) / maxmPSD
     maxfluct = (np.max(fluct))
 
     if normalization is None:
@@ -663,7 +663,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.304, gradient=2e5, fiter
     perfect1 = np.all(maxfluct < fluctuation)
 
     # Max peak of the PSD
-    pk = (mPSD - np.mean(mPSD)) / maxmPSD
+    pk = np.abs(mPSD - np.mean(mPSD)) / maxmPSD
     maxpeak = np.max(pk)
     if normalization is None:
         maxpeak = 1 - maxpeak
@@ -681,7 +681,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.304, gradient=2e5, fiter
     perfect3 = np.all(graderror <= gradient)
 
     # Error of the noise fitting
-    fitpeak = (mPSD - np.mean(noise)) / maxmPSD
+    fitpeak = np.abs(mPSD - np.mean(noise)) / maxmPSD
     fitmaxerr = np.max(fitpeak)
     if normalization is None:
         fitmaxerr = 1 - fitmaxerr
