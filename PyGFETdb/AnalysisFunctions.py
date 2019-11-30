@@ -8,7 +8,8 @@ Analysis Functions that do not fit in the previous files.
 
 import numpy as np
 
-from PyGFETdb import qty, GlobalFunctions as g
+import PyGFETdb
+from PyGFETdb import qty, GlobalFunctions as g, Thread as mp
 from PyGFETdb.NoiseModel import Fnoise
 
 
@@ -193,6 +194,18 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, **kwargs):
 
 
 def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
+    thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions, 500)
+    key = thread.initcall(mp.key(), PyGFETdb.AnalysisFunctions)
+    args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB}
+    args.update(kwargs)
+    thread.call(key, PyGFETdb.AnalysisFunctions, '_processAllNoise', args, **args)
+    r = thread.getResults(key)[key][0]
+    thread.end()
+    del thread
+    return r
+
+
+def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     """
 
     :param PSD: PSD of a Group

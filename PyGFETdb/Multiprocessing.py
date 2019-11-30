@@ -136,7 +136,7 @@ def SearchDB_MP(GrWfs, **kwargs):
     else:
         getclass = PyGFETdb.Multiprocessing.getclass
     print('Searching in DB...')
-    thread = Thread.MultiProcess(getclass)
+    thread = Thread.MultiProcess(getclass, 50)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
