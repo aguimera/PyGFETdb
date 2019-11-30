@@ -217,8 +217,8 @@ def PlotMeanStd(Valx, Valy, Ax=None,
 
     Valy = np.array(Valy)
     if Valy is not None and Valy.size and Valy.ndim == 2:
-        avg = np.mean(Valy, axis=1)
-        std = np.std(Valy, axis=1)
+        avg = np.mean(Valy, axis=0)
+        std = np.std(Valy, axis=0)
         Ax.plot(Valx, avg, label=label)
         if PlotStd:
             Ax.fill_between(Valx, avg - std, avg + std,
@@ -456,15 +456,8 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                 temp4.append(r[4])
                 temp5.append(r[5])
 
-        if temp3 is not None and len(temp3) > 0:
-            temp3 = temp3
-            temp4 = np.all(temp4)
-            temp5 = np.all(temp5)
-
-
-            fig, ax = plt.subplots()
-
-            PlotPSDMean(ax,
+        if temp1 is not None and len(temp1) > 0:
+            PlotPSDMean(
                         temp0[0],  # Fpsd
                         temp1,  # PSD
                         temp3,  # noise
@@ -490,30 +483,27 @@ def PlotPSD(ax, Fpsd, PSD, noisefit, title=None, PlotStd=True, PlotMean=True,
     noise = np.array(noisefit)
 
     for i, item in enumerate(PSD):
-        item = np.array(item[0])
-        noisei = noise[i]
-        if item.ndim > 2:
-            item = item[0]
-            noisei = noisei[0]
-        if len(item) > 1 and PlotMean:
-            item = [np.mean(item, 0)]
-            noisei = np.mean(noisei, 0)
+        item = np.array(item)
+        for n in range(0, item.ndim - 3):
+            item = np.mean(item, 0)
             item = np.array(item)
+
+        if item.ndim == 3:
+            item = item.reshape((item.shape[1], item.shape[0], item.shape[2]))
         for i2, item0 in enumerate(item):
             if PlotMean:
-                PlotMeanStd(Fpsd, item0.transpose(), ax, xscale='log', yscale='log', PlotStd=PlotStd)
-                if PlotNoise:
-                    noisei = processNoiseForPlotPSD(noisei)
-                    if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                        ax.loglog(Fpsd, noisei, '--')
+                PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
             else:
-                for item2 in item0:
+                for i3, item2 in enumerate(item0):
                     PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
                                 PlotStd=PlotStd)
-                if PlotNoise:
-                    noisei = processNoiseForPlotPSD(noisei)
-                    if noisei is not None and Fpsd.size == noisei.size and Fpsd.ndim == noisei.ndim:
-                        ax.loglog(Fpsd, noisei, '--')
+        if PlotNoise and noise is not None:
+            if PlotMean or len(noise) != len(PSD):
+                noisei = processNoiseForPlotPSD(noise)
+            else:
+                noisei = processNoiseForPlotPSD(noise[i])
+
+            ax.loglog(Fpsd, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
@@ -561,9 +551,9 @@ def PlotPSDMean(Fpsd, PSD, noisefit, PlotSuperMean=None, **kwargs):
 
     mPSD = np.array(PSD)
 
-    if PlotSuperMean:
+    if PlotSuperMean and mPSD.ndim > 1:
         mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
-        noisefit = np.array([[processNoiseForPlotPSD(noisefit)]])
+        # noisefit = np.array([processNoiseForPlotPSD(noisefit)])
 
     PlotPSD(ax, Fpsd, mPSD, noisefit, **kwargs)
 
@@ -571,12 +561,12 @@ def PlotPSDMean(Fpsd, PSD, noisefit, PlotSuperMean=None, **kwargs):
 def processNoiseForPlotPSD(noise):
     noisei = np.array(noise)
     if noisei.ndim == 2:
-        noisei = np.mean(noisei.transpose(), 1)
+        noisei = np.mean(noisei, 0)
     if noisei.ndim > 2:
         tn = []
         for n in noisei:
             nm = processNoiseForPlotPSD(n)
             tn.append(nm)
         tn = np.array(tn)
-        noisei = np.mean(tn.transpose(), 1)
-    return noisei.transpose()
+        noisei = np.mean(tn, 0)
+    return noisei

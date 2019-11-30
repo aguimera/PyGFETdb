@@ -211,10 +211,12 @@ def main():
             'gradient': 2e5,
             'fiterror': 45,
             'fitgradient': 2e5,
+            # 'normalization': 1e-17
         },
+        'PlotSuperMean': True,
         'PlotMean': True,
-        'PlotStd': False,
-        'PlotNoise': False,
+        'PlotStd': True,
+        'PlotNoise': True,
     }
 
     # PLOTS ####################################################################
@@ -224,7 +226,7 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
@@ -250,15 +252,14 @@ def main():
     # plot.SearchAndPlotPerWaferAndTypes(GrBase3, **kwargs1)
     # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
 
-    # plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
 
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperType(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
 
-    # plot.SearchAndPlotPSDperType(GrBase3,Plot=True,**kwargs3)
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperDevice(GrBase3,Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

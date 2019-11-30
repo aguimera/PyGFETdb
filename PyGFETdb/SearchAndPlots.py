@@ -82,8 +82,7 @@ def SearchAndPlotPerTypesAndWafer(GrBase, arguments, Colors=None, legendTitle=No
 #############################
 # SEARCH AND PLOT PSD
 ############################
-def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, PlotSuperMean=False,
-                            **kwargs):
+def SearchAndPlotPSDperType(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -114,8 +113,7 @@ def SearchAndPlotPSDperType(GrBase, PlotStd=False, Plot=False, PlotMean=True, Pl
     return results
 
 
-def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False, PlotSuperMean=False,
-                             **kwargs):
+def SearchAndPlotPSDperWafer(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -146,8 +144,7 @@ def SearchAndPlotPSDperWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, P
     return results
 
 
-def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False,
-                              PlotSuperMean=False, **kwargs):
+def SearchAndPlotPSDperDevice(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -178,8 +175,7 @@ def SearchAndPlotPSDperDevice(GrBase, Plot=False, PlotStd=False, PlotMean=True, 
     return results
 
 
-def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False,
-                                    PlotSuperMean=False, **kwargs):
+def SearchAndPlotPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -210,8 +206,7 @@ def SearchAndPlotPSDperTypeAndWafer(GrBase, PlotStd=False, Plot=False, PlotMean=
     return results
 
 
-def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMean=True, PlotNoise=False,
-                                      PlotSuperMean=False, **kwargs):
+def SearchAndPlotPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -242,8 +237,7 @@ def SearchAndPlotPSDperWaferAndDevice(GrBase, PlotStd=False, Plot=False, PlotMea
     return results
 
 
-def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, PlotStd=False, PlotMean=True, PlotNoise=False,
-                                    PlotSuperMean=False, **kwargs):
+def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
