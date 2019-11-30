@@ -619,7 +619,7 @@ def processVgs(PSD, Fpsd, noise, **kwargs):
     return temp1, temp2, temp3, temp4
 
 
-def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterror=10.0, fitgradient=1e3,
+def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.304, gradient=2e5, fiterror=0.4, fitgradient=0.15,
             normalization=None, **kwargs):
     """
        :param PSD: PSD of a Group
