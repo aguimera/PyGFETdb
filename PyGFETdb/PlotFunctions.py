@@ -457,6 +457,9 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                 temp4.append(r[4])
                 temp5.append(r[5])
 
+        temp5 = np.all(temp5)  # perfect
+        temp4 = np.all(temp4)  # ok
+
         if temp1 is not None and len(temp1) > 0:
             PlotPSDMean(
                         temp0[0],  # Fpsd
