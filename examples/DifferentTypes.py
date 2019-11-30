@@ -215,9 +215,9 @@ def main():
             'printok': False,
             'debug': False
         },
-        'PlotSuperMean': False,
+        'PlotSuperMean': True,
         'PlotMean': True,
-        'PlotStd': False,
+        'PlotStd': True,
         'PlotNoise': True,
     }
 
