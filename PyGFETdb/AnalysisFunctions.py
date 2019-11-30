@@ -701,13 +701,14 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     # Conditions of the noise fit
     ok = ok1 and ok2
 
-    printReport(False, perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror, fitmaxerr,
+    printReport(True, True, perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
+                fitmaxerr,
                 fitmaxgraderror)
 
     return ok, perfect, grad, noisegrad
 
 
-def printReport(debug,
+def printReport(debug, printok,
                 perfect, perfect1, perfect2, perfect3,
                 ok, ok1, ok2,
                 maxfluct, maxpeak, graderror,
@@ -716,16 +717,14 @@ def printReport(debug,
         # Print output
         # print(' ')
         if perfect:
-            pass
-            """""
-            print('PSD Noise OK ->')
-            if perfect1:
-                print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
-            if perfect2:
-                print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
-            if perfect3:
-                print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
-            """
+            if printok:
+                print('PSD Noise OK ->')
+                if perfect1:
+                    print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
+                if perfect2:
+                    print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
+                if perfect3:
+                    print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
         else:
             print('PSD Noise BAD ->')
             if not perfect1:
@@ -734,13 +733,13 @@ def printReport(debug,
                 print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
             if not perfect3:
                 print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
-        """""
         if ok:
-            print('    Noise Fitted OK ->')
-            if ok1:
-                print('         Noise Error OK -> error:{}'.format(fitmaxerr))
-            if ok2:
-                print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
+            if printok:
+                print('    Noise Fitted OK ->')
+                if ok1:
+                    print('         Noise Error OK -> error:{}'.format(fitmaxerr))
+                if ok2:
+                    print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
         else:
             print('    Noise Fitted BAD ->')
             if not ok1:
@@ -748,4 +747,3 @@ def printReport(debug,
             if not ok2:
                 print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
         print(' ')
-        """
