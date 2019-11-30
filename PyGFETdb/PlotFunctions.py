@@ -450,8 +450,6 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
         for nWf, vWf in Fpsd.items():
             r = results[nType].get(nWf)
             if r is not None:
-                title = "PSDs {} for {}".format("OK" if r[5] else "NOK", nType)
-
                 temp0.append(r[0])
                 temp1.append(r[1])
                 temp2.append(r[2])
@@ -464,11 +462,13 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                         temp0[0],  # Fpsd
                         temp1,  # PSD
                         temp3,  # noise
+                temp5,  # perfect
+                nType,
                         title=title,
                         **kwargs)
 
 
-def PlotPSD(ax, Fpsd, PSD, noisefit, title=None, PlotStd=True, PlotMean=True,
+def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, nType, PlotStd=True, PlotMean=True,
             PlotNoise=False, **kwargs):
     """
 
@@ -512,6 +512,7 @@ def PlotPSD(ax, Fpsd, PSD, noisefit, title=None, PlotStd=True, PlotMean=True,
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
+    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
     plt.title(title)
 
 
@@ -530,15 +531,15 @@ def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
     for nType, vType in GrTypes.items():
         r = results.get(nType)
         if r is not None:
-            title = "PSDs {} for {}".format("OK" if r[5] else "NOK", nType)
             PlotPSDMean(r[0][0],  # Fpsd
                         r[1],  # PSD
                         r[3],  # noise
-                        title=title,
+                        r[5],  # perfect
+                        nType,
                         **kwargs)
 
 
-def PlotPSDMean(Fpsd, PSD, noisefit, PlotSuperMean=None, **kwargs):
+def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -561,7 +562,7 @@ def PlotPSDMean(Fpsd, PSD, noisefit, PlotSuperMean=None, **kwargs):
         except:
             pass
 
-    PlotPSD(ax, Fpsd, mPSD, noisefit, **kwargs)
+    PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, nType, **kwargs)
 
 
 def processNoiseForPlotPSD(noise):
