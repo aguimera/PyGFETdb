@@ -206,13 +206,13 @@ def main():
         },
 
         'noise': {
-            'fluctuation': 0.023,
-            'peak': 0.23,
-            'gradient': 2e5,
+            'fluctuation': 0.047,
+            'peak': 0.58,
+            'gradient': 6.5e-18,
+            'meangradient': 0.5,
             'fiterror': 0.4,
             'fitgradient': 0.15,
-            # 'normalization': 1e-17
-            'debug': False,
+            'debug': True,
             'printok': False,
         },
         'PlotSuperMean': True,

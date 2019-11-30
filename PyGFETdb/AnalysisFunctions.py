@@ -624,7 +624,8 @@ def processVgs(PSD, Fpsd, noise, **kwargs):
     return temp1, temp2, temp3, temp4
 
 
-def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, fiterror=0.4, fitgradient=0.15,
+def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, meangradient=1,
+            fiterror=0.4, fitgradient=0.15,
             normalization=None, **kwargs):
     """
        :param PSD: PSD of a Group
@@ -654,7 +655,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, fiterr
         maxmPSD = normalization
 
         # Max fluctuation of the PSD
-    fluct = np.abs(mPSD - np.min(mPSD)) / maxmPSD
+    fluct = (mPSD - np.abs(np.min(mPSD))) / maxmPSD
     maxfluct = (np.max(fluct))
 
     if normalization is None:
@@ -663,7 +664,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, fiterr
     perfect1 = np.all(maxfluct < fluctuation)
 
     # Max peak of the PSD
-    pk = np.abs(mPSD - np.mean(mPSD)) / maxmPSD
+    pk = np.abs(mPSD - np.abs(np.mean(mPSD))) / maxmPSD
     maxpeak = np.max(pk)
     if normalization is None:
         maxpeak = 1 - maxpeak
@@ -677,11 +678,15 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, fiterr
     grad = qty.Divide(y, dx)
     absgrad = np.abs(grad)
     maxgrad = np.max(absgrad)
-    graderror = maxgrad / maxmPSD
+    graderror = maxgrad
     perfect3 = np.all(graderror <= gradient)
 
+    # Mean Gradient of the PSD
+    mgrad = np.abs(np.mean(grad))
+    perfect4 = np.all(mgrad <= meangradient)
+
     # Error of the noise fitting
-    fitpeak = np.abs(mPSD - np.mean(noise)) / maxmPSD
+    fitpeak = np.abs(mPSD - np.abs(np.mean(noise))) / maxmPSD
     fitmaxerr = np.max(fitpeak)
     if normalization is None:
         fitmaxerr = 1 - fitmaxerr
@@ -701,22 +706,22 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, fiterr
     ok2 = fitmaxgraderror <= fitgradient
 
     # Conditions of the PSD
-    perfect = perfect1 and perfect2 and perfect3
+    perfect = perfect1 and perfect2 and perfect3 and perfect4
 
     # Conditions of the noise fit
     ok = ok1 and ok2
 
-    printReport(perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
-                fitmaxerr,
-                fitmaxgraderror, **kwargs)
+    printReport(perfect, perfect1, perfect2, perfect3, perfect4, ok, ok1, ok2,
+                maxfluct, maxpeak, graderror, mgrad,
+                fitmaxerr, fitmaxgraderror, **kwargs)
 
     return ok, perfect, grad, noisegrad
 
 
 def printReport(
-                perfect, perfect1, perfect2, perfect3,
+        perfect, perfect1, perfect2, perfect3, perfect4,
                 ok, ok1, ok2,
-                maxfluct, maxpeak, graderror,
+        maxfluct, maxpeak, graderror, mgrad,
         fitmaxerr, fitmaxgraderror, debug=True, printok=True, **kwargs):
     if debug:
         # Print output
@@ -730,6 +735,8 @@ def printReport(
                     print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
                 if perfect3:
                     print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
+                if perfect4:
+                    print('         PSD MEAN GRADIENT OK -> mean-gradient:{}'.format(mgrad))
         else:
             print()
             print('PSD Noise BAD ->')
@@ -739,6 +746,9 @@ def printReport(
                 print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
             if not perfect3:
                 print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
+            if not perfect4:
+                print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
+
         if ok:
             if printok:
                 print('    Noise Fitted OK ->')
