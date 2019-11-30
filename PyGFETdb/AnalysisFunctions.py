@@ -190,6 +190,9 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, **kwargs):
     grad = temp3
     noisegrad = temp4
     mPSD = temp5
+
+    printReportPerSubgroup(perfect, ok)
+
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
 
@@ -253,8 +256,6 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     else:
         [mPSD, noise, ok, perfect, grad, noisegrad] = processNoA(PSD, Fpsd, NoA, NoB,
                                                                  **kwargs)
-
-    printReportPerSubgroup(perfect, ok)
 
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
@@ -553,6 +554,8 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs):
                     mPSD = temp5
                 else:
                     [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt, **kwargs)
+
+                printReportPerSubgroup(perfect, ok)
 
                 print(' ')
                 if ok:
