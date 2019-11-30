@@ -207,7 +207,7 @@ def main():
 
         'noise': {
             'fluctuation': 0.023,
-            'peak': 0.28,
+            'peak': 0.58,
             'gradient': 2e5,
             'fiterror': 45,
             'fitgradient': 2e5,
@@ -232,7 +232,7 @@ def main():
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
+    plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
 
     # ####### 2 WAFERS #####################
     # plot.SearchAndPlotPerWaferAndTypes(GrBase2, **kwargs1)
@@ -253,7 +253,7 @@ def main():
     # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
 
     # plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
 
     # plot.SearchAndPlotPSDperType(GrBase3, Plot=True, **kwargs3)
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)

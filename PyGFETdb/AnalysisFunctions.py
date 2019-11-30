@@ -701,7 +701,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=38.0, peak=58.95, gradient=2e5, fiterr
     # Conditions of the noise fit
     ok = ok1 and ok2
 
-    printReport(True, True, perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
+    printReport(True, False, perfect, perfect1, perfect2, perfect3, ok, ok1, ok2, maxfluct, maxpeak, graderror,
                 fitmaxerr,
                 fitmaxgraderror)
 
@@ -715,9 +715,9 @@ def printReport(debug, printok,
                 fitmaxerr, fitmaxgraderror):
     if debug:
         # Print output
-        # print(' ')
         if perfect:
             if printok:
+                print()
                 print('PSD Noise OK ->')
                 if perfect1:
                     print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
@@ -726,6 +726,7 @@ def printReport(debug, printok,
                 if perfect3:
                     print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
         else:
+            print()
             print('PSD Noise BAD ->')
             if not perfect1:
                 print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
@@ -740,10 +741,11 @@ def printReport(debug, printok,
                     print('         Noise Error OK -> error:{}'.format(fitmaxerr))
                 if ok2:
                     print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
+                print()
         else:
             print('    Noise Fitted BAD ->')
             if not ok1:
                 print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
             if not ok2:
                 print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
-        print(' ')
+            print()
