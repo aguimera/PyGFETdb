@@ -207,13 +207,13 @@ def main():
 
         'noise': {
             'fluctuation': 0.023,
-            'peak': 0.304,
+            'peak': 0.2300000687384951,
             'gradient': 2e5,
             'fiterror': 0.4,
             'fitgradient': 0.15,
             # 'normalization': 1e-17
+            'debug': False,
             'printok': False,
-            'debug': False
         },
         'PlotSuperMean': True,
         'PlotMean': True,
