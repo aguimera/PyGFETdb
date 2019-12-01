@@ -14,7 +14,7 @@ from PyGFETdb import SearchFunctions as s, AnalysisFunctions as analysis, PlotFu
 ############################
 # SEARCH AND PLOTS PER WAFER AND TYPE
 ###########################
-def SearchAndPlotPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
+def PlotWafersPerType(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     print(' ')
     print('******************************************************************************')
     print('******* PLOTS PER WAFER AND TYPE *********************************************')
@@ -47,7 +47,7 @@ def SearchAndPlotPerWaferAndTypes(GrBase, arguments, Colors=None, legendTitle=No
 ####################################
 # SEARCH AND PLOT PER TYPE AND WAFER
 ###################################
-def SearchAndPlotPerTypesAndWafer(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
+def PlotTypesPerWafer(GrBase, arguments, Colors=None, legendTitle=None, xlabel=None, **kwargs):
     print(' ')
     print('******************************************************************************')
     print('******* PLOTS PER TYPE *******************************************************')
@@ -82,14 +82,11 @@ def SearchAndPlotPerTypesAndWafer(GrBase, arguments, Colors=None, legendTitle=No
 #############################
 # SEARCH AND PLOT PSD
 ############################
-def SearchAndPlotPSDperType(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypes(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise Mean
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
@@ -113,14 +110,11 @@ def SearchAndPlotPSDperType(GrBase, Plot=False, **kwargs):
     return results
 
 
-def SearchAndPlotPSDperWafer(GrBase, Plot=False, **kwargs):
+def PlotWorkingWafers(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
@@ -144,14 +138,11 @@ def SearchAndPlotPSDperWafer(GrBase, Plot=False, **kwargs):
     return results
 
 
-def SearchAndPlotPSDperDevice(GrBase, Plot=False, **kwargs):
+def PlotWorkingDevicesPerWafer(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
@@ -175,14 +166,11 @@ def SearchAndPlotPSDperDevice(GrBase, Plot=False, **kwargs):
     return results
 
 
-def SearchAndPlotPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypesPerWafer(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise Mean
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
@@ -206,14 +194,11 @@ def SearchAndPlotPSDperTypeAndWafer(GrBase, Plot=False, **kwargs):
     return results
 
 
-def SearchAndPlotPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
+def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
@@ -237,14 +222,11 @@ def SearchAndPlotPSDperWaferAndDevice(GrBase, Plot=False, **kwargs):
     return results
 
 
-def SearchAndPlotPSDperDeviceAndTrt(GrBase, Plot=False, **kwargs):
+def PlotWorkingTrts(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
     :param Plot: if True Plots the results
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
     :param kwargs: {remove50Hz: bool}
     :return: None
     """

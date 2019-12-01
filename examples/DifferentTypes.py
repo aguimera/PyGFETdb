@@ -208,7 +208,7 @@ def main():
         'noise': {  # Important parameters
             # PSD                       # --------------------
             'fluctuation': 43e-3,
-            'gradient': 1e-17,  # <-- width of the deviation
+            'gradient': 5e-19,  # <-- width of the deviation
             'peak': 0.58,
             'gradientmean': 0.5,
 
@@ -222,7 +222,8 @@ def main():
             'fiterror': 0.4,
             'fitgradient': 0.15,
 
-            'debug': False,
+            # Debug
+            'printbad': False,
             'printok': False,
         },
         'PlotSuperMean': True,
@@ -233,45 +234,18 @@ def main():
 
     # PLOTS ####################################################################
 
-    # ###### ONE WAFER ##########################
-    # plot.SearchAndPlotPerWaferAndTypes(GrBase1, **kwargs1)
-    # plot.SearchAndPlotPerTypes(GrBase1, **kwargs2)
-
-    # plot.SearchAndPlotPSDperWafer(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase1, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperType(GrBase1,Plot=True,**kwargs3)
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase1, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperDevice(GrBase1, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase1, Plot=True, **kwargs3)
-
-    # ####### 2 WAFERS #####################
-    # plot.SearchAndPlotPerWaferAndTypes(GrBase2, **kwargs1)
-    # plot.SearchAndPlotPerTypes(GrBase2, **kwargs2)
-
-    # plot.SearchAndPlotPSDperWafer(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase2, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperType(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase2, Plot=True, **kwargs3)
-
-    # plot.SearchAndPlotPSDperDevice(GrBase2, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase2, Plot=True, **kwargs3)
-
-
     # ####### ALL THE WAFERS #####################
-    # plot.SearchAndPlotPerWaferAndTypes(GrBase3, **kwargs1)
-    # plot.SearchAndPlotPerTypes(GrBase3, **kwargs2)
+    # plot.PlotTypesPerWafer(GrBase3,**kwargs1)
+    # plot.PlotWafersPerType(GrBase3,**kwargs2)
 
-    # plot.SearchAndPlotPSDperWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperWaferAndDevice(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingWafers(GrBase3, **kwargs3)
+    # plot.PlotWorkingDevicesPerWafer(GrBase3, **kwargs3)
 
-    # plot.SearchAndPlotPSDperType(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingDevices(GrBase3, **kwargs3)
+    plot.PlotWorkingTrts(GrBase3, **kwargs3)
 
-    plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingTypesPerWafer(GrBase3, **kwargs3)
+    # plot.PlotWorkingTypes(GrBase3, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

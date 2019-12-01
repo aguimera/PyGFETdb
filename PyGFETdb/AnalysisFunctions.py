@@ -772,11 +772,10 @@ def printReport(
         perfect, perfect1, perfect2, perfect3, perfect4,
                 ok, ok1, ok2,
         maxfluct, maxpeak, graderror, mgrad,
-        fitmaxerr, fitmaxgraderror, debug=True, printok=True, **kwargs):
-    if debug:
+        fitmaxerr, fitmaxgraderror, printbad=True, printok=True, **kwargs):
+
         # Print output
-        if perfect:
-            if printok:
+        if perfect and printok:
                 print()
                 print('PSD Noise OK ->')
                 if perfect1:
@@ -787,7 +786,7 @@ def printReport(
                     print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
                 if perfect4:
                     print('         PSD MEAN GRADIENT OK -> mean-gradient:{}'.format(mgrad))
-        else:
+        elif printbad:
             print()
             print('PSD Noise BAD ->')
             if not perfect1:
@@ -799,15 +798,14 @@ def printReport(
             if not perfect4:
                 print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
 
-        if ok:
-            if printok:
+        if ok and printok:
                 print('    Noise Fitted OK ->')
                 if ok1:
                     print('         Noise Error OK -> error:{}'.format(fitmaxerr))
                 if ok2:
                     print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
                 print()
-        else:
+        elif printbad:
             print('    Noise Fitted BAD ->')
             if not ok1:
                 print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
