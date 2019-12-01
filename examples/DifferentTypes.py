@@ -233,23 +233,23 @@ def main():
         # 'PlotMean': True,
         # 'PlotStd': True,
         'PlotNoise': True,
-        # 'PlotOnlyWorking': True,    # All the OK
+        'PlotOnlyWorking': True,  # All the OK
         # 'PlotOnlyFit': True,      # All the Fit even if not OK
-        'PlotOnlyPerfect': True  # Working and Fit
+        # 'PlotOnlyPerfect': True   # Only the Working and Fit
     }
 
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
-    plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingTypesPerTrt(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    # plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True,PlotStd=False, **kwargs3)
+    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
+    plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
 
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
     # plot.PlotWafersPerType(GrBase3,**kwargs1)
     # plot.PlotTypesPerWafer(GrBase3,**kwargs2)
+
+    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
 
     # plot.PlotWorkingWafers(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
     # plot.PlotWorkingWafersAndDevices(GrBase3, Plot=True, **kwargs3)

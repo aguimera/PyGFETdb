@@ -137,7 +137,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         getclass = PyGFETdb.Multiprocessing.getclass
 
     p = (len(GrWfs) * len(GrWfs.items()))
-    n = int(10 / p + p / 100 / 5000 + 5)
+    n = int(10 / p + p / 1000 / 5000 + 3)
     print()
     print("Searching in DB {} times... forking {} threads".format(p, n))
     thread = Thread.MultiProcess(getclass, n)

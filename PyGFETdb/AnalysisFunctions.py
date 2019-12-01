@@ -58,7 +58,7 @@ def processBelow10Hz(Array, process):
     """
     if process:
         #  remove below 1Hz
-        for i in range(1, 36):  # To widen the effect increase the 15
+        for i in range(1, 35):  # To widen the effect increase the 15
             Array = g.remove(Array, 0)
     return Array
 
@@ -230,7 +230,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
         n = int(PSD.size / 500 + 5)
     except ValueError:
         n = len(PSD) * 20 + 5
-    print('Processing PSDs... forking {} threads'.format(n))
+    # print('Processing PSDs... forking {} threads'.format(n))
     thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions, n)
     key = thread.initcall(mp.key(), PyGFETdb.AnalysisFunctions)
     args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB}
