@@ -857,32 +857,34 @@ def printReport(
                     print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
                 if perfect4:
                     print('         PSD MEAN GRADIENT OK -> mean-gradient:{}'.format(mgrad))
-        elif printbad:
-            print()
-            print('PSD Noise BAD ->')
-            if not perfect1:
-                print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
-            if not perfect2:
-                print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
-            if not perfect3:
-                print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
-            if not perfect4:
-                print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
+        else:
+            if printbad:
+                print()
+                print('PSD Noise BAD ->')
+                if not perfect1:
+                    print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
+                if not perfect2:
+                    print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
+                if not perfect3:
+                    print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
+                if not perfect4:
+                    print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
 
         if ok and printok:
-                print('    Noise Fitted OK ->')
-                if ok1:
-                    print('         Noise Error OK -> error:{}'.format(fitmaxerr))
-                if ok2:
-                    print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
+            print('    Noise Fitted OK ->')
+            if ok1:
+                print('         Noise Error OK -> error:{}'.format(fitmaxerr))
+            if ok2:
+                print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
                 print()
-        elif printbad:
-            print('    Noise Fitted BAD ->')
-            if not ok1:
-                print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
-            if not ok2:
-                print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
-            print()
+        else:
+            if printbad:
+                print('    Noise Fitted BAD ->')
+                if not ok1:
+                    print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
+                if not ok2:
+                    print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
+                print()
 
 
 def printReportPerSubgroup(perfect, ok):
