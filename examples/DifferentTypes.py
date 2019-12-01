@@ -254,11 +254,11 @@ def main():
     # plot.PlotWorkingWafersAndDevices(GrBase3, Plot=True, **kwargs3)
 
     # plot.PlotWorkingDevices(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingDevicesPerWafer(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
 
     # plot.PlotWorkingTypes(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
     # plot.PlotWorkingTypesPerWafer(GrBase3, Plot=True, **kwargs3)
-
+    # plot.PlotWorkingTypesPerTrt(GrBase3,Plot=True,**kwargs3)
 
 # """"""""""""""""""""""""""""""""""""""""""""""
 # END MAIN
