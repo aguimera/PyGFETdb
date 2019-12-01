@@ -205,16 +205,16 @@ def main():
             'remove50Hz': True
         },
 
-        'noise': {
-            # PSD
+        'noise': {  # Important parameters
+            # PSD                       # --------------------
             'fluctuation': 43e-3,
-            'gradient': 1.68e-19,
+            'gradient': 7e-18,  # <-- width of the deviation
             'peak': 0.58,
             'gradientmean': 0.5,
 
             # Mean PSD
             'meanfluctuation': 0.14,
-            'meangradient': 2.625e-20,
+            'meangradient': 2.625e-20,  # <-- peaks of the mean PSD
             'meanpeak': 0.156,
             'meangradientmean': 1e-19,
 
@@ -271,7 +271,7 @@ def main():
     # plot.SearchAndPlotPSDperTypeAndWafer(GrBase3, Plot=True, **kwargs3)
 
     plot.SearchAndPlotPSDperDevice(GrBase3, Plot=True, **kwargs3)
-    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, **kwargs3)
+    # plot.SearchAndPlotPSDperDeviceAndTrt(GrBase3, Plot=True, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""

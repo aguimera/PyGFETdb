@@ -555,17 +555,18 @@ def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, **kwarg
     :param PlotNoise: Plot Noise Mean
     :return: None
     """
-    fig, ax = plt.subplots()
+    if perfect:
+        fig, ax = plt.subplots()
 
-    mPSD = PSD
-    if PlotSuperMean:
-        try:
-            mPSD = np.array(PSD)
-            mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
-        except:
-            pass
+        mPSD = PSD
+        if PlotSuperMean:
+            try:
+                mPSD = np.array(PSD)
+                mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
+            except:
+                pass
 
-    PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, nType, **kwargs)
+        PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, nType, **kwargs)
 
 
 def processNoiseForPlotPSD(noise):
