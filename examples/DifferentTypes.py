@@ -214,7 +214,7 @@ def main():
 
             # Mean PSD
             'meanfluctuation': 0.14,
-            'meangradient': 2e-22,  # <-- peaks of the mean PSD
+            'meangradient': 2e-22,  # <-- max peak of the mean PSD
             'meanpeak': 0.4,
             'meangradientmean': 1e-18,  # <-- max slope of the mean PSD
 
@@ -241,8 +241,8 @@ def main():
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
-    plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
     plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
     # plot.PlotWafersPerType(GrBase3,**kwargs1)
