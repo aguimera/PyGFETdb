@@ -208,7 +208,7 @@ def main():
         'noise': {  # Important parameters
             # PSD                       # --------------------
             'fluctuation': 43e-3,
-            'gradient': 7e-18,  # <-- width of the deviation
+            'gradient': 1e-17,  # <-- width of the deviation
             'peak': 0.58,
             'gradientmean': 0.5,
 
@@ -222,7 +222,7 @@ def main():
             'fiterror': 0.4,
             'fitgradient': 0.15,
 
-            'debug': True,
+            'debug': False,
             'printok': False,
         },
         'PlotSuperMean': True,
