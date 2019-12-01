@@ -297,15 +297,16 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     return mPSD, noise, ok, perfect, grad, noisegrad
 
 
-def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradient=None, meangradientmean=None,
-                fiterror=None, fitgradient=None, normalization=None, **kwargs):
+def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=0.14, meanpeak=0.4, meangradient=2e-22, meangradientmean=1e-18,
+                fiterror=0.3, fitgradient=5e-21, normalization=None, printok=True, printbad=True, **kwargs):
+
     meanPSD = np.mean(PSD, 1)
     meannoise = np.mean(noise, 0)
     meannoise = meannoise.reshape(meannoise.size)[1:]
     ok, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(),
                                              meanfluctuation, meanpeak, meangradient, meangradientmean,
                                              fiterror, fitgradient, normalization,
-                                             debug=True, printok=False
+                                             debug=True, printok=printok, printbad=printbad
                                              )
     print()
     if perfect:
@@ -316,7 +317,7 @@ def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradi
         print('Mean PSD Fit... OK.')
     else:
         print('Mean PSD Fit... BAD.')
-
+    print()
     return perfect, ok
 
 
@@ -745,8 +746,8 @@ def processVgs(PSD, Fpsd, noise, HaltOnFail=None, **kwargs):
     return temp1, temp2, temp3, temp4
 
 
-def isPSDok(PSD, Fpsd, noise, fluctuation=0.047, peak=0.58, gradient=6.5e-18, gradientmean=0.5,
-            fiterror=0.4, fitgradient=0.15,
+def isPSDok(PSD, Fpsd, noise, fluctuation=43e-3, peak=0.58, gradient=5e-19, gradientmean=0.5,
+            fiterror=0.3, fitgradient=5e-21,
             normalization=None, **kwargs):
     """
        :param PSD: PSD of a Group
