@@ -47,7 +47,7 @@ def DBSearchPerWaferAndDevice(GrBase, args, **kwargs):
     ResultsParams = {}
     for iWf, (Grwn, Grwc) in enumerate(GrWs.items()):
         print('')
-        print('Searching Waffer {}...'.format(Grwn))
+        print('Searching Wafer {}...'.format(Grwn))
         GrTypes = DbSe.GenGroups(Grwc, 'Devices.Name', LongName=False)
         ResultsDB = search(GrTypes, **kwargs)
         ResultsParams[Grwn] = getparams(ResultsDB, GrTypes, args)
@@ -101,6 +101,23 @@ def DBSearchPerTypeAndWafer(GrBase, args, **kwargs):
         ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
     return GrTypes, ResultsParams
 
+
+def DBSearchPerTypeAndDevice(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: a group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
+    ResultsParams = {}
+    for iType, (nType, cType) in enumerate(GrTypes.items()):
+        print('')
+        print('Searching Type {}...'.format(nType))
+        GrWfs = DbSe.GenGroups(cType, 'Devices.Name', LongName=False)
+        ResultsDB = search(GrWfs, **kwargs)
+        ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
+    return GrTypes, ResultsParams
 
 def DataClassification(GrWs, arguments, ResultsParams):
     """

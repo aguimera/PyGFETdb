@@ -135,8 +135,12 @@ def SearchDB_MP(GrWfs, **kwargs):
         getclass = PyGFETdb.Multiprocessing
     else:
         getclass = PyGFETdb.Multiprocessing.getclass
-    print('Searching in DB...')
-    thread = Thread.MultiProcess(getclass)
+
+    p = (len(GrWfs) * len(GrWfs.items()))
+    n = int(10 / p + p / 100 + 1)
+    print()
+    print("Searching in DB {} times... forking {} threads".format(p, n))
+    thread = Thread.MultiProcess(getclass, n)
     for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):
         if type(Wfc) is dict and Wfc.get('Conditions') is None:
             for iGr, (Grn, Grc) in enumerate(Wfc.items()):
@@ -217,8 +221,10 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
     else:
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
-    print("Searching Parameters...")
-    thread = Thread.MultiProcess(getparamclass)
+    p = (len(arguments) * len(GrWfs) * len(GrWfs.items()))
+    n = int(100 / p + p / 5000 + 1)
+    print("Searching {} Parameters... forking {} threads".format(p, n))
+    thread = Thread.MultiProcess(getparamclass, n)
     for karg, arg in arguments.items():
         print('Searching Parameter {}'.format(arg.get('Param')))
         for iWf, (Wfn, Wfc) in enumerate(sorted(GrWfs.items())):

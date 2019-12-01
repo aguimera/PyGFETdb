@@ -71,6 +71,7 @@ class Thread(pool.ThreadPool):
         self.pool.close()
         self.pool.join()
         self.pool.terminate()
+        self.pool.end()
 
     def getResults(self):
         """
@@ -118,6 +119,7 @@ class MultiProcess(object):
         self.tasks = {}
 
     def __del__(self):
+        self.end()
         del self.pool
         del self.tasks
 

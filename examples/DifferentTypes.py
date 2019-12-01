@@ -225,6 +225,9 @@ def main():
             # Debug
             'printbad': False,
             'printok': False,
+
+            # Optimization
+            'HaltOnFail': True
         },
         'PlotMean': True,
         'PlotStd': True,
@@ -235,9 +238,9 @@ def main():
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
-    plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, **kwargs3)
+    plot.PlotWorkingTypesPerDevice(GrBase3, Plot=True, **kwargs3)
     plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    plot.PlotWorkingTypesPerWafer(GrBase3, Plot=True, **kwargs3)
+    plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, **kwargs3)
 
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
