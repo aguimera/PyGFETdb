@@ -542,7 +542,7 @@ def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
                         **kwargs)
 
 
-def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, plotonlyworking=False, **kwargs):
+def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, PlotOnlyWorking=False, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -554,7 +554,7 @@ def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, plotonl
     :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
     :return: None
     """
-    if perfect or not plotonlyworking:
+    if perfect and PlotOnlyWorking or (not PlotOnlyWorking):
         fig, ax = plt.subplots()
 
         mPSD = PSD
