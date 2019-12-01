@@ -206,17 +206,17 @@ def main():
         },
 
         'noise': {  # Important parameters
-            # PSD                       # --------------------
+            # PSD   # --------------------
             'fluctuation': 43e-3,
-            'gradient': 5e-19,  # <-- width of the deviation
+            'gradient': 5e-19,  # <-- max width of the deviation
             'peak': 0.58,
-            'gradientmean': 0.5,
+            'gradientmean': 0.5,  # <-- max slope of the PSD
 
             # Mean PSD
             'meanfluctuation': 0.14,
             'meangradient': 2.625e-20,  # <-- peaks of the mean PSD
             'meanpeak': 0.156,
-            'meangradientmean': 1e-19,
+            'meangradientmean': 1e-19,  # <-- max slope of the mean PSD
 
             # Noise fit
             'fiterror': 0.4,
@@ -235,8 +235,8 @@ def main():
     # PLOTS ####################################################################
 
     # ####### ALL THE WAFERS #####################
-    # plot.PlotTypesPerWafer(GrBase3,**kwargs1)
-    # plot.PlotWafersPerType(GrBase3,**kwargs2)
+    # plot.PlotWafersPerType(GrBase3,**kwargs1)
+    # plot.PlotTypesPerWafer(GrBase3,**kwargs2)
 
     # plot.PlotWorkingWafers(GrBase3, **kwargs3)
     # plot.PlotWorkingDevicesPerWafer(GrBase3, **kwargs3)
