@@ -204,7 +204,6 @@ def main():
         'db': {
             'remove50Hz': True
         },
-
         'noise': {  # Important parameters
             # PSD   # --------------------
             'fluctuation': 43e-3,
@@ -214,7 +213,7 @@ def main():
 
             # Mean PSD
             'meanfluctuation': 0.14,
-            'meangradient': 2.2e-22,  # <-- max peak of the mean PSD
+            'meangradient': 2e-22,  # <-- max peak of the mean PSD
             'meanpeak': 0.4,
             'meangradientmean': 1e-18,  # <-- max slope of the mean PSD
 
@@ -223,11 +222,11 @@ def main():
             'fitgradient': 5e-21,
 
             # Debug
-            'printbad': True,
+            'printbad': False,
             'printok': False,
 
             # Optimization
-            'HaltOnFail': True
+            'HaltOnFail': False
         },
         # 'PlotSuperMean': True
         'PlotMean': True,
