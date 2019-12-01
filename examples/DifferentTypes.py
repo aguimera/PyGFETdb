@@ -214,7 +214,7 @@ def main():
 
             # Mean PSD
             'meanfluctuation': 0.14,
-            'meangradient': 2e-22,  # <-- max peak of the mean PSD
+            'meangradient': 2.2e-22,  # <-- max peak of the mean PSD
             'meanpeak': 0.4,
             'meangradientmean': 1e-18,  # <-- max slope of the mean PSD
 
@@ -223,7 +223,7 @@ def main():
             'fitgradient': 5e-21,
 
             # Debug
-            'printbad': False,
+            'printbad': True,
             'printok': False,
 
             # Optimization
@@ -233,16 +233,16 @@ def main():
         # 'PlotMean': True,
         # 'PlotStd': True,
         'PlotNoise': True,
-        'PlotOnlyWorking': True,  # All the OK
+        # 'PlotOnlyWorking': True,  # All the OK
         # 'PlotOnlyFit': True,      # All the Fit even if not OK
-        # 'PlotOnlyPerfect': True   # Only the Working and Fit
+        'PlotOnlyPerfect': True  # Only the Working and Fit
     }
 
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
     plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
     # plot.PlotWafersPerType(GrBase3,**kwargs1)

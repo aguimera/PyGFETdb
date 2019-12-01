@@ -99,7 +99,7 @@ def processFreqs(Array, process):
 #
 ########################################################################
 
-def processAllPSDsPerGroup(rPSD, **kwargs):
+def processAllPSDsPerGroup(rPSD, HaltOnFail=False, **kwargs):
     """
 
     :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
@@ -115,6 +115,7 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
     iwf = []
     iwfo = []
     okc = 0
+    perfect = False
     perfectc = 0
     print(' ')
     print('******************************************************************************')
@@ -122,6 +123,7 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
     print('******************************************************************************')
     print(' ')
 
+    kwargs.update({'HaltOnFail': HaltOnFail})
 
     Fpsd = rPSD.get('Fpsd')
     PSD = rPSD['PSD']
@@ -146,12 +148,12 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
                                                                                **kwargs)
 
             Fpsdt = np.array(Fpsdt)
-
+            perfect = np.all(perfect)
             if perfect:
                 try:
                     meanPSD = np.mean(PSDt, 0)
                     perfect, ok2 = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
-                    ok = ok and ok2
+                    ok = np.all(ok) and ok2
                 except ValueError:
                     print()
                     print("**WARNING** : Mean PSD not valid. Skipping check.")
@@ -167,9 +169,17 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
                 perfectcw += 1
 
             results[nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
+
         if iw > 0:
             iwf.append((nWf, perfectcw, iw))
             iwfo.append((nWf, okcw, iw))
+
+    PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic)
+
+    return results
+
+
+def PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic):
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
@@ -191,8 +201,6 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
 
-    return results
-
 
 def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
     temp0 = []
@@ -202,18 +210,28 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
     temp4 = []
     temp5 = []
     kwargs.update({'HaltOnFail': HaltOnFail})
+
     for i, item in enumerate(PSD):
         [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(item, Fpsd[i], NoA[i], NoB[i],
                                                                       **kwargs)
-        if not perfect and HaltOnFail:
-            return [mPSD, noise, ok, perfect, grad, noisegrad]
-
         temp0.append(noise)
         temp1.append(ok)
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
         temp5.append(mPSD)
+        perfect = np.all(temp2)
+        if not perfect and HaltOnFail:
+            print()
+            print('Bad results: Halting analysis.')
+            print()
+            noise = np.array(temp0)
+            noise = np.mean(noise, 0)
+            ok = np.all(temp1)
+            grad = temp3
+            noisegrad = temp4
+            mPSD = temp5
+            return [mPSD, noise, ok, perfect, grad, noisegrad]
     noise = np.array(temp0)
     noise = np.mean(noise, 0)
     ok = np.all(temp1)
@@ -276,14 +294,22 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
         for i, item in enumerate(NoA):
             mPSD, noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],
                                                                    **kwargs)
-            if not perfect and HaltOnFail:
-                return mPSD, noise, ok, perfect, grad, noisegrad
+
             temp0.append(noise)
             temp1.append(ok)
             temp2.append(perfect)
             temp3.append(grad)
             temp4.append(noisegrad)
             temp5.append(mPSD)
+            perfect = np.all(temp2)
+            if not perfect and HaltOnFail:
+                noise = np.array(temp0)
+                noise = np.mean(noise, 0)
+                ok = np.all(temp1)
+                grad = temp3
+                noisegrad = temp4
+                mPSD = temp5
+                return mPSD, noise, ok, perfect, grad, noisegrad
         noise = np.array(temp0)
         noise = np.mean(noise, 0)
         ok = np.all(temp1)
@@ -299,13 +325,17 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     return mPSD, noise, ok, perfect, grad, noisegrad
 
 
-def isMeanPSDOk(Fpsd, PSD, noise, **kwargs):
+def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradient=None, meangradientmean=None,
+                fiterror=None, fitgradient=None, normalization=None, **kwargs):
 
     meanPSD = np.mean(PSD, 1)
     meannoise = np.mean(noise, 0)
     meannoise = meannoise.reshape(meannoise.size)[1:]
 
-    ok, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(), **kwargs)
+    ok, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(),
+                                             fluctuation=meanfluctuation, peak=meanpeak, gradient=meangradient,
+                                             gradientmean=meangradientmean, fiterror=fiterror, fitgradient=fitgradient,
+                                             normalization=normalization)
 
     print()
     if perfect:
@@ -359,8 +389,6 @@ def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=None, **kwargs):
                 tmPSD, retnoise, ok, perfect, grad, noisegrad = processNoA(item, Fpsd, NoA, NoB,
                                                                            **kwargs)
 
-                if not perfect and HaltOnFail:
-                    return mPSD, noise, ok, perfect, grad, noisegrad
 
                 temp0.append(tmPSD)
                 # temp1.append(retnoise)
@@ -368,6 +396,14 @@ def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=None, **kwargs):
                 temp3.append(perfect)
                 temp4.append(grad)
                 temp5.append(noisegrad)
+                perfect = np.all(temp3)
+                if not perfect and HaltOnFail:
+                    mPSD = temp0
+                    ok = np.all(temp2)
+                    grad = temp4
+                    noisegrad = temp5
+                    return mPSD, noise, ok, perfect, grad, noisegrad
+
             mPSD = temp0
             ok = np.all(temp2)
             perfect = np.all(temp3)
@@ -452,13 +488,19 @@ def processNoAlist(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     for i in range(0, len(NoA) - 1):
         noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],
                                                          **kwargs)
-        if not perfect and HaltOnFail:
-            return noise, ok, perfect, grad, noisegrad
         temp0.append(noise)
         temp1.append(ok)
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
+        perfect = np.all(temp2)
+        if not perfect and HaltOnFail:
+            noise = np.array(temp0)
+            noise = np.mean(noise, 0)
+            ok = np.all(temp1)
+            grad = temp3
+            noisegrad = temp4
+            return noise, ok, perfect, grad, noisegrad
 
     noise = np.array(temp0)
     noise = np.mean(noise, 0)
@@ -482,25 +524,31 @@ def processPSDlist(Fpsd, mPSD, noise, HaltOnFail=False,
         if noise is None:
             ok, perfect, grad, noisegrad = processIsPSDok(tpsd, tpsd, None, Fpsd,
                                                           **kwargs)
-            if not perfect and HaltOnFail:
-                return ok, perfect, grad, noisegrad
-
             temp1.append(ok)
             temp2.append(perfect)
             temp3.append(grad)
             temp4.append(noisegrad)
+            perfect = np.all(temp2)
+            if not perfect and HaltOnFail:
+                return temp1, temp2, temp3, temp4
+
         else:
             if noise.shape[0] != tpsd.shape[0]:
                 tpsd = tpsd.transpose()
             for i, item in enumerate(noise):
                 ok, perfect, grad, noisegrad = processIsPSDok(tpsd, tpsd[i], item, Fpsd,
                                                               **kwargs)
-                if not perfect and HaltOnFail:
-                    return ok, perfect, grad, noisegrad
                 temp1.append(ok)
                 temp2.append(perfect)
                 temp3.append(grad)
                 temp4.append(noisegrad)
+                perfect = np.all(temp2)
+                if not perfect and HaltOnFail:
+                    ok = np.all(temp1)
+                    grad = temp3
+                    noisegrad = temp4
+                    return ok, perfect, grad, noisegrad
+
     ok = np.all(temp1)
     perfect = np.all(temp2)
     grad = temp3
@@ -518,12 +566,17 @@ def processListPSDlist(Fpsd, mPSD, noise, HaltOnFail=False, **kwargs):
 
     for tpsd in mPSD:
         ok, perfect, grad, noisegrad = processPSDlist(Fpsd, tpsd, noise, **kwargs)
-        if not perfect and HaltOnFail:
-            return ok, perfect, grad, noisegrad
+
         temp1.append(ok)
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
+        perfect = np.all(temp2)
+        if not perfect and HaltOnFail:
+            ok = np.all(temp1)
+            grad = temp3
+            noisegrad = temp4
+            return ok, perfect, grad, noisegrad
     ok = np.all(temp1)
     perfect = np.all(temp2)
     grad = temp3
@@ -549,25 +602,30 @@ def processIsPSDok(psd, psdi, noise, Fpsd, HaltOnFail=None, **kwargs):
             psdi = psdi.transpose()
             for dpsd in psdi:
                 ok, perfect, grad, noisegrad = processVgs(dpsd, Fpsd, noisei, **kwargs)
-                if not perfect and HaltOnFail:
-                    return ok, perfect, grad, noisegrad
                 temp1.append(ok)
                 temp2.append(perfect)
                 temp3.append(grad)
                 temp4.append(noisegrad)
+                perfect = np.all(temp2)
+                if not perfect and HaltOnFail:
+                    ok = np.all(temp1)
+                    return ok, perfect, grad, noisegrad
+
     else:
         ok, perfect, grad, noisegrad = processVgs(psdi, Fpsd, noisei,
                                                   **kwargs)
-        if not perfect and HaltOnFail:
-            return ok, perfect, grad, noisegrad
 
         temp1.append(ok)
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
+        perfect = np.all(temp2)
+        if not perfect and HaltOnFail:
+            ok = np.all(temp1)
+            return ok, perfect, grad, noisegrad
 
-        temp1 = np.all(temp1)
-        temp2 = np.all(perfect)
+    temp1 = np.all(temp1)
+    temp2 = np.all(temp2)
 
     return temp1, temp2, temp3, temp4
 
@@ -599,7 +657,6 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, HaltOnFail=None, **kwargs):
     print('******************************************************************************')
     print(' ')
 
-
     for nType, vType in GrTypes.items():
         Fpsd = rPSD[nType].get('Fpsd')
         results[nType] = {}
@@ -609,54 +666,83 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, HaltOnFail=None, **kwargs):
         perfectct = 0
         okct = 0
         it = 0
-        for nWf, vWf in Fpsd.items():
-            PSDt = PSD[nWf]
-            NoAt = NoA[nWf]
-            NoBt = NoB[nWf]
-            perfectcw = 0
-            okcw = 0
-            iw = 0
-            if NoAt is not None and len(NoAt) > 0:
-                Fpsdt = np.array(vWf[0])
-                PSDt = [PSDt]
-                ic += 1
-                it += 1
-                iw += 1
-                print('***************************************************')
-                print('{}) Group:{}, Subgroup:{}'.format(ic, nType, nWf))
-                print('***************************************************')
 
-                kwargs.update({'HaltOnFail': HaltOnFail})
-
-                mPSD, noise, ok, perfect, grad, noisegrad = processPSDSubgroup(Fpsdt, PSDt,
-                                                                               NoAt, NoBt, **kwargs)
-
-                if perfect:
-                    try:
-                        meanPSD = np.mean(PSDt, 0)
-                        perfect = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
-                    except ValueError:
-                        print()
-                        print("**WARNING** : Mean PSD not valid. Skipping check.")
-
-                printReportPerSubgroup(perfect, ok)
-
-                print(' ')
-                if ok:
-                    okc += 1
-                    okct += 1
-                    okcw += 1
-                if perfect:
-                    perfectc += 1
-                    perfectct += 1
-                    perfectcw += 1
-                results[nType][nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
-            if iw > 0:
-                iwf.append((nWf, perfectcw, iw))
-                iwfo.append((nWf, okcw, iw))
+        ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results = \
+            processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct, iwf, iwfo,
+                            itype, itypeo, results,
+                            nType, **kwargs)
         if it > 0:
             itype.append((nType, perfectct, it))
             itypeo.append((nType, okct, it))
+
+    PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic)
+
+    return results
+
+
+def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct, iwf, iwfo,
+                    itype, itypeo, results,
+                    nType, HaltOnFail=False, **kwargs):
+    kwargs.update({'HaltOnFail': HaltOnFail})
+
+    for nWf, vWf in Fpsd.items():
+        PSDt = PSD[nWf]
+        NoAt = NoA[nWf]
+        NoBt = NoB[nWf]
+        perfectcw = 0
+        okcw = 0
+        iw = 0
+        perfect = False
+        if NoAt is not None and len(NoAt) > 0:
+            Fpsdt = np.array(vWf[0])
+            PSDt = [PSDt]
+            ic += 1
+            it += 1
+            iw += 1
+            print('***************************************************')
+            print('{}) Group:{}, Subgroup:{}'.format(ic, nType, nWf))
+            print('***************************************************')
+
+            kwargs.update({'HaltOnFail': HaltOnFail})
+
+            mPSD, noise, ok, perfect, grad, noisegrad = processPSDSubgroup(Fpsdt, PSDt,
+                                                                           NoAt, NoBt, **kwargs)
+
+            if perfect:
+                try:
+                    meanPSD = np.mean(PSDt, 0)
+                    perfect2, ok2 = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
+                    perfect = np.all(perfect) and perfect2
+                    ok = np.all(ok) and ok2
+                except ValueError:
+                    print()
+                    print("**WARNING** : Mean PSD not valid. Skipping check.")
+
+            printReportPerSubgroup(perfect, ok)
+
+            print(' ')
+            if ok:
+                okc += 1
+                okct += 1
+                okcw += 1
+            if perfect:
+                perfectc += 1
+                perfectct += 1
+                perfectcw += 1
+            results[nType][nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
+        if iw > 0:
+            iwf.append((nWf, perfectcw, iw))
+            iwfo.append((nWf, okcw, iw))
+        if not perfect and HaltOnFail:
+            PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic)
+            print()
+            print('Bad results: Halting analysis.')
+            print()
+            return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results
+    return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results
+
+
+def PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic):
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
@@ -686,8 +772,6 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, HaltOnFail=None, **kwargs):
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
 
-    return results
-
 
 def processPSDSubgroup(Fpsdt, PSDt, NoAt, NoBt, HaltOnFail=None, **kwargs):
     kwargs.update({'HaltOnFail': HaltOnFail})
@@ -704,14 +788,21 @@ def processPSDSubgroup(Fpsdt, PSDt, NoAt, NoBt, HaltOnFail=None, **kwargs):
                                                                         NoBt[i],
 
                                                                         **kwargs)
-            if not perfect and HaltOnFail:
-                return mPSD, noise, ok, perfect, grad, noisegrad
+
             temp0.append(noise)
             temp1.append(ok)
             temp2.append(perfect)
             temp3.append(grad)
             temp4.append(noisegrad)
             temp5.append(mPSD)
+            perfect = np.all(temp2)
+            if not perfect and HaltOnFail:
+                noise = np.array(temp0)
+                ok = np.all(temp1)
+                grad = temp3
+                noisegrad = temp4
+                mPSD = temp5
+                return mPSD, noise, ok, perfect, grad, noisegrad
         noise = np.array(temp0)
         try:
             noise = np.mean(noise, 0)
@@ -731,27 +822,29 @@ def processPSDSubgroup(Fpsdt, PSDt, NoAt, NoBt, HaltOnFail=None, **kwargs):
 
 def processVgs(PSD, Fpsd, noise, HaltOnFail=None, **kwargs):
     kwargs.update({'HaltOnFail': HaltOnFail})
+
     if noise is None:
         noise = np.array([])
-        return isPSDok(PSD, Fpsd, noise, **kwargs)
+        ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd, noise, **kwargs)
+        if not perfect and HaltOnFail:
+            return ok, perfect, grad, noisegrad
 
     temp1 = []
     temp2 = []
     temp3 = []
     temp4 = []
     for item in noise.transpose():
+        kwargs.update({'HaltOnFail': HaltOnFail})
         ok, perfect, grad, noisegrad = isPSDok(PSD, Fpsd, item, **kwargs)
-
-        if not perfect and HaltOnFail:
-            print()
-            print('Bad results: Halting analysis.')
-            print()
-            return ok, perfect, grad, noisegrad
 
         temp1.append(ok)
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
+        perfect = np.all(temp2)
+        if not perfect and HaltOnFail:
+            ok = np.all(temp1)
+            return ok, perfect, grad, noisegrad
 
     temp1 = np.all(temp1)
     temp2 = np.all(temp2)
@@ -858,45 +951,44 @@ def printReport(
         maxfluct, maxpeak, graderror, mgrad,
         fitmaxerr, fitmaxgraderror, printbad=True, printok=True, **kwargs):
     # Print output
-        if perfect and printok:
-                print()
-                print('PSD Noise OK ->')
-                if perfect1:
-                    print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
-                if perfect2:
-                    print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
-                if perfect3:
-                    print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
-                if perfect4:
-                    print('         PSD MEAN GRADIENT OK -> mean-gradient:{}'.format(mgrad))
-        else:
-            if printbad:
-                print()
-                print('PSD Noise BAD ->')
-                if not perfect1:
-                    print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
-                if not perfect2:
-                    print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
-                if not perfect3:
-                    print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
-                if not perfect4:
-                    print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
+    if perfect and printok:
+        print()
+        print('PSD Noise OK ->')
+        if perfect1:
+            print('         PSD FLUCTUATION OK -> fluctuation:{}'.format(maxfluct))
+        if perfect2:
+            print('         PSD PEAK OK -> peak:{}'.format(maxpeak))
+        if perfect3:
+            print('         PSD GRADIENT OK -> gradient:{}'.format(graderror))
+        if perfect4:
+            print('         PSD MEAN GRADIENT OK -> mean-gradient:{}'.format(mgrad))
+    if not perfect and printbad:
+        print()
+        print('PSD Noise BAD ->')
+        if not perfect1:
+            print('         PSD FLUCTUATION BAD -> fluctuation:{}'.format(maxfluct))
+        if not perfect2:
+            print('         PSD PEAK BAD -> peak:{}'.format(maxpeak))
+        if not perfect3:
+            print('         PSD GRADIENT BAD -> gradient:{}'.format(graderror))
+        if not perfect4:
+            print('         PSD MEAN GRADIENT BAD -> mean-gradient:{}'.format(mgrad))
 
-        if ok and printok:
-            print('    Noise Fitted OK ->')
-            if ok1:
-                print('         Noise Error OK -> error:{}'.format(fitmaxerr))
-            if ok2:
-                print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
-                print()
-        else:
-            if not ok and printbad:
-                print('    Noise Fitted BAD ->')
-                if not ok1:
-                    print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
-                if not ok2:
-                    print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
-                print()
+    if ok and printok:
+        print('    Noise Fitted OK ->')
+        if ok1:
+            print('         Noise Error OK -> error:{}'.format(fitmaxerr))
+        if ok2:
+            print('         Noise GradError OK -> grad-error:{}'.format(fitmaxgraderror))
+            print()
+    if not ok and printbad:
+        print('    Noise Fitted BAD ->')
+        if not ok1:
+            print('         Noise Error BAD -> error:{}'.format(fitmaxerr))
+        if not ok2:
+            print('         Noise GradError BAD -> grad-error:{}'.format(fitmaxgraderror))
+            print()
+
 
 
 def printReportPerSubgroup(perfect, ok):
