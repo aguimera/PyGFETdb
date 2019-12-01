@@ -138,7 +138,7 @@ def PlotWorkingWafers(GrBase, Plot=False, **kwargs):
     return results
 
 
-def PlotWorkingDevicesPerWafer(GrBase, Plot=False, **kwargs):
+def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -194,7 +194,7 @@ def PlotWorkingTypesPerWafer(GrBase, Plot=False, **kwargs):
     return results
 
 
-def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
+def PlotWorkingWafersAndDevices(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -222,7 +222,7 @@ def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
     return results
 
 
-def PlotWorkingTrts(GrBase, Plot=False, **kwargs):
+def PlotWorkingDevicesAndTrts(GrBase, Plot=False, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database

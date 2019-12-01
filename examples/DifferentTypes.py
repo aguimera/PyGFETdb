@@ -226,7 +226,6 @@ def main():
             'printbad': False,
             'printok': False,
         },
-        'PlotSuperMean': True,
         'PlotMean': True,
         'PlotStd': True,
         'PlotNoise': True,
@@ -236,21 +235,22 @@ def main():
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
-    # plot.PlotWorkingTrts(GrBase1, Plot=True, **kwargs3)
-    plot.PlotWorkingDevices(GrBase3, Plot=True, **kwargs3)
+    plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, **kwargs3)
+    plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
     # plot.PlotWafersPerType(GrBase3,**kwargs1)
     # plot.PlotTypesPerWafer(GrBase3,**kwargs2)
 
-    # plot.PlotWorkingWafers(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingDevicesPerWafer(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingWafers(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # plot.PlotWorkingWafersAndDevices(GrBase3, Plot=True, **kwargs3)
 
-    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
     # plot.PlotWorkingDevices(GrBase3, Plot=True, **kwargs3)
+    # plot.PlotWorkingDevicesPerWafer(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
 
+    # plot.PlotWorkingTypes(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
     # plot.PlotWorkingTypesPerWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingTypes(GrBase3, Plot=True, **kwargs3)
 
 
 # """"""""""""""""""""""""""""""""""""""""""""""
