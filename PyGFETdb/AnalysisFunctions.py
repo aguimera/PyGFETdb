@@ -33,6 +33,20 @@ def process50Hz(Array, process):
     return Array
 
 
+def process70Hz(Array, process):
+    """
+        **Removes the frequency 50Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequency 50Hz
+    """
+    if process:
+        # remove 50Hz
+        for i in range(1, 2):  # To widen the effect increase the 2
+            Array = g.remove(Array, 68)
+    return Array
+
 def processBelow1Hz(Array, process):
     """
         **Removes the frequencies below 1Hz**
@@ -72,6 +86,7 @@ def processFreqs(Array, process):
         :return: the array without the unwanted frequencies
         """
     Array = process50Hz(Array, process)
+    Array = process70Hz(Array, process)
     Array = processBelow1Hz(Array, process)
     Array = processHiFreqs(Array, process)
     return Array
@@ -129,8 +144,17 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
             [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoiseGroup(PSDt, Fpsdt, NoAt, NoBt,
                                                                                **kwargs)
 
-
             Fpsdt = np.array(Fpsdt)
+
+            if perfect:
+                try:
+                    meanPSD = np.mean(PSDt, 0)
+                    perfect = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
+                except ValueError:
+                    print()
+                    print("**WARNING** : Mean PSD not valid. Skipping check.")
+
+            printReportPerSubgroup(perfect, ok)
 
             print(' ')
             if ok:
@@ -139,6 +163,7 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
             if perfect:
                 perfectc += 1
                 perfectcw += 1
+
             results[nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
         if iw > 0:
             iwf.append((nWf, perfectcw, iw))
@@ -191,8 +216,6 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, **kwargs):
     noisegrad = temp4
     mPSD = temp5
 
-    printReportPerSubgroup(perfect, ok)
-
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
 
@@ -208,7 +231,8 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     return r
 
 
-def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
+def _processAllNoise(PSD, Fpsd, NoA, NoB,
+                     **kwargs):
     """
 
     :param PSD: PSD of a Group
@@ -233,7 +257,6 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     temp3 = []
     temp4 = []
     temp5 = []
-    mPSD = PSD
 
     if type(NoA) is list():
         for i, item in enumerate(NoA):
@@ -260,8 +283,26 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
 
-def processNoA(PSD, Fpsd, NoA, NoB,
-               **kwargs):
+def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradient=None, meangradientmean=None,
+                fiterror=None, fitgradient=None, normalization=None, **kwargs):
+    meanPSD = np.mean(PSD, 1)
+    meannoise = np.mean(noise, 0)
+    meannoise = meannoise.reshape(meannoise.size)[1:]
+    ok2, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(),
+                                              meanfluctuation, meanpeak, meangradient, meangradientmean,
+                                              fiterror, fitgradient, normalization,
+                                              debug=True, printok=False
+                                              )
+    print()
+    if perfect:
+        print('Analysing Mean PSD... OK.')
+    else:
+        print('Analysing Mean PSD... BAD.')
+
+    return perfect
+
+
+def processNoA(PSD, Fpsd, NoA, NoB, **kwargs):
     retnoise = np.array([])
     ok = False
     perfect = False
@@ -307,6 +348,7 @@ def processNoA(PSD, Fpsd, NoA, NoB,
             perfect = np.all(temp3)
             grad = temp4
             noisegrad = temp5
+
     return [mPSD, retnoise, ok, perfect, grad, noisegrad]
 
 
@@ -555,6 +597,14 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs):
                 else:
                     [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(PSDt, Fpsdt, NoAt, NoBt, **kwargs)
 
+                if perfect:
+                    try:
+                        meanPSD = np.mean(PSDt, 0)
+                        perfect = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
+                    except ValueError:
+                        print()
+                        print("**WARNING** : Mean PSD not valid. Skipping check.")
+
                 printReportPerSubgroup(perfect, ok)
 
                 print(' ')
@@ -624,7 +674,7 @@ def processVgs(PSD, Fpsd, noise, **kwargs):
     return temp1, temp2, temp3, temp4
 
 
-def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, meangradient=1,
+def isPSDok(PSD, Fpsd, noise, fluctuation=0.047, peak=0.58, gradient=6.5e-18, gradientmean=0.5,
             fiterror=0.4, fitgradient=0.15,
             normalization=None, **kwargs):
     """
@@ -683,7 +733,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.023, peak=0.23, gradient=2e5, meangr
 
     # Mean Gradient of the PSD
     mgrad = np.abs(np.mean(grad))
-    perfect4 = np.all(mgrad <= meangradient)
+    perfect4 = np.all(mgrad <= gradientmean)
 
     # Error of the noise fitting
     fitpeak = np.abs(mPSD - np.abs(np.mean(noise))) / maxmPSD

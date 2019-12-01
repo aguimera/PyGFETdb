@@ -206,11 +206,19 @@ def main():
         },
 
         'noise': {
-            'fluctuation': 0.047,
+            # PSD
+            'fluctuation': 43e-3,
+            'gradient': 1.68e-19,
             'peak': 0.58,
-            'gradient': 6.5e-18,
-            'meangradient': 0.5,
+            'gradientmean': 0.5,
 
+            # Mean PSD
+            'meanfluctuation': 0.14,
+            'meangradient': 2.625e-20,
+            'meanpeak': 0.156,
+            'meangradientmean': 1e-19,
+
+            # Noise fit
             'fiterror': 0.4,
             'fitgradient': 0.15,
 
