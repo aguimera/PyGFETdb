@@ -119,6 +119,40 @@ def DBSearchPerTypeAndDevice(GrBase, args, **kwargs):
         ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
     return GrTypes, ResultsParams
 
+
+def DBSearchPerTypeAndTrt(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: a group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrTypes = DbSe.GenGroups(GrBase, 'TrtTypes.Name', LongName=False)
+    ResultsParams = {}
+    for iType, (nType, cType) in enumerate(GrTypes.items()):
+        print('')
+        print('Searching Type {}...'.format(nType))
+        GrWfs = DbSe.GenGroups(cType, 'Trts.Name', LongName=False)
+        ResultsDB = search(GrWfs, **kwargs)
+        ResultsParams[nType] = getparams(ResultsDB, GrWfs, args)
+    return GrTypes, ResultsParams
+
+
+def DBSearchPerTrt(GrBase, args, **kwargs):
+    """
+
+    :param GrBase: a group of conditions
+    :param args: a dict with the parameters to search
+    :return: a group of conditions and the results of the search
+    """
+    GrTypes = DbSe.GenGroups(GrBase, 'Trts.Name', LongName=False)
+    ResultsParams = {}
+    print('')
+    print('Searching Trts...')
+    ResultsDB = search(GrTypes, **kwargs)
+    ResultsParams = getparams(ResultsDB, GrTypes, args)
+    return GrTypes, ResultsParams
+
 def DataClassification(GrWs, arguments, ResultsParams):
     """
 

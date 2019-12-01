@@ -466,12 +466,13 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                         temp1,  # PSD
                         temp3,  # noise
                 temp5,  # perfect
+                temp4,  # ok
                 nType,
                         title=title,
                         **kwargs)
 
 
-def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, nType, PlotStd=True, PlotMean=True,
+def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, ok, nType, PlotStd=True, PlotMean=True,
             PlotNoise=False, **kwargs):
     """
 
@@ -494,28 +495,30 @@ def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, nType, PlotStd=True, PlotMean=True
             item = reduce(item)
         for n in range(0, item.ndim - 3):
             item = reduce(item)
-        if item is not None and item.ndim == 3:
+        if item is not None and item.ndim == 3 and noise.ndim == 3:
+            item = item.reshape((noise.shape[1], item.shape[2], noise.shape[2]))
+        else:
             item = item.reshape((item.shape[1], item.shape[0], item.shape[2]))
-            for i2, item0 in enumerate(item):
-                if item0 is not None and item0.ndim == 2:
-                    if PlotMean:
-                        PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
-                    else:
-                        for i3, item2 in enumerate(item0):
-                            PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
-                                        PlotStd=PlotStd)
-            if PlotNoise and noise is not None:
-                if PlotMean or len(noise) != len(PSD):
-                    noisei = processNoiseForPlotPSD(noise)
+        for i2, item0 in enumerate(item):
+            if item0 is not None and item0.ndim == 2:
+                if PlotMean:
+                    PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
                 else:
-                    noisei = processNoiseForPlotPSD(noise[i])
+                    for i3, item2 in enumerate(item0):
+                        PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+                                    PlotStd=PlotStd)
+        if PlotNoise and noise is not None:
+            if PlotMean or len(noise) != len(PSD):
+                noisei = processNoiseForPlotPSD(noise)
+            else:
+                noisei = processNoiseForPlotPSD(noise[i])
 
-                ax.loglog(Fpsd, noisei, '--')
+            ax.loglog(Fpsd, noisei, '--')
 
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
-    title = "PSDs {} for {}".format("OK" if perfect else "NOK", nType)
+    title = "PSDs {}/{} for {}".format("OK" if perfect else "NOK", "FIT" if ok else "NOK", nType)
     plt.title(title)
 
 
@@ -538,11 +541,13 @@ def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
                         r[1],  # PSD
                         r[3],  # noise
                         r[5],  # perfect
+                        r[4],  # ok
                         nType,
                         **kwargs)
 
 
-def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, PlotOnlyWorking=False, **kwargs):
+def PlotPSDMean(Fpsd, PSD, noisefit, perfect, ok, nType, PlotSuperMean=None, PlotOnlyWorking=False,
+                PlotOnlyFit=False, PlotOnlyPerfect=False, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
@@ -554,7 +559,11 @@ def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, PlotOnl
     :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
     :return: None
     """
-    if perfect and PlotOnlyWorking or (not PlotOnlyWorking):
+    if perfect and ok and PlotOnlyPerfect or \
+            (not PlotOnlyPerfect and
+             ((perfect and PlotOnlyWorking or PlotOnlyFit) and (
+                     ok and PlotOnlyFit or not PlotOnlyFit))):
+
         fig, ax = plt.subplots()
 
         mPSD = PSD
@@ -565,7 +574,7 @@ def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, PlotOnl
             except:
                 pass
 
-        PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, nType, **kwargs)
+        PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, ok, nType, **kwargs)
 
 
 def processNoiseForPlotPSD(noise):

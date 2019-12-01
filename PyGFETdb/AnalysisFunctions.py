@@ -33,21 +33,22 @@ def process50Hz(Array, process):
     return Array
 
 
-def process70Hz(Array, process):
+def process60Hz(Array, process):
     """
-        **Removes the frequency 50Hz**
+        **Removes the frequency 60Hz**
 
     :param Array: array of frequencies
     :param process: bool that activates the function
     :return: the array without the frequency 50Hz
     """
     if process:
-        # remove 50Hz
+        # remove 60Hz
         for i in range(1, 2):  # To widen the effect increase the 2
-            Array = g.remove(Array, 68)
+            Array = g.remove(Array, 50)
     return Array
 
-def processBelow1Hz(Array, process):
+
+def processBelow10Hz(Array, process):
     """
         **Removes the frequencies below 1Hz**
 
@@ -57,7 +58,7 @@ def processBelow1Hz(Array, process):
     """
     if process:
         #  remove below 1Hz
-        for i in range(1, 20):  # To widen the effect increase the 15
+        for i in range(1, 36):  # To widen the effect increase the 15
             Array = g.remove(Array, 0)
     return Array
 
@@ -86,8 +87,8 @@ def processFreqs(Array, process):
         :return: the array without the unwanted frequencies
         """
     Array = process50Hz(Array, process)
-    Array = process70Hz(Array, process)
-    Array = processBelow1Hz(Array, process)
+    Array = process60Hz(Array, process)
+    Array = processBelow10Hz(Array, process)
     Array = processHiFreqs(Array, process)
     return Array
 
@@ -149,7 +150,8 @@ def processAllPSDsPerGroup(rPSD, **kwargs):
             if perfect:
                 try:
                     meanPSD = np.mean(PSDt, 0)
-                    perfect = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
+                    perfect, ok2 = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
+                    ok = ok and ok2
                 except ValueError:
                     print()
                     print("**WARNING** : Mean PSD not valid. Skipping check.")
@@ -225,9 +227,10 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
 def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     try:
         PSD = np.array(PSD)
-        n = int(PSD.size / 500)
+        n = int(PSD.size / 500 + 5)
     except ValueError:
-        n = len(PSD) * 10
+        n = len(PSD) * 20 + 5
+    print('Processing PSDs... forking {} threads'.format(n))
     thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions, n)
     key = thread.initcall(mp.key(), PyGFETdb.AnalysisFunctions)
     args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB}
@@ -299,18 +302,22 @@ def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradi
     meanPSD = np.mean(PSD, 1)
     meannoise = np.mean(noise, 0)
     meannoise = meannoise.reshape(meannoise.size)[1:]
-    ok2, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(),
-                                              meanfluctuation, meanpeak, meangradient, meangradientmean,
-                                              fiterror, fitgradient, normalization,
-                                              debug=True, printok=False
-                                              )
+    ok, perfect, grad2, noisegrad2 = isPSDok(meanPSD, Fpsd, meannoise.transpose(),
+                                             meanfluctuation, meanpeak, meangradient, meangradientmean,
+                                             fiterror, fitgradient, normalization,
+                                             debug=True, printok=False
+                                             )
     print()
     if perfect:
         print('Analysing Mean PSD... OK.')
     else:
         print('Analysing Mean PSD... BAD.')
+    if ok:
+        print('Mean PSD Fit... OK.')
+    else:
+        print('Mean PSD Fit... BAD.')
 
-    return perfect
+    return perfect, ok
 
 
 def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=None, **kwargs):
@@ -550,6 +557,9 @@ def processIsPSDok(psd, psdi, noise, Fpsd, HaltOnFail=None, **kwargs):
         temp3.append(grad)
         temp4.append(noisegrad)
 
+        temp1 = np.all(temp1)
+        temp2 = np.all(perfect)
+
     return temp1, temp2, temp3, temp4
 
 
@@ -729,6 +739,9 @@ def processVgs(PSD, Fpsd, noise, HaltOnFail=None, **kwargs):
         temp2.append(perfect)
         temp3.append(grad)
         temp4.append(noisegrad)
+
+    temp1 = np.all(temp1)
+    temp2 = np.all(temp2)
     return temp1, temp2, temp3, temp4
 
 
@@ -808,10 +821,11 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=0.047, peak=0.58, gradient=6.5e-18, gr
     noisegrad = qty.Divide(y2, dx)
     absnoisegrad = np.abs(noisegrad)
 
-    fitgraderror = absgrad - absnoisegrad
+    fitgraderror = np.mean(absgrad) - np.mean(absnoisegrad)
     absgraderror = np.abs(fitgraderror)
-    fitmaxgraderror = np.mean(absgraderror) / maxmPSD
-    ok2 = fitmaxgraderror <= fitgradient
+    fitmaxgraderror = np.mean(absgraderror)
+
+    ok2 = np.all(fitmaxgraderror <= fitgradient)
 
     # Conditions of the PSD
     perfect = perfect1 and perfect2 and perfect3 and perfect4
@@ -831,8 +845,7 @@ def printReport(
                 ok, ok1, ok2,
         maxfluct, maxpeak, graderror, mgrad,
         fitmaxerr, fitmaxgraderror, printbad=True, printok=True, **kwargs):
-
-        # Print output
+    # Print output
         if perfect and printok:
                 print()
                 print('PSD Noise OK ->')

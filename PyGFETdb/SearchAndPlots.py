@@ -222,6 +222,61 @@ def PlotWorkingTypesPerDevice(GrBase, Plot=False, **kwargs):
     return results
 
 
+def PlotWorkingTypesPerTrt(GrBase, Plot=False, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05},
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerTypeAndTrt(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
+    if Plot:
+        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
+
+    print('Collect->', gc.collect())
+    return results
+
+
+def PlotWorkingTrts(GrBase, Plot=False, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD': {'Param': 'PSD', 'Vds': 0.05},
+        'NoA': {'Param': 'NoA'},
+        'NoB': {'Param': 'NoB'},
+    }
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerTrt(GrBase, arguments, **kwargs.get('db'))
+    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
+    if Plot:
+        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
+
+    print('Collect->', gc.collect())
+    return results
+
 def PlotWorkingWafersAndDevices(GrBase, Plot=False, **kwargs):
     """
 
