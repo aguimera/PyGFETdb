@@ -225,6 +225,7 @@ def main():
             # Debug
             'printbad': False,
             'printok': False,
+            'plotonlyworking': True,
         },
         'PlotSuperMean': True,
         'PlotMean': True,

@@ -542,20 +542,19 @@ def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
                         **kwargs)
 
 
-def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, **kwargs):
+def PlotPSDMean(Fpsd, PSD, noisefit, perfect, nType, PlotSuperMean=None, plotonlyworking=False, **kwargs):
     """
 
     :param Fpsd: Data of the x axis
     :param PSD:  Data of the y axis
-    :param noise: Data of the y axis for noise fitting
+    :param noisefit: Data of the y axis for noise fitting
     :param perfect: Boolean to approve the analysis
     :param nType: Name of the Type of Trt
-    :param PlotStd: Plot Standard Deviation
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
+    :param PlotSuperMean: Plot PSD Mean, if False Plot all the PSDs
+    :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
     :return: None
     """
-    if perfect:
+    if perfect or not plotonlyworking:
         fig, ax = plt.subplots()
 
         mPSD = PSD
