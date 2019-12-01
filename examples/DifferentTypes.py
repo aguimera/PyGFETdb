@@ -213,16 +213,16 @@ def main():
 
             # Mean PSD
             'meanfluctuation': 0.14,
-            'meangradient': 2e-22,  # <-- max peak of the mean PSD
+            'meangradient': 15e-18,  # <-- max peak of the mean PSD
             'meanpeak': 0.4,
             'meangradientmean': 1e-18,  # <-- max slope of the mean PSD
 
             # Noise fit
-            'fiterror': 0.3,
-            'fitgradient': 5e-21,
+            'fiterror': 0.4,
+            'fitgradient': 5e-18,
 
             # Debug
-            'printbad': False,
+            'printbad': True,
             'printok': False,
 
             # Optimization

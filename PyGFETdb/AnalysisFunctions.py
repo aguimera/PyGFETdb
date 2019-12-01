@@ -123,7 +123,7 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, **kwargs):
     print('******************************************************************************')
     print(' ')
 
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     Fpsd = rPSD.get('Fpsd')
     PSD = rPSD['PSD']
@@ -148,7 +148,7 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, **kwargs):
                                                                                **kwargs)
 
             Fpsdt = np.array(Fpsdt)
-            if np.all(perfect):
+            if perfect:
                 try:
                     meanPSD = np.mean(PSDt, 0)
                     perfect, ok2 = isMeanPSDOk(Fpsdt[0], meanPSD, noise, **kwargs)
@@ -208,10 +208,10 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
     temp3 = []
     temp4 = []
     temp5 = []
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for i, item in enumerate(PSD):
-        [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoise(item, Fpsd[i], NoA[i], NoB[i],
+        mPSD, noise, ok, perfect, grad, noisegrad = processAllNoise(item, Fpsd[i], NoA[i], NoB[i],
                                                                       **kwargs)
         temp0.append(noise)
         temp1.append(ok)
@@ -233,8 +233,8 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
             return [mPSD, noise, ok, perfect, grad, noisegrad]
     noise = np.array(temp0)
     noise = np.mean(noise, 0)
-    ok = temp1
-    perfect = temp2
+    ok = np.all(temp1)
+    perfect = np.all(temp2)
     grad = temp3
     noisegrad = temp4
     mPSD = temp5
@@ -287,7 +287,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     temp4 = []
     temp5 = []
 
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    ##kwargs.update({'HaltOnFail': HaltOnFail})
 
     if type(NoA) is list():
         for i, item in enumerate(NoA):
@@ -356,7 +356,7 @@ def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=None, **kwargs):
     ok = False
     perfect = False
 
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     if NoA is not None and len(NoA) > 0:
         if type(NoA) is list:
@@ -481,7 +481,7 @@ def processNoAlist(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     temp2 = []
     temp3 = []
     temp4 = []
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for i in range(0, len(NoA) - 1):
         noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],
@@ -516,7 +516,7 @@ def processPSDlist(Fpsd, mPSD, noise, HaltOnFail=False,
     temp2 = []
     temp3 = []
     temp4 = []
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for tpsd in mPSD:
         if noise is None:
@@ -549,7 +549,7 @@ def processListPSDlist(Fpsd, mPSD, noise, HaltOnFail=False, **kwargs):
     temp2 = []
     temp3 = []
     temp4 = []
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for tpsd in mPSD:
         ok, perfect, grad, noisegrad = processPSDlist(Fpsd, tpsd, noise, **kwargs)
@@ -577,7 +577,7 @@ def processIsPSDok(psd, psdi, noise, Fpsd, HaltOnFail=False, **kwargs):
     temp2 = []
     temp3 = []
     temp4 = []
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     noisei = None
 
@@ -670,7 +670,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD,  **kwargs):
 def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct, iwf, iwfo,
                     itype, itypeo, results,
                     nType, HaltOnFail=False, **kwargs):
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for nWf, vWf in Fpsd.items():
         PSDt = PSD[nWf]
@@ -690,7 +690,7 @@ def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct,
             print('{}) Group:{}, Subgroup:{}'.format(ic, nType, nWf))
             print('***************************************************')
 
-            kwargs.update({'HaltOnFail': HaltOnFail})
+            #kwargs.update({'HaltOnFail': HaltOnFail})
 
             mPSD, noise, ok, perfect, grad, noisegrad = processPSDSubgroup(Fpsdt, PSDt,
                                                                            NoAt, NoBt, **kwargs)
@@ -761,7 +761,7 @@ def PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic):
 
 
 def processPSDSubgroup(Fpsdt, PSDt, NoAt, NoBt, HaltOnFail=None, **kwargs):
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
     if type(NoAt) is list:
         temp0 = []
         temp1 = []
@@ -808,7 +808,7 @@ def processPSDSubgroup(Fpsdt, PSDt, NoAt, NoBt, HaltOnFail=None, **kwargs):
 
 def processVgs(PSD, Fpsd, noise, HaltOnFail=False, **kwargs):
 
-    kwargs.update({'HaltOnFail': HaltOnFail})
+    #kwargs.update({'HaltOnFail': HaltOnFail})
 
     if noise is None:
         noise = np.array([])
