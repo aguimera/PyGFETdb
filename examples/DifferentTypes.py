@@ -227,7 +227,7 @@ def main():
             'printok': False,
 
             # Optimization
-            'HaltOnFail': False
+            'HaltOnFail': False # TODO: Give correct results when halting
         },
         # 'PlotSuperMean': True
         'PlotMean': True,
