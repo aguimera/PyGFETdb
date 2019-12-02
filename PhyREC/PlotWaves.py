@@ -380,7 +380,7 @@ class WaveSlot():
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
                     PltStd=False, StdAlpha=0.2,
                     PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
-        avsig = self.GetSignal(None, Units)
+        avsig = self.GetSignal((None, None), Units)
         avg = np.array([])
 
         Ts = avsig.sampling_period
@@ -391,7 +391,7 @@ class WaveSlot():
             start = et+TimeAvg[0]
             stop = et+TimeAvg[1]
 
-            st = np.array(avsig.GetSignal((start, stop))[:nSamps])
+            st = np.array(avsig.time_slice(start, stop)[:nSamps])
             try:
                 avg = np.hstack([avg, st]) if avg.size else st
                 if PlotTrials:

@@ -78,14 +78,46 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None):
 def AppendData(sig, data):
     v_old = np.array(sig)
     v_new = np.vstack((v_old, np.array(data)))
-    
     return sig.duplicate_with_new_array(signal=v_new*sig.units)
 
 
-def LoadMatFiles(FilesIn, InChannels=None, DownFact=None):
+def CheckFilesTime(FilesIn, TimeWind):
+    if TimeWind is None:
+        return FilesIn
+
+    TimeWind = list(TimeWind)
+    if TimeWind[0] is None:
+        TimeWind[0] = 0 * pq.s
+
+    if TimeWind[1] is None:
+        TimeWind[1] = np.inf * pq.s
+
+    Tstart = 0 * pq.s
+    FileTimes = []
+    for FileName in FilesIn:
+        out = spio.loadmat(FileName)
+        Data = out['y']
+        Fs = out['SR\x00'][0, 0]*pq.Hz
+
+        Tstop = Tstart + Data[0, 0, -1] * pq.s
+        FileTimes.append((Tstart.copy(), Tstop.copy()))
+        Tstart = Tstop + 1/Fs
+
+    FileTimes = np.array(FileTimes)
+    FileInds = np.where((FileTimes[:, 1] > TimeWind[0]) &
+                        (FileTimes[:, 0] < TimeWind[1]))[0]
+
+    FileInds = list(FileInds.flatten())
+    FilesToRead = [FilesIn[i] for i in FileInds]
+
+    return FilesToRead
+
+
+def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None):
     FbData = None
-    for ifi, FileIn in enumerate(FilesIn):
-        print(ifi, '-', len(FilesIn), FileIn, )
+    FilesToRead = CheckFilesTime(FilesIn, TimeWind)
+    for ifi, FileIn in enumerate(FilesToRead):
+        print(ifi, '-', len(FilesToRead), FileIn, )
         Data, _, _ = LoadMatFile(FileName=FileIn,
                                  InChannels=InChannels,
                                  DownFact=DownFact)
@@ -93,7 +125,7 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None):
         if FbData is None:
             FbData = Data
         else:
-            FbData = AppendData(FbData,Data)
+            FbData = AppendData(FbData, Data)
     return FbData
 
 

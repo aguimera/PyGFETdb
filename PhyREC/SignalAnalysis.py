@@ -77,13 +77,15 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
 
 
 def PlotSpectralCoherence(RefSig, Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
-                          scaling='density', Units=None, **LineKwargs):
+                          scaling='density', Units=None, Noverlap=2, **LineKwargs):
 
     if Ax is None:
         Fig, Ax = plt.subplots()
 
     if FMin is not None:
         nFFT = nFFTFMin(RefSig.sampling_rate, FMin)
+
+    noverlap = nFFT/Noverlap
 
     csACC = []
     for sl in Signals:
@@ -93,7 +95,9 @@ def PlotSpectralCoherence(RefSig, Signals, Time=None, nFFT=2**17, FMin=None, Ax=
         f, cs = signal.coherence(RefSig,
                                  sl.GetSignal(Time, Units=Units),
                                  fs=RefSig.sampling_rate,
-                                 nperseg=nFFT, axis=0)
+                                 nperseg=nFFT,
+                                 noverlap=noverlap,
+                                 axis=0)
 
         if hasattr(sl, 'LineKwargs'):
             lkwargs = sl.LineKwargs.copy()
@@ -110,7 +114,7 @@ def PlotSpectralCoherence(RefSig, Signals, Time=None, nFFT=2**17, FMin=None, Ax=
 
 
 def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
-            scaling='density', Units=None, **LineKwargs):
+            scaling='density', Units=None, Noverlap=2, **LineKwargs):
 
     if Ax is None:
         Fig, Ax = plt.subplots()
@@ -124,9 +128,12 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         if FMin is not None:
             nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
 
+        noverlap = nFFT/Noverlap
+
         ff, psd = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
                                window='hanning',
                                nperseg=nFFT,
+                               noverlap=noverlap,
                                scaling=scaling)
 
         if scaling == 'density':
