@@ -241,7 +241,8 @@ def main():
     # PLOTS ####################################################################
 
     # ####### INTERESTING PLOTS #######################
-    plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    plot.PlotWorkingTrts(GrBase1, Plot=True, **kwargs3)
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
     # plot.PlotWafersPerType(GrBase3,**kwargs1)
