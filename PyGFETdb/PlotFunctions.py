@@ -559,10 +559,10 @@ def PlotPSDMean(Fpsd, PSD, noisefit, perfect, ok, nType, PlotSuperMean=None, Plo
     :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
     :return: None
     """
-    if perfect and ok and PlotOnlyPerfect or \
+    if np.all(perfect) and np.all(ok) and PlotOnlyPerfect or \
             (not PlotOnlyPerfect and
-             ((perfect and PlotOnlyWorking or PlotOnlyFit) and (
-                     ok and PlotOnlyFit or not PlotOnlyFit))):
+             ((np.all(perfect) and PlotOnlyWorking or PlotOnlyFit) and (
+                     np.all(ok) and PlotOnlyFit or not PlotOnlyFit))):
 
         fig, ax = plt.subplots()
 

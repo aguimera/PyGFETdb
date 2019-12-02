@@ -212,8 +212,9 @@ def main():
             'gradientmean': 0.5,  # <-- max slope of the PSD
 
             # Mean PSD
+            'meanpsd':False,
             'meanfluctuation': 0.14,
-            'meangradient': 15e-18,  # <-- max peak of the mean PSD
+            'meangradient': 2.65e-22,  # <-- max peak of the mean PSD
             'meanpeak': 0.4,
             'meangradientmean': 5e-18,  # <-- max slope of the mean PSD
 
@@ -232,9 +233,9 @@ def main():
         'PlotMean': True,
         'PlotStd': True,
         'PlotNoise': True,
-        #'PlotOnlyWorking': True,  # All the OK
-        #'PlotOnlyFit': True,      # All the Fit even if not OK
-         'PlotOnlyPerfect': True  # Only the Working and Fit
+        'PlotOnlyWorking': True,  # All the OK
+        # 'PlotOnlyFit': True,      # All the Fit even if not OK
+        # 'PlotOnlyPerfect': True  # Only the Working and Fit
     }
 
     # PLOTS ####################################################################
