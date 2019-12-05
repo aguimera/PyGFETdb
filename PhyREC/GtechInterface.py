@@ -20,6 +20,7 @@ import PyGFETdb.DataStructures as FETdata
 import PyGFETdb.DataClass as FETcl
 import PyGFETdb.AnalyzeData as FETana
 
+from multiprocessing import Pool
 
 def LoadMatFile(FileName, InChannels=None, DownFact=None):
     """
@@ -113,19 +114,37 @@ def CheckFilesTime(FilesIn, TimeWind):
     return FilesToRead
 
 
-def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None):
+def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
+                 Multiproces=False):
+
     FbData = None
     FilesToRead = CheckFilesTime(FilesIn, TimeWind)
-    for ifi, FileIn in enumerate(FilesToRead):
-        print(ifi, '-', len(FilesToRead), FileIn, )
-        Data, _, _ = LoadMatFile(FileName=FileIn,
-                                 InChannels=InChannels,
-                                 DownFact=DownFact)
-
-        if FbData is None:
-            FbData = Data
-        else:
-            FbData = AppendData(FbData, Data)
+    
+    if Multiproces:
+        Args = []
+        for ifi, FileIn in enumerate(FilesToRead):
+            Args.append((FileIn, InChannels, DownFact))
+        Procs = Pool(len(FilesToRead))
+        Res = Procs.starmap(LoadMatFile, Args)
+        
+        for ifi, FileIn in enumerate(FilesToRead):
+            Data = Res[ifi, 0]
+            if FbData is None:
+                FbData = Data
+            else:
+                FbData = AppendData(FbData, Data)
+    else:               
+        for ifi, FileIn in enumerate(FilesToRead):
+            print(ifi, '-', len(FilesToRead), FileIn, )
+            Data, _, _ = LoadMatFile(FileName=FileIn,
+                                     InChannels=InChannels,
+                                     DownFact=DownFact)
+        
+            if FbData is None:
+                FbData = Data
+            else:
+                FbData = AppendData(FbData, Data)
+    
     return FbData
 
 
