@@ -82,7 +82,7 @@ def PlotTypesPerWafer(GrBase, arguments, Colors=None, legendTitle=None, xlabel=N
 #############################
 # SEARCH AND PLOT PSD
 ############################
-def PlotWorkingTypes(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypes(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -90,27 +90,16 @@ def PlotWorkingTypes(GrBase, Plot=False, **kwargs):
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
     print(' ')
     print('******************************************************************************')
     print('******* TYPE NOISE ANALYSIS **************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = s.DBSearchPerType(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    GrTypes, rPSD = s.DBSearchPerType(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotGroup(GrTypes, rPSD, **kwargs)
 
 
-def PlotWorkingWafers(GrBase, Plot=False, **kwargs):
+def PlotWorkingWafers(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -118,27 +107,17 @@ def PlotWorkingWafers(GrBase, Plot=False, **kwargs):
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
     print(' ')
     print('******************************************************************************')
     print('******* WAFER NOISE ANALYSIS *************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = s.DBSearchPerWafer(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    GrTypes, rPSD = s.DBSearchPerWafer(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotGroup(GrTypes,rPSD,**kwargs)
 
 
-def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
+
+def PlotWorkingDevices(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -146,27 +125,16 @@ def PlotWorkingDevices(GrBase, Plot=False, **kwargs):
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
     print(' ')
     print('******************************************************************************')
     print('******* DEVICE NOISE ANALYSIS ************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = s.DBSearchPerDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    GrTypes, rPSD = s.DBSearchPerDevice(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotGroup(GrTypes, rPSD, **kwargs)
 
 
-def PlotWorkingTypesPerWafer(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypesPerWafer(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -174,27 +142,16 @@ def PlotWorkingTypesPerWafer(GrBase, Plot=False, **kwargs):
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
     print(' ')
     print('******************************************************************************')
     print('******* NOISE ANALYSIS *******************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = s.DBSearchPerTypeAndWafer(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    GrTypes, rPSD = s.DBSearchPerTypeAndWafer(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotSubGroup(GrTypes, rPSD, **kwargs)
 
 
-def PlotWorkingTypesPerDevice(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypesPerDevice(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -202,27 +159,16 @@ def PlotWorkingTypesPerDevice(GrBase, Plot=False, **kwargs):
     :param kwargs: {remove50Hz: bool}
     :return: None
     """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
     print(' ')
     print('******************************************************************************')
     print('******* NOISE ANALYSIS *******************************************************')
     print('******************************************************************************')
     print(' ')
-    GrTypes, rPSD = s.DBSearchPerTypeAndDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    GrTypes, rPSD = s.DBSearchPerTypeAndDevice(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotSubGroup(GrTypes, rPSD, **kwargs)
 
 
-def PlotWorkingTypesPerTrt(GrBase, Plot=False, **kwargs):
+def PlotWorkingTypesPerTrt(GrBase, **kwargs):
     """
 
     :param GrBase: Conditions to search in the database
@@ -242,6 +188,61 @@ def PlotWorkingTypesPerTrt(GrBase, Plot=False, **kwargs):
     print('******************************************************************************')
     print(' ')
     GrTypes, rPSD = s.DBSearchPerTypeAndTrt(GrBase, arguments, **kwargs.get('db'))
+    return processAndPlotSubGroup(GrTypes,rPSD,**kwargs)
+
+
+def PlotWorkingTrts(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerTrt(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotGroup(GrTypes,rPSD,**kwargs)
+
+
+def PlotWorkingWafersAndDevices(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerWaferAndDevice(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotSubGroup(GrTypes, rPSD, **kwargs)
+
+
+def PlotWorkingDevicesAndTrts(GrBase, **kwargs):
+    """
+
+    :param GrBase: Conditions to search in the database
+    :param Plot: if True Plots the results
+    :param kwargs: {remove50Hz: bool}
+    :return: None
+    """
+    print(' ')
+    print('******************************************************************************')
+    print('******* NOISE ANALYSIS *******************************************************')
+    print('******************************************************************************')
+    print(' ')
+    GrTypes, rPSD = s.DBSearchPerDeviceAndTrt(GrBase, getArgumentsPSD(), **kwargs.get('db'))
+    return processAndPlotSubGroup(GrTypes,rPSD,**kwargs)
+
+
+def processAndPlotSubGroup(GrTypes,rPSD,Plot=False,**kwargs):
     results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
@@ -250,26 +251,7 @@ def PlotWorkingTypesPerTrt(GrBase, Plot=False, **kwargs):
     return results
 
 
-def PlotWorkingTrts(GrBase, Plot=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05},
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = s.DBSearchPerTrt(GrBase, arguments, **kwargs.get('db'))
+def processAndPlotGroup(GrTypes, rPSD, Plot=False, **kwargs):
     results = analysis.processAllPSDsPerGroup(rPSD, **kwargs.get('noise'))
     if Plot:
         plot.PlotResultsPSDPerGroup(GrTypes, results, **kwargs)
@@ -277,57 +259,12 @@ def PlotWorkingTrts(GrBase, Plot=False, **kwargs):
     print('Collect->', gc.collect())
     return results
 
-def PlotWorkingWafersAndDevices(GrBase, Plot=False, **kwargs):
-    """
 
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
+def getArgumentsPSD():
     arguments = {
         'Fpsd': {'Param': 'Fpsd', },
         'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
+        'NoA': {'Param': 'NoA', 'FFmin':5, 'FFmax':10000},
+        'NoB': {'Param': 'NoB', 'FFmin':5, 'FFmax':10000},
     }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = s.DBSearchPerWaferAndDevice(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
-
-
-def PlotWorkingDevicesAndTrts(GrBase, Plot=False, **kwargs):
-    """
-
-    :param GrBase: Conditions to search in the database
-    :param Plot: if True Plots the results
-    :param kwargs: {remove50Hz: bool}
-    :return: None
-    """
-    arguments = {
-        'Fpsd': {'Param': 'Fpsd', },
-        'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA'},
-        'NoB': {'Param': 'NoB'},
-    }
-    print(' ')
-    print('******************************************************************************')
-    print('******* NOISE ANALYSIS *******************************************************')
-    print('******************************************************************************')
-    print(' ')
-    GrTypes, rPSD = s.DBSearchPerDeviceAndTrt(GrBase, arguments, **kwargs.get('db'))
-    results = analysis.processAllPSDsPerSubgroup(GrTypes, rPSD, **kwargs.get('noise'))
-    if Plot:
-        plot.PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs)
-
-    print('Collect->', gc.collect())
-    return results
+    return arguments

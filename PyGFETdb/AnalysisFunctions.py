@@ -73,7 +73,7 @@ def processHiFreqs(Array, process):
     """
     if process:
         # remove the highest frequencies
-        for i in range(1, 28):  # To widen the effect increase the 25
+        for i in range(1, 6):  # To widen the effect increase the 25
             Array = g.remove(Array, Array.size - 1)
     return Array
 
@@ -117,6 +117,7 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
     okc = 0
     perfect = False
     perfectc = 0
+    Classc = [0,0,0,0]
     print(' ')
     print('******************************************************************************')
     print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
@@ -160,7 +161,8 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
                     print()
                     print("**WARNING** : Mean PSD not valid. Skipping check.")
 
-            printReportPerSubgroup(perfect, ok)
+            Class = printReportPerSubgroup(perfect, ok,grad,**kwargs)
+            Classc[Class] += 1
 
             print(' ')
             if ok:
@@ -176,12 +178,12 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
             iwf.append((nWf, perfectcw, iw))
             iwfo.append((nWf, okcw, iw))
 
-    PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic)
+    PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic,Classc)
 
     return results
 
 
-def PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic):
+def PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic, Classc):
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
@@ -199,6 +201,15 @@ def PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic):
     print('******************************************************************************')
     print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, ic, (perfectc / ic) * 100 if ic > 0 else 0))
     print('Noise Fitted OK -> {} of {} : {} %'.format(okc, ic, (okc / ic) * 100 if ic > 0 else 0))
+    print('******************************************************************************')
+    print('*** CLASSES ******************************************************************')
+    print(" 1 : 1/f (FIT) and low < gradient < high")
+    print(" 2 : Limited by Electronics (FIT) and gradient < low < high")
+    print(" 3 : Thermal Noise (NOK)")
+    print(" 0 : gradient > 0")
+    print('******************************************************************************')
+    for i, cc in enumerate(Classc):
+        print("Class {} -> {} of {} : {} % ".format(i, cc,ic,(cc/ic)*100 if ic > 0 else 0 ))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
@@ -308,8 +319,8 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
             if not np.all(temp2) and HaltOnFail:
                 noise = np.array(temp0)
                 noise = np.mean(noise, 0)
-                ok = np.all(temp1)
-                perfect = np.all(temp2)
+                ok = temp1
+                perfect = temp2
                 grad = temp3
                 noisegrad = temp4
                 mPSD = temp5
@@ -658,6 +669,7 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD,  **kwargs):
     iwfo = []
     okc = 0
     perfectc = 0
+    Classc = [0, 0, 0, 0]
     print(' ')
     print('******************************************************************************')
     print('******* RESULTS OF THE NOISE ANALYSIS ****************************************')
@@ -674,22 +686,23 @@ def processAllPSDsPerSubgroup(GrTypes, rPSD,  **kwargs):
         okct = 0
         it = 0
 
-        ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results = \
+        ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results, Classc = \
             processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct, iwf, iwfo,
                             itype, itypeo, results,
-                            nType, **kwargs)
+                            nType, Classc, **kwargs)
         if it > 0:
             itype.append((nType, perfectct, it))
             itypeo.append((nType, okct, it))
 
-    PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic)
+    PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic,Classc)
 
     return results
 
 
 def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct, iwf, iwfo,
                     itype, itypeo, results,
-                    nType, HaltOnFail=False, meanpsd=True, **kwargs):
+                    nType, Classc,
+                    HaltOnFail=False, meanpsd=True, **kwargs):
     #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for nWf, vWf in Fpsd.items():
@@ -728,7 +741,9 @@ def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct,
                     print()
                     print("**WARNING** : Mean PSD not valid. Skipping check.")
 
-            printReportPerSubgroup(perfect, ok)
+            Class = printReportPerSubgroup(perfect, ok, grad,**kwargs)
+
+            Classc[Class] += 1
 
             print(' ')
             if ok:
@@ -744,15 +759,15 @@ def processSubGroup(Fpsd, PSD, NoA, NoB, ic, it, okc, okct, perfectc, perfectct,
             iwf.append((nWf, perfectcw, iw))
             iwfo.append((nWf, okcw, iw))
         if not np.all(perfect) and HaltOnFail:
-            PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic)
+            PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic,Classc)
             print()
             print('Bad results: Halting analysis.')
             print()
-            return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results
-    return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results
+            return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results, Classc
+    return ic, it, okc, okct, perfectc, perfectct, iwf, iwfo, itype, itypeo, results, Classc
 
 
-def PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic):
+def PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic,Classc):
     print('******************************************************************************')
     print('*******  NOISE ANALYSIS SUMMARY ********************************************')
     print('******************************************************************************')
@@ -778,6 +793,15 @@ def PrintSummaryPerSubGroup(iwf, iwfo, itype, itypeo, perfectc, okc, ic):
     print('******************************************************************************')
     print('Perfect PSDs -> {} of {} : {} %'.format(perfectc, ic, (perfectc / ic) * 100 if ic > 0 else 0))
     print('Noise Fitted OK -> {} of {} : {} %'.format(okc, ic, (okc / ic) * 100 if ic > 0 else 0))
+    print('******************************************************************************')
+    print('*** CLASSES ******************************************************************')
+    print(" 1 : 1/f (FIT) and low < gradient < high")
+    print(" 2 : Limited by Electronics (FIT) and gradient < low < high")
+    print(" 3 : Thermal Noise (NOK)")
+    print(" 0 : gradient > 0")
+    print('******************************************************************************')
+    for i, cc in enumerate(Classc):
+        print("Class {} -> {} of {} : {} % ".format(i, cc, ic, (cc / ic) * 100 if ic > 0 else 0))
     print('******************************************************************************')
     print('******* END OF THE NOISE ANALYSIS ********************************************')
     print('******************************************************************************')
@@ -867,7 +891,7 @@ def processVgs(PSD, Fpsd, noise, HaltOnFail=False, **kwargs):
 
 
 def isPSDok(PSD, Fpsd, noise, fluctuation=43e-3, peak=0.58, gradient=5e-19, gradientmean=0.5,
-            fiterror=0.3, fitgradient=5e-21,
+            fiterror=0.3, minfitgradient=5e-21, maxfitgradient=10e-21,
             normalization=None, **kwargs):
     """
        :param PSD: PSD of a Group
@@ -924,7 +948,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=43e-3, peak=0.58, gradient=5e-19, grad
     perfect3 = np.all(graderror <= gradient)
 
     # Mean Gradient of the PSD
-    mgrad = np.abs(np.mean(grad))
+    mgrad = np.mean(grad)
     perfect4 = np.all(mgrad <= gradientmean)
 
     # Error of the noise fitting
@@ -932,7 +956,7 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=43e-3, peak=0.58, gradient=5e-19, grad
     fitmaxerr = np.max(fitpeak)
     if normalization is None:
         fitmaxerr = 1 - fitmaxerr
-    ok1 = fitmaxerr < fiterror
+    ok1 = fitmaxerr <= fiterror
 
     # Gradient of the noise fitting
     f = Fpsd.transpose()
@@ -940,19 +964,21 @@ def isPSDok(PSD, Fpsd, noise, fluctuation=43e-3, peak=0.58, gradient=5e-19, grad
 
     y2 = np.diff(noise.transpose())
     noisegrad = qty.Divide(y2, dx)
-    absnoisegrad = np.abs(noisegrad)
 
-    fitgraderror = np.mean(absgrad) - np.mean(absnoisegrad)
-    absgraderror = np.abs(fitgraderror)
-    fitmaxgraderror = np.mean(absgraderror)
+    fitgraderror = (grad - noisegrad)
 
-    ok2 = np.all(fitmaxgraderror <= fitgradient)
+    fitmingraderror = np.min(np.abs(fitgraderror))
+    ok2 = np.all(fitmingraderror <= minfitgradient)
+
+    fitmaxgraderror = np.max(np.abs(fitgraderror))
+    ok3 = np.all(fitmaxgraderror <= maxfitgradient)
+
 
     # Conditions of the PSD
     perfect = perfect1 and perfect2 and perfect3 and perfect4
 
     # Conditions of the noise fit
-    ok = ok1 and ok2
+    ok = ok1 and ok2 and ok3
 
     printReport(perfect, perfect1, perfect2, perfect3, perfect4, ok, ok1, ok2,
                 maxfluct, maxpeak, graderror, mgrad,
@@ -1005,7 +1031,10 @@ def printReport(
             print()
 
 
-def printReportPerSubgroup(perfect, ok):
+def printReportPerSubgroup(perfect, ok, grad,**kwargs):
+
+    Class, perfect, ok, grad = getTrtClass(perfect,ok,grad,**kwargs)
+
     if perfect:
         print()
         print('PSD Noise OK.')
@@ -1013,8 +1042,38 @@ def printReportPerSubgroup(perfect, ok):
         print()
         print('PSD Noise BAD.')
     if ok:
-        print('    Noise Fitted OK.')
+        print('    Noise Fitted OK. Class {}/{}'.format(Class,grad))
         print()
     else:
-        print('    Noise Fitted BAD.')
+        print('    Noise Fitted BAD. Class {}/{}'.format(Class,grad))
         print()
+
+    return Class
+
+
+def getTrtClass(perfect,ok,grad,low=-1,high=0,**kwargs):
+    """
+
+    :param perfect:
+    :param ok:
+    :param grad:
+    :param low:
+    :param high:
+    :param kwargs:
+    :return:
+            1 : 1/f (FIT) and low < gradient < high
+            2 : Limited by Electronics (FIT) and gradient < low < high
+            3 : Thermal Noise (NOK)
+            0 : gradient > 0
+    """
+    perfect = np.all(perfect)
+    ok = np.all(ok)
+    mgrad = np.mean(grad)
+
+    Class = \
+        2 if ok and mgrad < low < high else\
+        1 if ok and low < mgrad < high else \
+        3 if not ok else \
+        0  # not low < mgrad < high
+
+    return Class, perfect, ok, mgrad

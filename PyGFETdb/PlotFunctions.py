@@ -11,6 +11,7 @@ import numpy as np
 import quantities as pq
 
 from PyGFETdb import qty
+from PyGFETdb.AnalysisFunctions import getTrtClass
 
 
 ########################################################################
@@ -425,6 +426,56 @@ def PlotResults(Results, arguments, Colors=None, handles=None, xlabel=None, lege
                             xlabel=xlabel, **arguments[karg])
 
 
+def PlotResultsPSDPerSubgroupPerClass(GrTypes, results, rPSD, **kwargs):
+    """
+        **Plots the results of the Noise Analysis**
+
+    :param GrTypes: Group to plot
+    :param results: results of Noise Analysis
+    :param rPSD: results of a PSD search in the database
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    title = ""
+    for nType, vType in GrTypes.items():
+        Fpsd = rPSD[nType].get('Fpsd')
+        temp0 = []
+        temp1 = []
+        temp2 = []
+        temp3 = []
+        temp4 = []
+        temp5 = []
+        temp6 = []
+
+        for nWf, vWf in Fpsd.items():
+            r = results[nType].get(nWf)
+            if r is not None:
+                temp0.append(r[0])
+                temp1.append(r[1])
+                temp2.append(r[2])
+                temp3.append(r[3])
+                temp4.append(r[4])
+                temp5.append(r[5])
+                temp6.append(r[6])
+
+        temp5 = np.all(temp5)  # perfect
+        temp4 = np.all(temp4)  # ok
+
+        if temp1 is not None and len(temp1) > 0:
+            PlotPSDMeanPerClass(
+                        temp0[0],  # Fpsd
+                        temp1,  # PSD
+                        temp3,  # noise
+                temp5,  # perfect
+                temp4,  # ok
+                temp6,  # grad
+                nType,
+                        title=title,
+                        **kwargs)
+
+
 def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
     """
         **Plots the results of the Noise Analysis**
@@ -470,6 +521,191 @@ def PlotResultsPSDPerSubgroup(GrTypes, results, rPSD, **kwargs):
                 nType,
                         title=title,
                         **kwargs)
+
+
+def PlotResultsPSDPerGroupPerClass(GrTypes, results, **kwargs):
+    """
+        **Plots the results of the Noise Analysis**
+
+    :param GrTypes: Group to plot
+    :param results: results of Noise Analysis
+    :param rPSD: results of a PSD search in the database
+    :param PlotStd: Plot Standard Deviation and Noise
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+    for i in range(0, 4):
+        for nType, vType in GrTypes.items():
+            r = results.get(nType)
+            if r is not None:
+                Class, perfect, ok, grad = getTrtClass(r[5], r[4], r[6], **kwargs)
+                if Class == i:
+                    PlotPSDMeanPerClass(r[0][0],  # Fpsd
+                                r[1],  # PSD
+                                r[3],  # noise
+                                perfect,  # perfect
+                                ok,  # ok
+                                grad,  # grad
+                                Class,
+                                nType,
+                                **kwargs)
+
+
+def PlotPSDMeanPerClass(Fpsd, PSD, noisefit, perfect, ok, grad, Class, nType, PlotSuperMean=None, PlotClass=None, **kwargs):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param noisefit: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param PlotSuperMean: Plot PSD Mean, if False Plot all the PSDs
+    :return: None
+    """
+
+    if PlotClass is None or (Class == PlotClass):
+        fig, ax = plt.subplots()
+        mPSD = PSD
+        if PlotSuperMean:
+            try:
+                mPSD = np.array(PSD)
+                mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
+            except:
+                pass
+
+        PlotPSDPerClass(ax, Fpsd, mPSD, noisefit, perfect, ok, grad, Class, nType, **kwargs)
+
+
+def processNoiseForPlotPSD(noise):
+    noisei = np.array(noise)
+    if noisei.ndim == 2:
+        noisei = np.mean(noisei, 0)
+    if noisei.ndim > 2:
+        tn = []
+        for n in noisei:
+            nm = processNoiseForPlotPSD(n)
+            tn.append(nm)
+        tn = np.array(tn)
+        noisei = np.mean(tn, 0)
+    return noisei
+
+
+def reduce(item):
+    item = np.array(item)
+    try:
+        item = np.mean(item, 0)
+    except ValueError:
+        tl = []
+        for i in item:
+            t = reduce(i)
+            tl.append(t)
+        item = tl
+    item = np.array(item)
+    return item
+
+
+def PlotPSDPerClass(ax, Fpsd, PSD, noisefit, perfect, ok, mgrad, Class,  nType, PlotStd=True, PlotMean=True,
+            PlotNoise=False, **kwargs):
+    """
+
+    :param Fpsd: Data of the x axis
+    :param PSD:  Data of the y axis
+    :param noise: Data of the y axis for noise fitting
+    :param perfect: Boolean to approve the analysis
+    :param nType: Name of the Type of Trt
+    :param PlotStd: Plot Standard Deviation
+    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+    :param PlotNoise: Plot Noise Mean
+    :return: None
+    """
+
+    noise = np.array(noisefit)
+
+    for i, item in enumerate(PSD):
+        item = np.array(item)
+        for n in range(0, item.ndim - 3):
+            item = reduce(item)
+        for n in range(0, item.ndim - 3):
+            item = reduce(item)
+        if item is not None and item.ndim == 3 and noise.ndim == 3:
+            item = item.reshape((noise.shape[1], item.shape[2], noise.shape[2]))
+        else:
+            item = item.reshape((item.shape[1], item.shape[0], item.shape[2]))
+        for i2, item0 in enumerate(item):
+            if item0 is not None and item0.ndim == 2:
+                if PlotMean:
+                    PlotMeanStd(Fpsd, item0, ax, xscale='log', yscale='log', PlotStd=PlotStd)
+                else:
+                    for i3, item2 in enumerate(item0):
+                        PlotMeanStd(Fpsd, item2, ax, PlotOverlap=True, xscale='log', yscale='log',
+                                    PlotStd=PlotStd)
+        if PlotNoise and noise is not None:
+            if PlotMean or len(noise) != len(PSD):
+                noisei = processNoiseForPlotPSD(noise)
+            else:
+                noisei = processNoiseForPlotPSD(noise[i])
+
+            ax.loglog(Fpsd, noisei, '--')
+
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel('PSD [A^2/Hz]')
+
+    title = "PSDs {}:{}/{}/{} for {}".format(Class,"OK" if perfect else "NOK", "FIT" if ok else "NOK",mgrad, nType)
+    plt.title(title)
+
+def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
+        """
+            **Plots the results of the Noise Analysis**
+
+        :param GrTypes: Group to plot
+        :param results: results of Noise Analysis
+        :param rPSD: results of a PSD search in the database
+        :param PlotStd: Plot Standard Deviation and Noise
+        :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+        :param PlotNoise: Plot Noise Mean
+        :return: None
+        """
+        for nType, vType in GrTypes.items():
+            r = results.get(nType)
+            if r is not None:
+                PlotPSDMean(r[0][0],  # Fpsd
+                            r[1],  # PSD
+                            r[3],  # noise
+                            r[5],  # perfect
+                            r[4],  # ok
+                            nType,
+                            **kwargs)
+
+def PlotPSDMean(Fpsd, PSD, noisefit, perfect, ok, nType, PlotSuperMean=None, PlotOnlyWorking=False,
+                    PlotOnlyFit=False, PlotOnlyPerfect=False, **kwargs):
+        """
+
+        :param Fpsd: Data of the x axis
+        :param PSD:  Data of the y axis
+        :param noisefit: Data of the y axis for noise fitting
+        :param perfect: Boolean to approve the analysis
+        :param nType: Name of the Type of Trt
+        :param PlotSuperMean: Plot PSD Mean, if False Plot all the PSDs
+        :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
+        :return: None
+        """
+        if np.all(perfect) and np.all(ok) and PlotOnlyPerfect or \
+                (not PlotOnlyPerfect and
+                 ((np.all(perfect) and PlotOnlyWorking or PlotOnlyFit) and (
+                         np.all(ok) and PlotOnlyFit or not PlotOnlyFit))):
+
+            fig, ax = plt.subplots()
+
+            mPSD = PSD
+            if PlotSuperMean:
+                try:
+                    mPSD = np.array(PSD)
+                    mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
+                except:
+                    pass
+
+            PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, ok, nType, **kwargs)
 
 
 def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, ok, nType, PlotStd=True, PlotMean=True,
@@ -520,86 +756,3 @@ def PlotPSD(ax, Fpsd, PSD, noisefit, perfect, ok, nType, PlotStd=True, PlotMean=
 
     title = "PSDs {}/{} for {}".format("OK" if perfect else "NOK", "FIT" if ok else "NOK", nType)
     plt.title(title)
-
-
-def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
-    """
-        **Plots the results of the Noise Analysis**
-
-    :param GrTypes: Group to plot
-    :param results: results of Noise Analysis
-    :param rPSD: results of a PSD search in the database
-    :param PlotStd: Plot Standard Deviation and Noise
-    :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
-    :param PlotNoise: Plot Noise Mean
-    :return: None
-    """
-    for nType, vType in GrTypes.items():
-        r = results.get(nType)
-        if r is not None:
-            PlotPSDMean(r[0][0],  # Fpsd
-                        r[1],  # PSD
-                        r[3],  # noise
-                        r[5],  # perfect
-                        r[4],  # ok
-                        nType,
-                        **kwargs)
-
-
-def PlotPSDMean(Fpsd, PSD, noisefit, perfect, ok, nType, PlotSuperMean=None, PlotOnlyWorking=False,
-                PlotOnlyFit=False, PlotOnlyPerfect=False, **kwargs):
-    """
-
-    :param Fpsd: Data of the x axis
-    :param PSD:  Data of the y axis
-    :param noisefit: Data of the y axis for noise fitting
-    :param perfect: Boolean to approve the analysis
-    :param nType: Name of the Type of Trt
-    :param PlotSuperMean: Plot PSD Mean, if False Plot all the PSDs
-    :param plotonlyworking: Plots only the working items (Devices, Trts, etc).
-    :return: None
-    """
-    if np.all(perfect) and np.all(ok) and PlotOnlyPerfect or \
-            (not PlotOnlyPerfect and
-             ((np.all(perfect) and PlotOnlyWorking or PlotOnlyFit) and (
-                     np.all(ok) and PlotOnlyFit or not PlotOnlyFit))):
-
-        fig, ax = plt.subplots()
-
-        mPSD = PSD
-        if PlotSuperMean:
-            try:
-                mPSD = np.array(PSD)
-                mPSD = [np.mean(mPSD.transpose(), mPSD.ndim - 1).transpose()]
-            except:
-                pass
-
-        PlotPSD(ax, Fpsd, mPSD, noisefit, perfect, ok, nType, **kwargs)
-
-
-def processNoiseForPlotPSD(noise):
-    noisei = np.array(noise)
-    if noisei.ndim == 2:
-        noisei = np.mean(noisei, 0)
-    if noisei.ndim > 2:
-        tn = []
-        for n in noisei:
-            nm = processNoiseForPlotPSD(n)
-            tn.append(nm)
-        tn = np.array(tn)
-        noisei = np.mean(tn, 0)
-    return noisei
-
-
-def reduce(item):
-    item = np.array(item)
-    try:
-        item = np.mean(item, 0)
-    except ValueError:
-        tl = []
-        for i in item:
-            t = reduce(i)
-            tl.append(t)
-        item = tl
-    item = np.array(item)
-    return item

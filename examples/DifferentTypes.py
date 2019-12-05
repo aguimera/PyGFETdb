@@ -10,7 +10,8 @@ import gc
 import matplotlib.pyplot as plt
 import quantities as pq
 
-import PyGFETdb.SearchAndPlots as plot
+import PyGFETdb.SearchAndPlots as splot
+from PyGFETdb import SearchFunctions as s, AnalysisFunctions as analysis, PlotFunctions as plot
 
 
 ############################
@@ -200,65 +201,138 @@ def main():
         'remove50Hz': True,
     }
 
-    kwargs3 = {  # Per Trt
+    kwargs3 = {  # Per Trt or Device
         'db': {
             'remove50Hz': True
         },
-        'noise': {  # Important parameters
-            # PSD   # --------------------
+        'noise': {
+
+            # Mean PSD
+            'meanpsd': False,
+            'meanfluctuation': 0.14,
+            'meangradient': 2.65e-22,  # <-- max peak of the mean PSD
+            'meanpeak': 0.4,
+            'meangradientmean': -5e-18,  # <-- max slope of the mean PSD
+
+            # PSD
             'fluctuation': 43e-3,
             'gradient': 5e-19,  # <-- max width of the deviation
             'peak': 0.58,
             'gradientmean': 0.5,  # <-- max slope of the PSD
 
-            # Mean PSD
-            'meanpsd':False,
-            'meanfluctuation': 0.14,
-            'meangradient': 2.65e-22,  # <-- max peak of the mean PSD
-            'meanpeak': 0.4,
-            'meangradientmean': 5e-18,  # <-- max slope of the mean PSD
 
             # Noise fit
             'fiterror': 0.5,
-            'fitgradient': 5e-18,
+
+            'minfitgradient': 5e-18,
+            'maxfitgradient': 5e-20,
 
             # Debug
             'printbad': False,
             'printok': False,
 
             # Optimization
-            'HaltOnFail': False # TODO: Give correct results when halting
+            'HaltOnFail': False,  # TODO: Give correct results when halting
+
+            'high': -1e-24,
+            'low': -3e-20,
         },
         # 'PlotSuperMean': True
         'PlotMean': True,
         'PlotStd': True,
         'PlotNoise': True,
-        'PlotOnlyWorking': True,  # All the OK
+
+        # Plots without Class
+        # 'PlotOnlyWorking': True,  # All the OK
         # 'PlotOnlyFit': True,      # All the Fit even if not OK
-        # 'PlotOnlyPerfect': True  # Only the Working and Fit
+        'PlotOnlyPerfect': True  # Only the Working and Fit
+    }
+
+    kwargs4 = {  # Class Per Trt
+        'db': {
+            'remove50Hz': True
+        },
+        'noise': {
+
+            # Mean PSD
+            'meanpsd': False,
+            'meanfluctuation': 0.14,
+            'meangradient': 2.65e-22,  # <-- max peak of the mean PSD
+            'meanpeak': 0.4,
+            'meangradientmean': -5e-18,  # <-- max slope of the mean PSD
+
+            # PSD
+            'fluctuation': 43e-3,
+            'gradient': 2000e-23,  # <-- max width of the deviation
+            'peak': 0.58,
+            'gradientmean': 0,  # <-- max slope of the PSD
+
+            # Noise fit
+            'fiterror': 0.9,
+
+            'minfitgradient': 1e-24,
+            'maxfitgradient': 1,  # 5e-20,
+
+            # Debug
+            'printbad': False,
+            'printok': False,
+
+            # Optimization
+            'HaltOnFail': False,  # TODO: Give correct results when halting
+
+            'high': -1e-24,
+            'low': -3e-20,
+        },
+        # 'PlotSuperMean': True
+        'PlotMean': True,
+        'PlotStd': True,
+        'PlotNoise': True,
+
+        # 'PlotClass': 2,
+        'high': -1e-24,
+        'low': -3e-20,
+        # PlotClass == None : Plot All
+        # PlotClass == 1 : 1/f (FIT) and low < gradient < high
+        # PlotClass == 2 : Limited by Electronics (FIT) and gradient < low < high
+        # PlotClass == 3 : Thermal Noise (NOK)
+        # PlotClass == 0 : gradient > 0
     }
 
     # PLOTS ####################################################################
 
+
+    # PLOT CLASSES OF TRTS
+    #"""
+    GrTypes, rPSD = s.DBSearchPerTrt(GrBase3, splot.getArgumentsPSD(), **kwargs4.get('db'))
+    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs4.get('noise'))
+
+    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=0, **kwargs4)
+    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=1, **kwargs4)
+    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=2, **kwargs4)
+    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=3, **kwargs4)
+
+    print('Collect->', gc.collect())
+    #"""
+
     # ####### INTERESTING PLOTS #######################
-    plot.PlotWorkingDevices(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    # plot.PlotWorkingTrts(GrBase1, Plot=True, **kwargs3)
+    # splot.PlotWorkingDevices(GrBase1, Plot=True, PlotSuperMean=True, **kwargs3)
+    # splot.PlotWorkingTrts(GrBase1, Plot=True, **kwargs3)
 
     # ####### ALL THE PLOTS FOR ALL THE WAFERS #######
-    # plot.PlotWafersPerType(GrBase3,**kwargs1)
-    # plot.PlotTypesPerWafer(GrBase3,**kwargs2)
+    # splot.PlotWafersPerType(GrBase3,**kwargs1)
+    # splot.PlotTypesPerWafer(GrBase3,**kwargs2)
 
-    # plot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
+    # splot.PlotWorkingTrts(GrBase3, Plot=True, **kwargs3)
 
-    # plot.PlotWorkingWafers(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    # plot.PlotWorkingWafersAndDevices(GrBase3, Plot=True, **kwargs3)
+    # splot.PlotWorkingWafers(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # splot.PlotWorkingWafersAndDevices(GrBase3, Plot=True, **kwargs3)
 
-    # plot.PlotWorkingDevices(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # splot.PlotWorkingDevices(GrBase3, Plot=True, **kwargs3)
+    # splot.PlotWorkingDevicesAndTrts(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
 
-    # plot.PlotWorkingTypes(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
-    # plot.PlotWorkingTypesPerWafer(GrBase3, Plot=True, **kwargs3)
-    # plot.PlotWorkingTypesPerTrt(GrBase3,Plot=True,**kwargs3)
+    # splot.PlotWorkingTypes(GrBase3, Plot=True, PlotSuperMean=True, **kwargs3)
+    # splot.PlotWorkingTypesPerWafer(GrBase3, Plot=True, **kwargs3)
+    # splot.PlotWorkingTypesPerTrt(GrBase3,Plot=True,**kwargs3)
 
 # """"""""""""""""""""""""""""""""""""""""""""""
 # END MAIN
