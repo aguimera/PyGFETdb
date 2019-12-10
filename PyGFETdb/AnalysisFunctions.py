@@ -163,7 +163,7 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, NoC, HaltOnFail=False, **kwargs):
             noise = np.mean(noise, 0)
             ok = np.all(temp1)
             perfect = np.all(temp2)
-            grad = temp3
+            grad = np.array(temp3)
             noisegrad = temp4
             mPSD = temp5
             return [mPSD, noise, ok, perfect, grad, noisegrad]
@@ -171,7 +171,7 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, NoC, HaltOnFail=False, **kwargs):
     noise = np.mean(noise, 0)
     ok = np.all(temp1)
     perfect = np.all(temp2)
-    grad = temp3
+    grad = np.array(temp3)
     noisegrad = temp4
     mPSD = temp5
 
@@ -995,7 +995,11 @@ def getTrtClass(perfect,ok,grad,low=-1,high=0,**kwargs):
     """
     perfect = np.all(perfect)
     ok = np.all(ok)
-    mgrad = np.mean(grad)
+    grad = np.array(grad)
+    try:
+        mgrad = np.mean(grad)
+    except:
+        mgrad = np.nan
 
     Class = \
         2 if ok and mgrad < low < high else\

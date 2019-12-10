@@ -137,7 +137,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         getclass = PyGFETdb.Multiprocessing.getclass
 
     p = (len(GrWfs) * len(GrWfs.items()))
-    n = int(10 / p + p / 1000 / 5000 + 5)
+    n = int(20000/p + 5)
     print()
     print("Searching in DB {} times... forking {} threads".format(p, n))
     thread = Thread.MultiProcess(getclass, n)
@@ -222,7 +222,7 @@ def GetParams_MP(ResultsDB, GrWfs, arguments, **kwargs):
         getparamclass = PyGFETdb.Multiprocessing.getparamclass
 
     p = (len(arguments) * len(GrWfs) * len(GrWfs.items()))
-    n = int(100 / p + p / 5000 / 50000 + 5)
+    n = int(2000000 / p + 5)
     print("Searching {} Parameters... forking {} threads".format(p, n))
     thread = Thread.MultiProcess(getparamclass, n)
     for karg, arg in arguments.items():
