@@ -268,7 +268,7 @@ def main():
             'gradientmean': 0,  # <-- max slope of the PSD
 
             # Noise fit
-            'fiterror': 0.9,
+            'fiterror': 0.4,
 
             'minfitgradient': 1e-24,
             'maxfitgradient': 1,  # 5e-20,
@@ -306,10 +306,10 @@ def main():
     GrTypes, rPSD = s.DBSearchPerTrt(GrBase3, splot.getArgumentsPSD(), **kwargs4.get('db'))
     results = analysis.processAllPSDsPerGroup(rPSD, **kwargs4.get('noise'))
 
-    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=0, **kwargs4)
+    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=0, **kwargs4)
     # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=1, **kwargs4)
     plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=2, **kwargs4)
-    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=3, **kwargs4)
+    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=3, **kwargs4)
 
     print('Collect->', gc.collect())
     #"""

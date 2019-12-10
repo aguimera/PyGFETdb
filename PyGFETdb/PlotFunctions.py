@@ -654,6 +654,7 @@ def PlotPSDPerClass(ax, Fpsd, PSD, noisefit, perfect, ok, mgrad, Class,  nType, 
     title = "PSDs {}:{}/{}/{} for {}".format(Class,"OK" if perfect else "NOK", "FIT" if ok else "NOK",mgrad, nType)
     plt.title(title)
 
+
 def PlotResultsPSDPerGroup(GrTypes, results, **kwargs):
         """
             **Plots the results of the Noise Analysis**

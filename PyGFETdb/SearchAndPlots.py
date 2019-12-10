@@ -264,7 +264,8 @@ def getArgumentsPSD():
     arguments = {
         'Fpsd': {'Param': 'Fpsd', },
         'PSD': {'Param': 'PSD', 'Vds': 0.05, },
-        'NoA': {'Param': 'NoA', 'FFmin':5, 'FFmax':10000},
-        'NoB': {'Param': 'NoB', 'FFmin':5, 'FFmax':10000},
+        'NoA': {'Param': 'NoA', 'FFmin': 5, 'FFmax':10000},
+        'NoB': {'Param': 'NoB', 'FFmin': 5, 'FFmax': 10000},
+        'NoC': {'Param': 'NoC', 'FFmin': 5, 'FFmax': 10000},
     }
     return arguments

@@ -9,11 +9,9 @@ import datetime
 import pickle
 import sys
 
-import numpy as np
 import pymysql
 
 from PyGFETdb import multithrds, Thread
-from PyGFETdb.AnalysisFunctions import processFreqs as process
 from PyGFETdb.DB import *
 
 
@@ -340,7 +338,7 @@ class _PyFETdb(object):
 
         return self.FindFillOutput(query, Values, Output)
 
-    def GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
+    def GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False):
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
@@ -387,7 +385,7 @@ class _PyFETdb(object):
 
             for cy, re in enumerate(Re):
                 cy = 'Cy{0:03d}'.format(cy)
-                Data[Trt][cy] = self._DecodeData(re[DataF], remove50Hz=remove50Hz)
+                Data[Trt][cy] = self._DecodeData(re[DataF])
 #                Data[Trt][cy]['Ph'] = pickle.loads(re[DataPh])
 #                Data[Trt][cy]['FuncCond'] = pickle.loads(re[DataPh])
 
@@ -446,7 +444,7 @@ class _PyFETdb(object):
             self._execute(query, Id)
         self.db.commit()
 
-    def GetData2(self, Conditions, Table, Last=True, GetGate=False, remove50Hz=False):
+    def GetData2(self, Conditions, Table, Last=True, GetGate=False):
         Output = ('{}.id{}'.format(Table, Table,),
                   'Trts.Name')
 
@@ -464,10 +462,10 @@ class _PyFETdb(object):
                                      Trts=set(Trts),
                                      Last=Last,
                                      GetGate=GetGate,
-                                     remove50Hz=remove50Hz)
+                                     )
         return Data, list(set(Trts))
 
-    def GetTrtCharact2(self, Table, TrtId, TrtName, Last=False, remove50Hz=False):
+    def GetTrtCharact2(self, Table, TrtId, TrtName, Last=False):
 
         cond = {'{}.Trt_id='.format(Table): TrtId}
 
@@ -482,19 +480,19 @@ class _PyFETdb(object):
 
         Vals = {}
         if Last:
-            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0], remove50Hz=remove50Hz)
+            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0])
             if TrtName:
                 Vals['Cy{0:03d}'.format(0)]['Name'] = TrtName
         else:
             for cy, re in enumerate(Res):
-                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0], remove50Hz=remove50Hz)
+                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0])
                 if TrtName:
                     Vals['Cy{0:03d}'.format(cy)]['Name'] = TrtName
 
         return Vals
 
     def GetData(self, Conditions, DC=True, AC=True, Last=False,
-                Date=None, IsCmp=None, remove50Hz=False):
+                Date=None, IsCmp=None):
 
         Output = ('Trts.idTrts', 'Trts.Name',
                   'TrtTypes.idTrtTypes', 'TrtTypes.Name',
@@ -523,7 +521,7 @@ class _PyFETdb(object):
                                             TrtName=T['Trts.Name'],
                                             Last=Last,
                                             Date=Date,
-                                            IsCmp=IsCmp, remove50Hz=remove50Hz)
+                                            IsCmp=IsCmp)
                 if ACVals is not None:
                     TrtsOut.append(T)
                     DataAC[T['Trts.Name']] = ACVals
@@ -531,7 +529,7 @@ class _PyFETdb(object):
         return DataDC, DataAC, TrtsOut
 
     def GetTrtCharact(self, Table, TrtId, TrtName=None,
-                      Last=False, Date=None, IsCmp=None, remove50Hz=False):
+                      Last=False, Date=None, IsCmp=None):
 
         cond = {'{}.Trt_id='.format(Table): TrtId}
         if Date is not None:
@@ -552,12 +550,12 @@ class _PyFETdb(object):
 
         Vals = {}
         if Last:
-            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0], remove50Hz=remove50Hz)
+            Vals['Cy{0:03d}'.format(0)] = self._DecodeData(Res[-1][0])
             if TrtName:
                 Vals['Cy{0:03d}'.format(0)]['Name'] = TrtName
         else:
             for cy, re in enumerate(Res):
-                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0], remove50Hz=remove50Hz)
+                Vals['Cy{0:03d}'.format(cy)] = self._DecodeData(re[0])
                 if TrtName:
                     Vals['Cy{0:03d}'.format(cy)]['Name'] = TrtName
 
@@ -652,32 +650,9 @@ class PyFETdb(_PyFETdb):
         Thread.lock.release()
         return ret
 
-    def _processPSD(self, Dict, remove50Hz=False):
-        if remove50Hz:
-            res = []
-            for kdict, ndict in Dict.items():
-                for i, item in enumerate(ndict):
-                    res.append(process(item, remove50Hz))
-            res = np.array(res)
-            Dict.update({kdict: res})
-
-    def _processFPSD(self, dbFPsd, remove50Hz=False):
-        ret = process(dbFPsd, remove50Hz)
-        return ret
-
-    def _DecodeData(self, DataF, remove50Hz=False):
-        res = super(PyFETdb, self)._DecodeData(DataF)
-        k = res.get('PSD')
-        if k is not None:
-            self._processPSD(k, remove50Hz)
-        k = res.get('Fpsd')
-        if k is not None:
-            a = self._processFPSD(k, remove50Hz)
-            res.update({'Fpsd': a})
-        return res
 
     # FIXME:
-    def _GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False, remove50Hz=False):
+    def _GetCharactFromId(self, Table, Ids, Trts, Last=False, GetGate=False):
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
@@ -716,7 +691,7 @@ class PyFETdb(_PyFETdb):
         Keys = []
         for Trt in Trts:
             args = {'args': {'self': self, 'Trt': Trt, 'Cond': Cond, 'Table': Table, 'Output': Output, 'Last': Last,
-                             'DataF': DataF, 'remove50Hz': remove50Hz, 'GetGate': GetGate,
+                             'DataF': DataF, 'GetGate': GetGate,
                              'GidF': GidF, 'DCidF': DCidF}}
             key = thread.initcall(Thread.key(), PyFETdb)
             Keys.append(key)
@@ -733,7 +708,7 @@ class PyFETdb(_PyFETdb):
         del thread
         return Data
 
-    def _getTrt(self, Trt, Cond, Table, Output, Last, DataF, remove50Hz, GetGate, GidF, DCidF):
+    def _getTrt(self, Trt, Cond, Table, Output, Last, DataF, GetGate, GidF, DCidF):
         Cond['Trts.Name='] = (Trt,)
         Res = self.GetCharactInfo(Table, Cond, Output)
         Data = {}
@@ -746,7 +721,7 @@ class PyFETdb(_PyFETdb):
 
         for cy, re in enumerate(Re):
             cy = 'Cy{0:03d}'.format(cy)
-            Data[Trt][cy] = self._DecodeData(re[DataF], remove50Hz=remove50Hz)
+            Data[Trt][cy] = self._DecodeData(re[DataF])
             #                Data[Trt][cy]['Ph'] = pickle.loads(re[DataPh])
             #                Data[Trt][cy]['FuncCond'] = pickle.loads(re[DataPh])
 

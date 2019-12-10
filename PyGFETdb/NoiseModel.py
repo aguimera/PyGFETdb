@@ -27,11 +27,13 @@ def Fnoise (f,a,b):
     '''
     return qty.Divide(a, f ** b)
 
+
 def FnoiseTh (f,a,b,c):
     '''
     return a/f^b+c
     '''
-    return qty.Divide(a, f ** b + c)
+    return qty.Divide(a, f ** b) + c
+
 
 def LogFnoise (f,a,b):
     '''

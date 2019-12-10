@@ -549,7 +549,7 @@ class DBViewApp(QtWidgets.QMainWindow):
             Trts = self.GetTableSelectCol(self.TblAC,
                                           Col=self.ACFields['Trts.Name'][1],
                                           String=True)
-            self.DataAC = self.DB.GetCharactFromId('ACcharacts', ids, Trts, remove50Hz=remove50Hz)
+            self.DataAC = self.DB.GetCharactFromId('ACcharacts', ids, Trts)
 
         if DC:
             ids = self.GetTableSelectCol(self.TblDC)

@@ -137,7 +137,7 @@ def SearchDB_MP(GrWfs, **kwargs):
         getclass = PyGFETdb.Multiprocessing.getclass
 
     p = (len(GrWfs) * len(GrWfs.items()))
-    n = int(10 / p + p / 1000 / 5000 + 3)
+    n = int(10 / p + p / 1000 / 5000 + 5)
     print()
     print("Searching in DB {} times... forking {} threads".format(p, n))
     thread = Thread.MultiProcess(getclass, n)
@@ -349,7 +349,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
     for Trtn, Val in results.items():
         if Val is not None:
             if type(Val) is pq.Quantity \
-                    or Param == 'PSD' or Param == 'Fpsd' or Param == 'NoA' or Param == 'NoB':
+                    or Param == 'PSD' or Param == 'Fpsd' or Param == 'NoA' or Param == 'NoB' or Param == 'NoC':
                 Vals = qty.appendQuantity(Vals, Val)
             else:
                 Vals = np.array(Vals)
@@ -449,8 +449,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     DataD, Trts = MyDb.GetData2(Conditions=Conditions,
                                 Table=Table,
                                 Last=Last,
-                                GetGate=GetGate,
-                                remove50Hz=remove50Hz)
+                                GetGate=GetGate)
 
     del (MyDb)
     Trts = list(Trts)
@@ -460,7 +459,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     for Trtn, Cys in DataD.items():
         Chars = []
         for Cyn, Dat in sorted(Cys.items()):
-            Char = DataCharAC(Dat)
+            Char = DataCharAC(Dat,remove50Hz=remove50Hz)
             Chars.append(Char)
         Data[Trtn] = Chars
 

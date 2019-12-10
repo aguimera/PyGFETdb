@@ -9,88 +9,8 @@ Analysis Functions that do not fit in the previous files.
 import numpy as np
 
 import PyGFETdb
-from PyGFETdb import qty, GlobalFunctions as g, Thread as mp
-from PyGFETdb.NoiseModel import Fnoise
-
-
-########################################################################
-#
-#  FREQUENCY FILTERS
-#
-########################################################################
-def process50Hz(Array, process):
-    """
-        **Removes the frequency 50Hz**
-
-    :param Array: array of frequencies
-    :param process: bool that activates the function
-    :return: the array without the frequency 50Hz
-    """
-    if process:
-        # remove 50Hz
-        for i in range(1, 2):  # To widen the effect increase the 2
-            Array = g.remove(Array, 48)
-    return Array
-
-
-def process60Hz(Array, process):
-    """
-        **Removes the frequency 60Hz**
-
-    :param Array: array of frequencies
-    :param process: bool that activates the function
-    :return: the array without the frequency 50Hz
-    """
-    if process:
-        # remove 60Hz
-        for i in range(1, 2):  # To widen the effect increase the 2
-            Array = g.remove(Array, 50)
-    return Array
-
-
-def processBelow10Hz(Array, process):
-    """
-        **Removes the frequencies below 1Hz**
-
-    :param Array: array of frequencies
-    :param process: bool that activates the function
-    :return: the array without the frequencies below 1Hz
-    """
-    if process:
-        #  remove below 1Hz
-        for i in range(1, 35):  # To widen the effect increase the 15
-            Array = g.remove(Array, 0)
-    return Array
-
-
-def processHiFreqs(Array, process):
-    """
-        **Removes the higher frequencies**
-
-    :param Array: array of frequencies
-    :param process: bool that activates the function
-    :return: the array without the higher frequencies
-    """
-    if process:
-        # remove the highest frequencies
-        for i in range(1, 6):  # To widen the effect increase the 25
-            Array = g.remove(Array, Array.size - 1)
-    return Array
-
-
-def processFreqs(Array, process):
-    """
-            **Removes all the unwanted frequencies**
-
-        :param Array: array of frequencies
-        :param process: bool that activates the function
-        :return: the array without the unwanted frequencies
-        """
-    Array = process50Hz(Array, process)
-    Array = process60Hz(Array, process)
-    Array = processBelow10Hz(Array, process)
-    Array = processHiFreqs(Array, process)
-    return Array
+from PyGFETdb import qty, Thread as mp
+from PyGFETdb.DataClass import FnoiseTh
 
 
 ########################################################################
@@ -98,7 +18,6 @@ def processFreqs(Array, process):
 #  PSD ANALYSIS
 #
 ########################################################################
-
 def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
     """
 
@@ -130,10 +49,12 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
     PSD = rPSD['PSD']
     NoA = rPSD['NoA']
     NoB = rPSD['NoB']
+    NoC = rPSD['NoC']
     for nWf, vWf in Fpsd.items():
         PSDt = PSD[nWf]
         NoAt = NoA[nWf]
         NoBt = NoB[nWf]
+        NoCt = NoC[nWf]
         perfectcw = 0
         okcw = 0
         iw = 0
@@ -145,7 +66,7 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
             print('{}) Group:{}'.format(ic, nWf))
             print('***************************************************')
 
-            [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoiseGroup(PSDt, Fpsdt, NoAt, NoBt,
+            [mPSD, noise, ok, perfect, grad, noisegrad] = processAllNoiseGroup(PSDt, Fpsdt, NoAt, NoBt, NoCt,
                                                                                HaltOnFail=HaltOnFail,
                                                                                **kwargs)
 
@@ -215,7 +136,7 @@ def PrintSummaryPerGroup(iwf, iwfo, perfectc, okc, ic, Classc):
     print('******************************************************************************')
 
 
-def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
+def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, NoC, HaltOnFail=False, **kwargs):
     temp0 = []
     temp1 = []
     temp2 = []
@@ -225,7 +146,7 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
     #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for i, item in enumerate(PSD):
-        mPSD, noise, ok, perfect, grad, noisegrad = processAllNoise(item, Fpsd[i], NoA[i], NoB[i],
+        mPSD, noise, ok, perfect, grad, noisegrad = processAllNoise(item, Fpsd[i], NoA[i], NoB[i], NoC[i],
                                                                     HaltOnFail=HaltOnFail,
                                                                     **kwargs)
         temp0.append(noise)
@@ -257,7 +178,7 @@ def processAllNoiseGroup(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
     return [mPSD, noise, ok, perfect, grad, noisegrad]
 
 
-def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
+def processAllNoise(PSD, Fpsd, NoA, NoB, NoC, **kwargs):
     try:
         PSD = np.array(PSD)
         n = int(PSD.size / 500 + 5)
@@ -266,7 +187,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     # print('Processing PSDs... forking {} threads'.format(n))
     thread = mp.MultiProcess(PyGFETdb.AnalysisFunctions, n)
     key = thread.initcall(mp.key(), PyGFETdb.AnalysisFunctions)
-    args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB}
+    args = {'PSD': PSD, 'Fpsd': Fpsd, 'NoA': NoA, 'NoB': NoB, 'NoC': NoC}
     args.update(kwargs)
     thread.call(key, PyGFETdb.AnalysisFunctions, '_processAllNoise', args, **args)
     r = thread.getResults(key)[key][0]
@@ -275,7 +196,7 @@ def processAllNoise(PSD, Fpsd, NoA, NoB, **kwargs):
     return r
 
 
-def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
+def _processAllNoise(PSD, Fpsd, NoA, NoB, NoC, HaltOnFail=False,
                      **kwargs):
     """
 
@@ -306,7 +227,7 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
 
     if type(NoA) is list():
         for i, item in enumerate(NoA):
-            mPSD, noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],
+            mPSD, noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],NoC[i],
                                                                    HaltOnFail=HaltOnFail,
                                                                    **kwargs)
 
@@ -333,7 +254,7 @@ def _processAllNoise(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
         noisegrad = temp4
         mPSD = temp5
     else:
-        mPSD, noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA, NoB,
+        mPSD, noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA, NoB,NoC,
                                                                HaltOnFail=HaltOnFail,
                                                                **kwargs)
 
@@ -365,7 +286,7 @@ def isMeanPSDOk(Fpsd, PSD, noise, meanfluctuation=None, meanpeak=None, meangradi
     return perfect, ok
 
 
-def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
+def processNoA(PSD, Fpsd, NoA, NoB,NoC, HaltOnFail=False, **kwargs):
     retnoise = np.array([])
     grad = np.array([])
     noisegrad = np.array([])
@@ -377,11 +298,11 @@ def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
 
     if NoA is not None and len(NoA) > 0:
         if type(NoA) is list:
-            return processNoAlist(PSD, Fpsd, NoA, NoB,
+            return processNoAlist(PSD, Fpsd, NoA, NoB,NoC,
                                   HaltOnFail=HaltOnFail,
                                   **kwargs)
 
-        noise, retnoise = calculateNoise(Fpsd, NoA, NoB)
+        noise, retnoise = calculateNoise(Fpsd, NoA, NoB,NoC)
 
         mPSD = reshapePSD(PSD, NoA)
 
@@ -407,7 +328,7 @@ def processNoA(PSD, Fpsd, NoA, NoB, HaltOnFail=False, **kwargs):
             temp4 = []
             temp5 = []
             for item in mPSD:
-                tmPSD, retnoise, ok, perfect, grad, noisegrad = processNoA(item, Fpsd, NoA, NoB,
+                tmPSD, retnoise, ok, perfect, grad, noisegrad = processNoA(item, Fpsd, NoA, NoB,NoC,
                                                                            HaltOnFail=HaltOnFail,
                                                                            **kwargs)
 
@@ -480,25 +401,31 @@ def _reshapePSD(PSD, NoA):
     return mPSD
 
 
-def calculateNoise(Fpsd, NoA, NoB):
+def calculateNoise(Fpsd, NoA, NoB,NoC):
     f = np.array([Fpsd])
     tnoise = []
+    tretnoise = []
     for i, item in enumerate(NoA):
         NoAi = NoA[i]
         NoBi = NoB[i]
-        noise = Fnoise(f.transpose(), [NoAi], [NoBi])
+        NoCi = NoC[i]
+        noise = FnoiseTh(f.transpose(), [NoAi], [NoBi], [NoCi])
+        retnoise = FnoiseTh(f.transpose(), [NoAi], [NoBi], [NoCi])
         if noise is not None:
             tnoise.append(noise.transpose())
+            tretnoise.append(retnoise.transpose())
     if len(tnoise) > 0:
         noise = np.array(tnoise)
-        retnoise = np.mean(noise, 0)
+        retnoise = np.array(tretnoise)
+        retnoise = np.mean(retnoise, 0)
     else:
         noise = np.array([])
         retnoise = np.repeat(0, len(Fpsd))
+
     return noise, retnoise
 
 
-def processNoAlist(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
+def processNoAlist(PSD, Fpsd, NoA, NoB,NoC, HaltOnFail=False,
                    **kwargs):
     temp0 = []
     temp1 = []
@@ -508,7 +435,7 @@ def processNoAlist(PSD, Fpsd, NoA, NoB, HaltOnFail=False,
     #kwargs.update({'HaltOnFail': HaltOnFail})
 
     for i in range(0, len(NoA) - 1):
-        noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],
+        noise, ok, perfect, grad, noisegrad = processNoA(PSD, Fpsd, NoA[i], NoB[i],NoC[i],
                                                          HaltOnFail=HaltOnFail,
                                                          **kwargs)
         temp0.append(noise)

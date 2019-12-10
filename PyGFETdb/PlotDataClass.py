@@ -20,7 +20,7 @@ from scipy.interpolate import interp1d
 import PyGFETdb.AnalysisFunctions as analysis
 import PyGFETdb.NoiseModel as noise
 from PyGFETdb import qty
-from PyGFETdb.AnalysisFunctions import processFreqs as process
+from PyGFETdb.DataClass import processFreqs as process
 
 
 class MyCycle():
@@ -649,4 +649,133 @@ class PyFETPlot(PyFETPlotBase):
                                 color=self.color,
                                 label=label)
 
+
+class PyFETPlotDataClass(PyFETPlotBase):
+
+    # (logY, logX, X variable)
+    AxsProp = {'Vrms': (1, 0, 'Vgs'),
+               'Irms': (1, 0, 'Vgs'),
+               'NoA': (1, 0, 'Vgs'),
+               'FitErrA': (1, 0, 'Vgs'),
+               'FitErrB': (1, 0, 'Vgs'),
+               'NoB': (0, 0, 'Vgs'),
+               'GM': (0, 0, 'Vgs'),
+               'Ids': (0, 0, 'Vgs'),
+               'Ig': (0, 0, 'Vgs'),
+               'Rds': (0, 0, 'Vgs'),
+               'FEMn': (0, 0, 'Vgs'),
+               'FEMmu': (1, 0, 'Vgs'),
+               'FEMmuGm': (1, 0, 'Vgs'),
+               'PSD': (1, 1, 'Fpsd'),
+               'GmMag': (1, 1, 'Fgm'),
+               'GmPh': (0, 1, 'Fgm')}
+
+    ColorParams = {'Contact': ('TrtTypes', 'Contact'),
+                   'Length': ('TrtTypes', 'Length'),
+                   'Width': ('TrtTypes', 'Width'),
+                   'Pass': ('TrtTypes', 'Pass'),
+                   'W/L': (None, None),
+                   'Trt': (None, 'Name'),
+                   'Date': (None, 'DateTime'),
+                   'Ud0': (None, 'Ud0'),
+                   'Device': ('TrtTypes', 'Devices.Name'),
+                   'Wafer': ('TrtTypes', 'Wafers.Name')}  # TODO fix with arrays
+
+    def __init__(self, Size=(9, 6)):
+        self.CreateFigure(Size=Size)
+
+    def GetColorValue(self, Data, ColorOn):
+        if self.ColorParams[ColorOn][1]:
+            if self.ColorParams[ColorOn][0]:
+                p = Data.__getattribute__(self.ColorParams[ColorOn][0])
+                v = p[self.ColorParams[ColorOn][1]]
+            else:
+                v = Data.__getattribute__(self.ColorParams[ColorOn][1])
+        elif ColorOn == 'W/L':
+            p = Data.__getattribute__('TrtTypes')
+            v = qty.Divide(p['Width'], p['TrtTypes']['Length'])
+        return v
+
+    def PlotDataCh(self, DataDict, Trts, Vgs=None, Vds=None, Ud0Norm=False,
+                   PltIsOK=True, ColorOn='Trt'):
+
+        self.setNColors(len(DataDict))
+        for Trtv in DataDict.values():
+            self.color = self.NextColor()
+            try:
+                self.Plot(DataDict, Vgs=Vgs, Vds=Vds,
+                          Ud0Norm=Ud0Norm, PltIsOK=PltIsOK)
+            except:  # TODO: catch *all* exceptions
+                print (sys.exc_info()[0])
+
+    def PlotDataSet(self, DataDict, Trts=None,
+                    Vgs=None, Vds=None, Ud0Norm=False,
+                    PltIsOK=True, ColorOn='Trt', MarkOn='Cycle', **kwargs):
+
+        if Trts is None:
+            Trts = DataDict.keys()
+
+        Par = []
+        for TrtN in sorted(Trts):
+            for Dat in DataDict[TrtN]:
+                Par.append(self.GetColorValue(Dat, ColorOn))
+
+        Par = sorted(set(Par))
+        self.setNColors(len(Par))
+        ColPar = {}
+        for p in Par:
+            self.NextColor()
+            ColPar[p] = self.color
+
+        for TrtN in sorted(Trts):
+            self.marks.reset()
+            for Dat in DataDict[TrtN]:
+                self.color = ColPar[self.GetColorValue(Dat, ColorOn)]
+                if MarkOn == 'Cycle':
+                    self.NextMark()
+
+                try:
+                    self.Plot(Dat, Vgs=Vgs, Vds=Vds,
+                              Ud0Norm=Ud0Norm, PltIsOK=PltIsOK, **kwargs)
+                except:  # TODO: catch *all* exceptions
+                    print (TrtN, sys.exc_info()[0])
+
+    def Plot(self, Data, Vgs=None, Vds=None,
+             Ud0Norm=False, PltIsOK=True, ColorOnVgs=False, **kwargs):
+
+        label = Data.Name
+
+        for axn, ax in self.Axs.items():
+            Mark = self.line + self.mark
+            if not Data.IsOK and PltIsOK:
+                Mark = '+'
+
+            if self.AxsProp[axn][2] == 'Vgs':
+                if Vgs is None:
+                    Valx = Data.GetVgs(Ud0Norm=Ud0Norm, **kwargs)
+                else:
+                    Valx = Vgs
+            else:
+                func = Data.__getattribute__('Get' + self.AxsProp[axn][2])
+                Valx = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+
+            func = Data.__getattribute__('Get' + axn)
+            Valy = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+
+            if Valx is not None and Valy is not None:
+                ax.plot(Valx, Valy, Mark, color=self.color, label=label)
+
+                if axn == 'PSD':
+                    a = Data.GetNoA(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,
+                                    **kwargs)
+                    b = Data.GetNoB(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,
+                                    **kwargs)
+                    Valy = noise.Fnoise(Valx, a, b).transpose()
+                    ax.plot(Valx, Valy, Mark, '--',
+                            color=self.color, alpha=0.5)
+
+                if self.AxsProp[axn][0]:
+                    ax.set_yscale('log')
+                if self.AxsProp[axn][1]:
+                    ax.set_xscale('log')
 

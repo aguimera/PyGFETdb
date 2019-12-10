@@ -13,11 +13,104 @@ import scipy.optimize as optim
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
 
-from PyGFETdb import PlotDataClass
-from PyGFETdb import qty
+from PyGFETdb import qty, GlobalFunctions as g
 
 DebugPrint = False
 
+
+########################################################################
+#
+#  FREQUENCY FILTERS
+#
+########################################################################
+def process50Hz(Array, process):
+    """
+        **Removes the frequency 50Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequency 50Hz
+    """
+    if process:
+        # remove 50Hz
+        for i in range(1, 2):  # To widen the effect increase the 2
+            Array = g.remove(Array, 48)
+    return Array
+
+
+def process60Hz(Array, process):
+    """
+        **Removes the frequency 60Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequency 50Hz
+    """
+    if process:
+        # remove 60Hz
+        for i in range(1, 2):  # To widen the effect increase the 2
+            Array = g.remove(Array, 50)
+    return Array
+
+
+def processBelow10Hz(Array, process):
+    """
+        **Removes the frequencies below 1Hz**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the frequencies below 1Hz
+    """
+    if process:
+        #  remove below 1Hz
+        for i in range(1, 35):  # To widen the effect increase the 15
+            Array = g.remove(Array, 0)
+    return Array
+
+
+def processHiFreqs(Array, process):
+    """
+        **Removes the higher frequencies**
+
+    :param Array: array of frequencies
+    :param process: bool that activates the function
+    :return: the array without the higher frequencies
+    """
+    if process:
+        # remove the highest frequencies
+        for i in range(1, 6):  # To widen the effect increase the 25
+            Array = g.remove(Array, Array.size - 1)
+    return Array
+
+
+def processFreqs(Array, process):
+    """
+            **Removes all the unwanted frequencies**
+
+        :param Array: array of frequencies
+        :param process: bool that activates the function
+        :return: the array without the unwanted frequencies
+        """
+    Array = process50Hz(Array, process)
+    Array = process60Hz(Array, process)
+    Array = processBelow10Hz(Array, process)
+    Array = processHiFreqs(Array, process)
+    return Array
+
+
+def _processPSD(Dict, remove50Hz=False):
+    if remove50Hz:
+        res = []
+        for kdict, ndict in Dict.items():
+            for i, item in enumerate(ndict):
+                res.append(processFreqs(item, remove50Hz))
+            res = np.array(res)
+            Dict.update({kdict: res})
+
+
+def _processFPSD( dbFPsd, remove50Hz=False):
+    ret = processFreqs(dbFPsd, remove50Hz)
+    return ret
 
 class DataCharDC(object):
     PolyOrder = 10
@@ -27,7 +120,10 @@ class DataCharDC(object):
 #    FEMCdl = 2e-6  # F/cm^2
     IntMethod = 'linear'
 
-    def __init__(self, Data):
+    def __init__(self, Data, remove50Hz=False, **kwargs):
+
+        self.remove50Hz = remove50Hz
+
         for k, v in Data.items():
             if k == 'Gate':
                 if v is None:
@@ -43,6 +139,10 @@ class DataCharDC(object):
             #   assign the proper unit
             if qty.isDefaultQuantityKey(k):
                 v = qty.createDefaultQuantity(k, v)
+            elif k == 'PSD':
+                _processPSD(v,remove50Hz=self.remove50Hz)
+            elif k == 'Fpsd':
+                v = _processFPSD(v,remove50Hz=self.remove50Hz)
 
             self.__setattr__(k, v)
 
@@ -421,11 +521,15 @@ class DataCharDC(object):
 
 
 def Fnoise(f, a, b):
-    return qty.Divide(a, f ** b)
+    return qty.Divide(a, f**b)
 
 
 def LogFnoise(f, a, b):
     return b*f+a
+
+
+def FnoiseTh(f, a, b, c):
+    return qty.Divide(a, f**b)+c
 
 
 def FitFNoise(Freq, psd):
@@ -443,6 +547,15 @@ def FitLogFnoise(Freq, psd):
     a = 10 ** poptV[0]
     b = - poptV[1]
     return a, b, np.sqrt(np.diag(pcov))
+
+
+def FitLogFnoiseTh(Freq, psd):
+    poptV, pcov = optim.curve_fit(FnoiseTh, Freq, psd)
+
+    a = poptV[0]
+    b = poptV[1]
+    c = poptV[2]
+    return a, b, c, np.sqrt(np.diag(pcov))
 
 
 class DataCharAC(DataCharDC):
@@ -486,8 +599,11 @@ class DataCharAC(DataCharDC):
 
         NoA = np.ones((nVgs, nVds))*np.NaN
         NoB = np.ones((nVgs, nVds))*np.NaN
+        NoC = np.ones((nVgs, nVds))*np.NaN
+
         FitErrA = np.ones((nVgs, nVds))*np.NaN
         FitErrB = np.ones((nVgs, nVds))*np.NaN
+        FitErrC = np.ones((nVgs, nVds))*np.NaN
 
         for ivd in range(nVds):
             for ivg in range(nVgs):
@@ -495,20 +611,31 @@ class DataCharAC(DataCharDC):
                 Fpsd = self.Fpsd
                 if np.any(np.isnan(psd)):
                     continue
-
+                err = []
                 try:
                     Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
-                    a, b, err = FitLogFnoise(Fpsd[Inds], psd[Inds])
-                    NoA[ivg, ivd] = a
-                    NoB[ivg, ivd] = b
-                    FitErrA[ivg, ivd] = err[0]
-                    FitErrB[ivg, ivd] = err[1]
-                    self.NoA = NoA
-                    self.NoB = NoB
-                    self.FitErrA = FitErrA
-                    self.FitErrB = FitErrB
+                    a, b, c, err = FitLogFnoiseTh(Fpsd[Inds], psd[Inds])
                 except: # TODO: catch *all* exceptions
                     print ("Fitting error:", sys.exc_info()[0])
+                    a = 0
+                    b = 0
+                    c = 0
+                    err.append(1)
+                    err.append(1)
+                    err.append(1)
+
+                NoA[ivg, ivd] = a
+                NoB[ivg, ivd] = b
+                NoC[ivg, ivd] = c
+                FitErrA[ivg, ivd] = err[0]
+                FitErrB[ivg, ivd] = err[1]
+                FitErrC[ivg, ivd] = err[2]
+                self.NoA = NoA
+                self.NoB = NoB
+                self.NoC = NoC
+                self.FitErrA = FitErrA
+                self.FitErrB = FitErrB
+                self.FitErrC = FitErrC
 
     def CalcIRMS(self, Fmin, Fmax, **kwargs):
         nVgs = len(self.Vgs)
@@ -595,6 +722,11 @@ class DataCharAC(DataCharDC):
         self._CheckFitting(FFmin, FFmax)
         return self._GetParam('NoB', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
+    def GetNoC(self, Vgs=None, Vds=None, Ud0Norm=False,
+               FFmin=None, FFmax=None, **kwargs):
+        self._CheckFitting(FFmin, FFmax)
+        return self._GetParam('NoC', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
@@ -619,133 +751,3 @@ class DataCharAC(DataCharDC):
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(Irms, Ids)
 
-
-
-class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
-
-    # (logY, logX, X variable)
-    AxsProp = {'Vrms': (1, 0, 'Vgs'),
-               'Irms': (1, 0, 'Vgs'),
-               'NoA': (1, 0, 'Vgs'),
-               'FitErrA': (1, 0, 'Vgs'),
-               'FitErrB': (1, 0, 'Vgs'),
-               'NoB': (0, 0, 'Vgs'),
-               'GM': (0, 0, 'Vgs'),
-               'Ids': (0, 0, 'Vgs'),
-               'Ig': (0, 0, 'Vgs'),
-               'Rds': (0, 0, 'Vgs'),
-               'FEMn': (0, 0, 'Vgs'),
-               'FEMmu': (1, 0, 'Vgs'),
-               'FEMmuGm': (1, 0, 'Vgs'),
-               'PSD': (1, 1, 'Fpsd'),
-               'GmMag': (1, 1, 'Fgm'),
-               'GmPh': (0, 1, 'Fgm')}
-
-    ColorParams = {'Contact': ('TrtTypes', 'Contact'),
-                   'Length': ('TrtTypes', 'Length'),
-                   'Width': ('TrtTypes', 'Width'),
-                   'Pass': ('TrtTypes', 'Pass'),
-                   'W/L': (None, None),
-                   'Trt': (None, 'Name'),
-                   'Date': (None, 'DateTime'),
-                   'Ud0': (None, 'Ud0'),
-                   'Device': ('TrtTypes', 'Devices.Name'),
-                   'Wafer': ('TrtTypes', 'Wafers.Name')}  # TODO fix with arrays
-
-    def __init__(self, Size=(9, 6)):
-        self.CreateFigure(Size=Size)
-
-    def GetColorValue(self, Data, ColorOn):
-        if self.ColorParams[ColorOn][1]:
-            if self.ColorParams[ColorOn][0]:
-                p = Data.__getattribute__(self.ColorParams[ColorOn][0])
-                v = p[self.ColorParams[ColorOn][1]]
-            else:
-                v = Data.__getattribute__(self.ColorParams[ColorOn][1])
-        elif ColorOn == 'W/L':
-            p = Data.__getattribute__('TrtTypes')
-            v = qty.Divide(p['Width'], p['TrtTypes']['Length'])
-        return v
-
-    def PlotDataCh(self, DataDict, Trts, Vgs=None, Vds=None, Ud0Norm=False,
-                   PltIsOK=True, ColorOn='Trt'):
-
-        self.setNColors(len(DataDict))
-        for Trtv in DataDict.values():
-            self.color = self.NextColor()
-            try:
-                self.Plot(DataDict, Vgs=Vgs, Vds=Vds,
-                          Ud0Norm=Ud0Norm, PltIsOK=PltIsOK)
-            except:  # TODO: catch *all* exceptions
-                print (sys.exc_info()[0])
-
-    def PlotDataSet(self, DataDict, Trts=None,
-                    Vgs=None, Vds=None, Ud0Norm=False,
-                    PltIsOK=True, ColorOn='Trt', MarkOn='Cycle', **kwargs):
-
-        if Trts is None:
-            Trts = DataDict.keys()
-
-        Par = []
-        for TrtN in sorted(Trts):
-            for Dat in DataDict[TrtN]:
-                Par.append(self.GetColorValue(Dat, ColorOn))
-
-        Par = sorted(set(Par))
-        self.setNColors(len(Par))
-        ColPar = {}
-        for p in Par:
-            self.NextColor()
-            ColPar[p] = self.color
-
-        for TrtN in sorted(Trts):
-            self.marks.reset()
-            for Dat in DataDict[TrtN]:
-                self.color = ColPar[self.GetColorValue(Dat, ColorOn)]
-                if MarkOn == 'Cycle':
-                    self.NextMark()                    
-
-                try:
-                    self.Plot(Dat, Vgs=Vgs, Vds=Vds,
-                              Ud0Norm=Ud0Norm, PltIsOK=PltIsOK, **kwargs)
-                except:  # TODO: catch *all* exceptions
-                    print (TrtN, sys.exc_info()[0])
-
-    def Plot(self, Data, Vgs=None, Vds=None,
-             Ud0Norm=False, PltIsOK=True, ColorOnVgs=False, **kwargs):
-
-        label = Data.Name
-
-        for axn, ax in self.Axs.items():
-            Mark = self.line + self.mark
-            if not Data.IsOK and PltIsOK:
-                Mark = '+'
-
-            if self.AxsProp[axn][2] == 'Vgs':
-                if Vgs is None:
-                    Valx = Data.GetVgs(Ud0Norm=Ud0Norm, **kwargs)
-                else:
-                    Valx = Vgs
-            else:
-                func = Data.__getattribute__('Get' + self.AxsProp[axn][2])
-                Valx = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
-
-            func = Data.__getattribute__('Get' + axn)
-            Valy = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
-
-            if Valx is not None and Valy is not None:
-                ax.plot(Valx, Valy, Mark, color=self.color, label=label)
-
-                if axn == 'PSD':
-                    a = Data.GetNoA(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,
-                                    **kwargs)
-                    b = Data.GetNoB(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,
-                                    **kwargs)
-                    Valy = Fnoise(Valx, a, b).transpose()
-                    ax.plot(Valx, Valy, Mark, '--',
-                            color=self.color, alpha=0.5)
-
-                if self.AxsProp[axn][0]:
-                    ax.set_yscale('log')
-                if self.AxsProp[axn][1]:
-                    ax.set_xscale('log')
