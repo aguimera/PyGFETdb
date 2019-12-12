@@ -17,6 +17,35 @@ import elephant
 import scipy.stats as stats
 from scipy import interpolate
 import sys
+from scipy.stats.mstats import zscore
+
+
+def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
+                Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True,
+                **specKwarg):
+    
+    nFFT = int(2**(np.around(np.log2(sig.sampling_rate/Fres))+1))
+    Ts = sig.sampling_period
+    noverlap = int((Ts*nFFT - TimeRes)/Ts)
+    
+    f, t, Sxx = signal.spectrogram(sig,
+                                   fs=sig.sampling_rate,
+                                   nperseg=nFFT,
+                                   noverlap=noverlap,
+                                   axis=0,
+                                   **specKwarg)
+        
+    finds = np.where((Fmin < f) & (f < Fmax))[0][1:]
+    r, g, c = Sxx.shape
+    data = Sxx.reshape((r, c))[finds][:]
+    
+    if Zscored:
+        data = zscore(data, axis=1)
+        
+    s = sig.duplicate_with_new_array(data.transpose())
+    s.annotate(Freq = f[finds])
+    s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
+    return s
 
 
 def Derivative(sig):
