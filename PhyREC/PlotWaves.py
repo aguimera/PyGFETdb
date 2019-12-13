@@ -15,6 +15,7 @@ from collections import OrderedDict
 from scipy.interpolate import interp2d
 from matplotlib.widgets import Slider, Button, TextBox
 from matplotlib.artist import ArtistInspector
+import PhyREC.SignalProcess as Spro
 
 #from NeoInterface import NeoTrain
 
@@ -94,13 +95,29 @@ def DrawBarScale(Ax, Location='Bottom Left',
 
 class SpecSlot():
 
-    AxKwargs = {      
-                    'xaxis': {'visible': False,
-                      },
-                    'yaxis': {'visible': True,
-                      },
-                    'ylabel':'Freq [Hz]',
-                    }
+    DefspecKwargs = {
+                  'Fmax': 100*pq.Hz,
+                  'Fmin': 0.5*pq.Hz,
+                  'Fres': 0.5*pq.Hz,
+                  'TimeRes': 0.1*pq.s,
+                  'Zscored': True,
+                 }
+                    
+    DefAxKwargs = {      
+                'xaxis': {'visible': False,
+                  },
+                'yaxis': {'visible': True,
+                  },
+                'ylabel':'Freq [Hz]',
+                }
+
+    DefImKwargs = {
+                'norm': colors.Normalize(-3, 3),
+                'cmap': 'seismic',
+                'interpolation': 'bilinear',
+                   }
+    
+    
     def UpdateLineKwargs(self, LineKwargs):
         pass
 #        self.LineKwargs.update(LineKwargs)
@@ -111,121 +128,59 @@ class SpecSlot():
 #        self.AxKwargs.update(AxKwargs)
 #        UpdateTreeDictProp(self.Ax, self.AxKwargs)
         
-    def __init__(self, Signal, Units=None, Position=None, DispName=None):
-        self.Fres = 5.0
-        self.TimeRes = 0.2
-        self.Fmin = 1
-        self.Fmax = 150
-        self.MinPSD = None
-        self.MaxPSD = None
-        self.MaxPSDrange = None
-        self.LogNormalize = True
-        self.Cmap = 'jet'
-        self.LogScale = False
-        self.Zscore = False
+    def __init__(self, Signal, Units=None, Position=None, imKwargs=None,
+                 specKwargs=None, AxKwargs=None, Ax=None):
 
-        self.Ax = None
-        self.CAx = None
-        self.Fig = None
+        self.specKwargs = self.DefspecKwargs.copy()
+        self.AxKwargs = self.DefAxKwargs.copy()
+        self.imKwargs = self.DefImKwargs.copy()
         
+        if specKwargs is not None:
+            self.specKwargs.update(specKwargs)
+
         self.Signal = Signal
+        self.name = self.Signal.name
 
         self.units = Units
         self.Position = Position
-        if DispName is None:
-            if Signal is not None:
-                self.DispName = self.Signal.name
-        else:
-            self.DispName = DispName
 
+        self.Ax = Ax
+        if AxKwargs is not None:
+            self.AxKwargs.update(AxKwargs)       
+        if imKwargs is not None:
+            self.imKwargs.update(imKwargs)
+        
     def GetSignal(self, Time, Units=None):
         if Units is None:
             _Units = self.units
         else:
-            _Units = Units
-        sig = self.Signal.GetSignal(Time, _Units)
+            _Units = Units     
+        
+        sig = self.Signal.time_slice(Time[0], Time[1])
+
+        if _Units is not None:
+            sig = sig.rescale(_Units)
         self.units = sig.units
         return sig
 
     def PlotSignal(self, Time, Units=None):
         sig = self.GetSignal(Time, Units)
 
-        nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/self.Fres))+1))
-        Ts = sig.sampling_period.magnitude
-        noverlap = int((Ts*nFFT - self.TimeRes)/Ts)
-
-        f, t, Sxx = signal.spectrogram(sig,
-                                       fs=sig.sampling_rate,
-                                       window='hanning',
-                                       nperseg=nFFT,
-                                       noverlap=noverlap,
-                                       scaling='density',
-                                       axis=0)
-
-        finds = np.where((self.Fmin < f) & (f < self.Fmax))[0][1:]
-        r, g, c = Sxx.shape
-        data = Sxx.reshape((r, c))[finds][:]
+        if 'spec' in sig.annotations:            
+            spec = sig
+        else:
+            spec = Spro.Spectrogram(sig, **self.specKwargs)
         
-        if self.Zscore is True:
-            ##z-score all rec
-#            m = np.mean(data, axis=0)
-#            s = np.std(data, axis=0)    
-#            data_normalized = data - m
-#            data = np.divide(data_normalized, s,
-#                                           out=np.zeros_like(data_normalized),
-#                                           where=s != 0) 
-            ##z-score correct
-            m = np.mean(data, axis=-1)
-            s = np.std(data, axis=-1)    
-            data_normalized = data.transpose() - m
-            data = np.divide(data_normalized, s,
-                                           out=np.zeros_like(data_normalized),
-                                           where=s != 0) 
-            data=data.transpose()
-
-        if self.MaxPSD is None:
-            MaxPSD = data.max()
-        else:
-            MaxPSD = self.MaxPSD
-
-        if self.MinPSD is None:
-            if self.MaxPSDrange is None:
-                MinPSD = 10**(np.log10(MaxPSD)-5)
-            else:
-                MinPSD = 10**(np.log10(MaxPSD)-self.MaxPSDrange)
-        else:
-            MinPSD = self.MinPSD
-
-        if self.LogNormalize:
-            Norm = colors.LogNorm(MinPSD, MaxPSD)
-        else:
-            Norm = colors.Normalize(MinPSD, MaxPSD)
-
-        if self.Ax is None:
-            self.Fig, self.Ax = plt.subplots()
-
-        x = t + sig.t_start.magnitude
-        y = f[finds].magnitude   
+        f = spec.annotations['Freq']
+        data = np.array(spec).astype(np.float).transpose()
         img = self.Ax.imshow(data,
-                             cmap=self.Cmap,
-                             norm=Norm,
-                             interpolation='bilinear',
                              origin='lower',
                              aspect='auto',
-                             extent=(np.min(x), np.max(x), np.min(y), np.max(y)))
-
-        cbar = plt.colorbar(img, ax=self.CAx, fraction=0.8)
-        cbar.ax.tick_params(length=1, labelsize='xx-small')
-
-        su = str(sig.units).split(' ')[-1]
-        if self.Zscore is True:
-            label='Z-score'
-        else:    
-            label = "[{}^2]".format(su)
-        cbar.set_label(label, fontsize='xx-small')
-
-        if self.LogScale:
-            self.Ax.set_yscale('log')
+                             extent=(spec.t_start, spec.t_stop,
+                                     np.min(f), np.max(f)),
+                             **self.imKwargs,
+                             )
+        self.img = img
 
 
 def UpdateTreeDictProp(obj, prop):
@@ -349,7 +304,8 @@ class WaveSlot():
         else:
             _Units = Units
         sig = self.Signal.time_slice(Time[0], Time[1])
-        sig = sig.rescale(_Units)
+        if _Units is not None:
+            sig = sig.rescale(_Units)
         self.units = sig.units
         return sig
 
@@ -639,7 +595,6 @@ class PlotSlots():
         else:
             self.Fig = Fig
             self.Axs = []
-            self.CAxs = []
             for sl in self.Slots:
                 self.Axs.append(sl.Ax)
 

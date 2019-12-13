@@ -22,6 +22,7 @@ from scipy.stats.mstats import zscore
 
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
                 Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True,
+                dtype=np.float16,
                 **specKwarg):
     
     nFFT = int(2**(np.around(np.log2(sig.sampling_rate/Fres))+1))
@@ -40,11 +41,13 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     data = Sxx.reshape((r, c))[finds][:]
     
     if Zscored:
-        data = zscore(data, axis=1)
-        
-    s = sig.duplicate_with_new_array(data.transpose())
+        data = zscore(data, axis=1)       
+    
+    s = sig.duplicate_with_new_array(data.astype(dtype).transpose())
     s.annotate(Freq = f[finds])
+    s.annotate(spec = True)
     s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
+    s.t_start = s.t_start + s.sampling_period/2
     return s
 
 

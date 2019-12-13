@@ -22,7 +22,21 @@ import PyGFETdb.AnalyzeData as FETana
 
 from multiprocessing import Pool
 
-def LoadMatFile(FileName, InChannels=None, DownFact=None):
+def RemoveGlitch(dat, th=4e-8):
+    dv = np.diff(dat, axis=0)
+    oinp = np.where(dv>th) 
+    oinn = np.where(-dv>th) 
+    for i,(s, c) in enumerate(zip(oinp[0], oinp[1])):
+        s = s + 1
+        dat[s, c] = np.mean((dat[s-1, c], dat[s+1, c]))
+        
+    for i,(s, c) in enumerate(zip(oinn[0], oinn[1])):
+        dat[s, c] = np.mean((dat[s-1, c], dat[s+1, c]))
+
+    return len(oinn[0]) + len(oinp[0])
+
+
+def LoadMatFile(FileName, InChannels=None, DownFact=None, GlitchTh=None):
     """
     Load single file
     """
@@ -43,6 +57,15 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None):
     if InChannels is None:
         InChannels = range(fbChs)
 
+    if GlitchTh is not None:
+        Glitchs = RemoveGlitch(Data, GlitchTh)
+        Atempts = 1
+        while Glitchs > 0:
+            Atempts += 1
+            print('Glitch removal', Atempts , ' -->> ', Glitchs)
+            Glitchs = RemoveGlitch(Data, GlitchTh)
+            if Atempts>50:
+                break    
 
     DCData = Spro.Filter(NeoSignal(Data[:, :fbChs][:, InChannels],
                                    units='A',
@@ -115,7 +138,7 @@ def CheckFilesTime(FilesIn, TimeWind):
 
 
 def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
-                 Multiproces=False):
+                 Multiproces=False, GlitchTh=None):
 
     FbData = None
     FilesToRead = CheckFilesTime(FilesIn, TimeWind)
@@ -138,7 +161,8 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
             print(ifi, '-', len(FilesToRead), FileIn, )
             Data, _, _ = LoadMatFile(FileName=FileIn,
                                      InChannels=InChannels,
-                                     DownFact=DownFact)
+                                     DownFact=DownFact,
+                                     GlitchTh=GlitchTh)
         
             if FbData is None:
                 FbData = Data
