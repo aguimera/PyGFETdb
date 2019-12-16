@@ -166,14 +166,14 @@ class SpecSlot():
     def PlotSignal(self, Time, Units=None):
         sig = self.GetSignal(Time, Units)
 
-        if 'spec' in sig.annotations:            
+        if 'spec' in sig.annotations:
             spec = sig
         else:
             spec = Spro.Spectrogram(sig, **self.specKwargs)
-        
+                
         f = spec.annotations['Freq']
-        data = np.array(spec).astype(np.float).transpose()
-        img = self.Ax.imshow(data,
+        data = Spro.Resample(spec, MaxPoints=5000)
+        img = self.Ax.imshow(np.array(data).astype(np.float).transpose(),
                              origin='lower',
                              aspect='auto',
                              extent=(spec.t_start, spec.t_stop,
