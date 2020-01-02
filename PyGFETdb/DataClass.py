@@ -662,6 +662,17 @@ class DataCharAC(DataCharDC):
             return None
         return self.PSD[SiVds[0]][VgsInd, :].transpose()
 
+    def GetPSD2(self, Vgs=None, Vds=None, Ud0Norm=False,FFmin=5,FFmax=1e4, **kwargs):
+        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm, **kwargs)
+        if VgsInd is None:
+            return None
+        psd = self.PSD[SiVds[0]][VgsInd, :].transpose()
+        ids = self.GetIds(Vgs, Vds, Ud0Norm, **kwargs)
+        vgs = self.GetVgs(Vgs,Vds,Ud0Norm,**kwargs)
+        gm = self.GetGM(Vgs,Vds,Ud0Norm=Ud0Norm,**kwargs)
+        klass,noise = self.GetClass(psd,Vgs,Vds,Ud0Norm,FFmin,FFmax,**kwargs)
+        return psd,vgs,ids,gm,klass,noise
+
     def GetGmMag(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm, **kwargs)
         if VgsInd is None:
@@ -750,4 +761,129 @@ class DataCharAC(DataCharDC):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         return qty.Divide(Irms, Ids)
+
+    def GetClass(self, psd=None,Vgs=None, Vds=None, Ud0Norm=False,FFmin=None,FFmax=None,**kwargs):
+        # psd = self.GetPSD(Vgs,Vds,Ud0Norm,**kwargs)
+        fpsd = self.GetFpsd(**kwargs)
+        noa = self.GetNoA(Vgs,Vds,Ud0Norm,FFmin,FFmax,**kwargs)
+        nob = self.GetNoB(Vgs,Vds,Ud0Norm,FFmin,FFmax,**kwargs)
+        noc = self.GetNoC(Vgs,Vds,Ud0Norm,FFmin,FFmax,**kwargs)
+        noise = self.calculateNoise(fpsd,noa,nob,noc)
+        fpsd2 = np.repeat(fpsd,noa.shape[0])
+        fpsd2 = fpsd2.reshape(noa.shape[0],len(fpsd))
+        ok,noisegrad = self.isFitOK(psd,fpsd2,noise.transpose(),**kwargs)
+        return self.getTrtClass(ok,noisegrad), noise
+
+    def isFitOK(self, PSD, Fpsd, noise,
+                    fiterror=0.4, minfitgradient=1e-24, maxfitgradient=1,
+                    normalization=None, **kwargs):
+            """
+               :param PSD: PSD of a Group
+               :param Fpsd: Fpsd of a Group
+               :param noise: Noise
+               :param fluctuation: Maximum change allowed between the maximum value and the minimum value
+               :param peak: Maximum change allowed between the maximum value and the mean value
+               :param gradient: Maximum gradient allowed
+               :param fiterror: Maximum error allowed in the fit
+               :param fitgradient: Maximum error allowed in the gradient of the fit
+
+               :return: ok: True if the noise is fitted well
+               :return: perfect: True if the PSD gradient is acceptable
+               :return: grad: PSD gradient
+               :return: noisegrad: Noise gradient
+
+               """
+            if PSD is None or (type(PSD) is not list and type(PSD) is not np.ndarray):
+                print('Wrong PSD measurement.')
+                return False, False, [], []
+
+            mPSD = PSD.transpose()
+
+            if normalization is None:
+                maxmPSD = np.max(mPSD)
+            else:
+                maxmPSD = normalization
+
+            # Gradient of the PSD
+            dx = np.diff(Fpsd)
+
+            y = np.diff(mPSD)
+            grad = qty.Divide(y, dx)
+
+            # Error of the noise fitting
+            fitpeak = np.abs(mPSD - np.abs(np.mean(noise))) / maxmPSD
+            fitmaxerr = np.max(fitpeak)
+            if normalization is None:
+                fitmaxerr = 1 - fitmaxerr
+            ok1 = fitmaxerr <= fiterror
+
+            # Gradient of the noise fitting
+            f = Fpsd
+            dx = np.diff(f)
+
+            y2 = np.diff(noise.transpose())
+            noisegrad = qty.Divide(y2, dx)
+
+            fitgraderror = (grad - noisegrad)
+
+            fitmingraderror = np.min(np.abs(fitgraderror))
+            ok2 = np.all(fitmingraderror <= minfitgradient)
+
+            fitmaxgraderror = np.max(np.abs(fitgraderror))
+            ok3 = np.all(fitmaxgraderror <= maxfitgradient)
+
+            # Conditions of the noise fit
+            ok = ok1 and ok2 and ok3
+
+            return ok, noisegrad
+
+    def _calculateNoise(self, Fpsd, NoA, NoB, NoC):
+        f = np.array([Fpsd])
+        tnoise = []
+        for i, item in enumerate(NoA):
+            NoAi = NoA[i]
+            NoBi = NoB[i]
+            NoCi = NoC[i]
+            noise = FnoiseTh(f.transpose(), [NoAi], [NoBi], [NoCi])
+            if noise is not None:
+                tnoise.append(noise.transpose()[0])
+        if len(tnoise) > 0:
+            noise = np.array(tnoise)
+        else:
+            noise = np.array([])
+
+    def calculateNoise(self, Fpsd, NoA, NoB, NoC):
+        f = np.array(Fpsd)
+        noise = FnoiseTh(f, NoA, NoB, NoC)
+
+        return noise
+
+    def getTrtClass(self, ok, grad, low=-3e-20, high=-1e-24, **kwargs):
+        """
+
+        :param perfect:
+        :param ok:
+        :param grad:
+        :param low:
+        :param high:
+        :param kwargs:
+        :return:
+                1 : 1/f (FIT) and low < gradient < high
+                2 : Limited by Electronics (FIT) and gradient < low < high
+                3 : Thermal Noise (NOK)
+                0 : gradient > 0
+        """
+        grad = np.array(grad)
+        try:
+            mgrad = np.mean(grad)
+        except:
+            mgrad = np.nan
+
+        Class = \
+            2 if ok and mgrad < low < high else \
+                1 if ok and low < mgrad < high else \
+                    3 if not ok else \
+                        0  # not low < mgrad < high
+
+        return Class
 

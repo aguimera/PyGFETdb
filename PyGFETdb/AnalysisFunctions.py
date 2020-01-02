@@ -44,17 +44,32 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
     print(' ')
 
     #kwargs.update({'HaltOnFail': HaltOnFail})
-
+    Vgst = []
+    Idst = []
+    GMt = []
+    PSDt = []
     Fpsd = rPSD.get('Fpsd')
-    PSD = rPSD['PSD']
+    PSD = rPSD.get('PSD')
     NoA = rPSD['NoA']
     NoB = rPSD['NoB']
     NoC = rPSD['NoC']
+    PSD2 = rPSD.get('PSD2')
     for nWf, vWf in Fpsd.items():
-        PSDt = PSD[nWf]
+        if PSD:
+            PSDt = PSD.get(nWf)
         NoAt = NoA[nWf]
         NoBt = NoB[nWf]
         NoCt = NoC[nWf]
+        if PSD2:
+            PSD2t = PSD2.get(nWf)
+            if len(PSD2t) == 5:
+                PSDt = [PSD2t[0]]
+                Vgst = PSD2t[1]
+                Idst = PSD2t[2]
+                GMt  = PSD2t[3]
+                klass = PSD2t[4]
+            else:
+              pass
         perfectcw = 0
         okcw = 0
         iw = 0
@@ -93,7 +108,7 @@ def processAllPSDsPerGroup(rPSD, HaltOnFail=False, meanpsd=True,**kwargs):
                 perfectc += 1
                 perfectcw += 1
 
-            results[nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad]
+            results[nWf] = [Fpsdt, mPSD, Fpsdt, noise, ok, perfect, grad, noisegrad,Idst,Vgst,GMt]
 
         if iw > 0:
             iwf.append((nWf, perfectcw, iw))
@@ -1008,3 +1023,44 @@ def getTrtClass(perfect,ok,grad,low=-1,high=0,**kwargs):
         0  # not low < mgrad < high
 
     return Class, perfect, ok, mgrad
+
+
+def prepareAllPSDsPerGroup(rPSD,**kwargs):
+    """
+
+    :param rPSD: Results of a param search of PSD, Fpsd, NoA and NoB
+    :param fluctuation: Maximum change allowed between the maximum value and the minimum value
+    :param peak: Maximum change allowed between the maximum value and the mean value
+    :param gradient: Maximum gradient allowed
+    :param fiterror: Maximum error allowed in the fit
+    :param fitgradient: Maximum error allowed in the gradient of the fit
+    :return: A dict with the results of the processing
+    """
+    results = {}
+    Vgst = []
+    Idst = []
+    GMt = []
+    PSDt = []
+    Fpsdt= None
+    noise= None
+    klass = None
+    Fpsd = rPSD.get('Fpsd')
+    PSD2 = rPSD.get('PSD2')
+    for nWf, vWf in Fpsd.items():
+        if PSD2:
+            PSD2t = PSD2.get(nWf)
+            #  psd,vgs,ids,gm,klass,noise
+            if len(PSD2t) == 6:
+                PSDt = [PSD2t[0]]
+                Vgst = PSD2t[1]
+                Idst = PSD2t[2]
+                GMt  = PSD2t[3]
+                klass = PSD2t[4]
+                noise = PSD2t[5]
+                Fpsdt = np.array(vWf)
+            else:
+              pass
+
+            results[nWf] = [Fpsdt, PSDt, noise,Idst,Vgst,GMt,klass]
+
+    return results

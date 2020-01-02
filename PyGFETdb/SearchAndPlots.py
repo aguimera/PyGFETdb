@@ -269,3 +269,33 @@ def getArgumentsPSD():
         'NoC': {'Param': 'NoC', 'FFmin': 5, 'FFmax': 10000},
     }
     return arguments
+
+
+def getArgumentsPSD1():
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD2': {'Param': 'PSD2', 'Vds':0.05},
+    }
+    return arguments
+
+
+def getArgumentsPSD2():
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD2': {'Param': 'PSD2', },
+        'NoA': {'Param': 'NoA', 'FFmin': 5, 'FFmax': 10000},
+        'NoB': {'Param': 'NoB', 'FFmin': 5, 'FFmax': 10000},
+        'NoC': {'Param': 'NoC', 'FFmin': 5, 'FFmax': 10000},
+    }
+    return arguments
+
+
+def getArgumentsPSD3():
+    arguments = {
+        'Fpsd': {'Param': 'Fpsd', },
+        'PSD2': {'Param': 'PSD2', },
+        'NoA': {'Param': 'NoA', 'FFmin': 5, 'FFmax': 10000},
+        'NoB': {'Param': 'NoB', 'FFmin': 5, 'FFmax': 10000},
+        'NoC': {'Param': 'NoC', 'FFmin': 5, 'FFmax': 10000},
+    }
+    return arguments

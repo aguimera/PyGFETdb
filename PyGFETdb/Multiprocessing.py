@@ -345,6 +345,7 @@ def GetParam(Data, Param, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
             args = {'args': {'self': Dat}}
             args.update(kwargs)
             thread.call(key, pData.DataCharAC, 'Get' + Param, args, **args)
+
         results[Trtn] = thread.getResults(key)[key][0]
     for Trtn, Val in results.items():
         if Val is not None:
@@ -503,7 +504,9 @@ def DataSelection(Data, Param, Range, Function=None, InSide=True, Name=None, Uni
                   ParArgs={'Vgs': None,
                             'Vds': None,
                             'Ud0Norm': False,
-                            'Units': None}):
+                            'Units': None,
+                            'FFmin': None,
+                            'FFmax':None}):
     rPAr, tPar = GetParam(Data, Param, **ParArgs)
     DataFilt = {}
     for Trtn, Datas in tPar.items():

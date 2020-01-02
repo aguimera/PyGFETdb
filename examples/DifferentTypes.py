@@ -38,7 +38,6 @@ def main():
         'B11601W4',
     )
 
-    # With Quantities
     DataSelectionConfig = [
         {'Param': 'Ud0',  # Parameter to evaluate
          'Range': (200, 500),  # Range of allowed values, (Min, Max)
@@ -65,32 +64,7 @@ def main():
              # 'Units': "uV",
          },
          'Range': (5e-6, 60e-6),  # Range of allowed values, (Min, Max)
-         }
-    ]
-
-    # Without Quantities
-    DataSelectionConfig2 = [
-        {'Param': 'Ud0',  # Parameter to evaluate
-         'Range': (200e-3, 500e-3),  # Range of allowed values, (Min, Max)
-         'Name': 'UD0y', },
-        {'Param': 'GMV',  # Parameter to evaluate
-         'Range': (1e-4, 10e-3),  # Range of allowed values, (Min, Max)
-         'ParArgs': {'Vgs': -0.1,  # Bias point to evaluate
-                     'Vds': None,
-                     'Ud0Norm': True,
-                     },
-         'Name': 'GMVy'},
-
-        {'Param': 'Vrms',  # Parameter to evaluate
-         'ParArgs': {
-             'Vgs': -0.1,  # Bias point to evaluate
-             'Vds': None,
-             'Ud0Norm': True,
-             'NFmin': 10,
-             'NFmax': 1000,
          },
-         'Range': (5e-6, 60e-6),  # Range of allowed values, (Min, Max)
-         }
     ]
 
     Conditions1 = {'Wafers.Name = ': Wafers1,
@@ -128,11 +102,6 @@ def main():
                'DataSelectionConfig': DataSelectionConfig
                }
 
-    GrBase4 = {'Conditions': Conditions1,
-               'Table': CharTable,
-               'Last': True,
-               'DataSelectionConfig': DataSelectionConfig2
-               }
 
     # PLOT GLOBALS ####################################################################
     Colors = ('r', 'g', 'b', 'm', 'y', 'k')
@@ -303,13 +272,10 @@ def main():
 
     # PLOT CLASSES OF TRTS
     #"""
-    GrTypes, rPSD = s.DBSearchPerTrt(GrBase3, splot.getArgumentsPSD(), **kwargs4.get('db'))
-    results = analysis.processAllPSDsPerGroup(rPSD, **kwargs4.get('noise'))
+    GrTypes, rPSD = s.DBSearchPerTrt(GrBase1, splot.getArgumentsPSD1(), **kwargs4.get('db'))
+    results = analysis.prepareAllPSDsPerGroup(rPSD)
+    plot.SubPlotResultsPSDPerGroup(GrTypes, results, **kwargs4)
 
-    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=0, **kwargs4)
-    # plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=1, **kwargs4)
-    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=2, **kwargs4)
-    plot.PlotResultsPSDPerGroupPerClass(GrTypes, results, PlotClass=3, **kwargs4)
 
     print('Collect->', gc.collect())
     #"""
