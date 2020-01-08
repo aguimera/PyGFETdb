@@ -272,9 +272,10 @@ def main():
 
     # PLOT CLASSES OF TRTS
     #"""
-    GrTypes, rPSD = s.DBSearchPerTrt(GrBase1, splot.getArgumentsPSD1(), **kwargs4.get('db'))
+    GrTypes, rPSD = s.DBSearchPerTrt(GrBase3, splot.getArgumentsPSD1(), **kwargs4.get('db'))
     results = analysis.prepareAllPSDsPerGroup(rPSD)
-    plot.SubPlotResultsPSDPerGroup(GrTypes, results, **kwargs4)
+    plot.SubPlotResultsPSDClass(GrTypes, results, PlotClass=2,**kwargs4)
+    #plot.SubPlotResultsPSDPerGroup(GrTypes, results, **kwargs4)
 
 
     print('Collect->', gc.collect())

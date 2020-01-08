@@ -871,3 +871,35 @@ def SubPlotPSD(ax, Fpsd, PSD, noisefit,  PlotStd=True, PlotMean=True,
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel('PSD [A^2/Hz]')
 
+
+def SubPlotResultsPSDClass(GrTypes, results, PlotClass=None,**kwargs):
+        """
+            **Plots the results of the Noise Analysis**
+
+        :param GrTypes: Group to plot
+        :param results: results of Noise Analysis
+        :param rPSD: results of a PSD search in the database
+        :param PlotStd: Plot Standard Deviation and Noise
+        :param PlotMean: Plot PSD Mean, if False Plot all the PSDs
+        :param PlotNoise: Plot Noise Mean
+        :return: None
+        """
+        for nType, vType in GrTypes.items():
+            r = results.get(nType)
+            if r is not None:
+                if r[6] == PlotClass:
+                    SubPlotPSDMean(r[0][0],  # Fpsd
+                                   r[1],  # PSD
+                                   r[2],  # noise
+                                   r[3],  # Ids
+                                   r[4],  # Vgs
+                                   r[5],  # GM
+                                   r[6],  # klass
+                                   nType,
+                                   **kwargs)
+        print('*** CLASSES ******************************************************************')
+        print(" 1 : 1/f (FIT) and low < gradient < high")
+        print(" 2 : Limited by Electronics (FIT) and gradient < low < high")
+        print(" 3 : Thermal Noise (NOK)")
+        print(" 0 : gradient > 0")
+        print('******************************************************************************')
