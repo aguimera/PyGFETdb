@@ -18,6 +18,7 @@ import scipy.stats as stats
 from scipy import interpolate
 import sys
 from scipy.stats.mstats import zscore
+from . import DbgFplt
 
 
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
@@ -119,27 +120,33 @@ def Abs(sig):
 
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
-def power(sig): # to solve units
+
+def power(sig):  # to solve units
     st = np.array(sig)**2
 #    st = st**2
-
     return sig.duplicate_with_new_array(signal=st*sig.units)
+
 
 def Filter(sig, Type, Order, Freqs):
     st = np.array(sig)
-    freqs = Freqs/(0.5*sig.sampling_rate)
+    Fs = sig.sampling_rate
+    freqs = Freqs/(0.5 * Fs)
 
     b, a = signal.butter(Order, freqs, Type)
     st = signal.filtfilt(b, a, st, axis=0)
-
+    
+    DbgFplt.PlotResponse(a, b, Fs)
+    
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
 
 def rms(x, axis=None):
     return np.sqrt(np.mean(x**2, axis=axis))
 
+
 def power_sliding(x, axis=None):
     return np.mean(x**2, axis=axis)
+
 
 
 def sliding_window(sig, timewidth, func=None, steptime=None,**kwargs):

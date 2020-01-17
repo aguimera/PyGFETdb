@@ -62,10 +62,10 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None, GlitchTh=None):
         Atempts = 1
         while Glitchs > 0:
             Atempts += 1
-            print('Glitch removal', Atempts , ' -->> ', Glitchs)
+            print('Glitch removal', Atempts, ' -->> ', Glitchs)
             Glitchs = RemoveGlitch(Data, GlitchTh)
-            if Atempts>50:
-                break    
+            if Atempts > 50:
+                break
 
     DCData = Spro.Filter(NeoSignal(Data[:, :fbChs][:, InChannels],
                                    units='A',
