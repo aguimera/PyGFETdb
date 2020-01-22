@@ -298,11 +298,31 @@ class WaveSlot():
         else:
             self.name = self.LineKwargs['label']
 
+    def CheckTime(self, Time):
+        if Time is None:
+            return (self.Signal.t_start, self.Signal.t_stop)
+
+        if len(Time) == 1:
+            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+
+        if Time[0] is None or Time[0] < self.Signal.t_start:
+            Tstart = self.Signal.t_start
+        else:
+            Tstart = Time[0]
+
+        if Time[1] is None or Time[1] > self.Signal.t_stop:
+            Tstop = self.Signal.t_stop
+        else:
+            Tstop = Time[1]
+
+        return (Tstart, Tstop)
+
     def GetSignal(self, Time, Units=None):
         if Units is None:
             _Units = self.units
         else:
             _Units = Units
+        Time = self.CheckTime(Time)
         sig = self.Signal.time_slice(Time[0], Time[1])
         if _Units is not None:
             sig = sig.rescale(_Units)
@@ -373,8 +393,9 @@ class WaveSlot():
             StdT = np.std(avg, axis=1)
             self.Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
                                  alpha=StdAlpha,
-                                 facecolor=TrialsColor,
-                                 edgecolor=None)
+                                 facecolor=self.LineKwargs['color'],
+                                 edgecolor=None,
+                                 clip_on=False)
 
         ylim = self.Ax.get_ylim()
         self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
@@ -658,6 +679,7 @@ class PlotSlots():
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
                    LabPosition='top', **kwargs):
 
+        Times = Times.rescale('s')
         self.Texts = []
         if Labels is not None:
             for ilbl, lbl in enumerate(Labels):

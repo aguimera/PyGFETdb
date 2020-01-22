@@ -13,6 +13,23 @@ import os
 
 import xml.etree.ElementTree as ET
         
+def GetNeoItem (List, ItemName):
+    ItemNames = {}
+    for i, item in enumerate(List):
+        name = item.name
+        if item.name is None:
+            print('Item ', i, ' No name' )
+            continue           
+        if name in ItemNames.keys():
+            print('Item ', i, name, 'duplicated name' )
+        ItemNames.update({name: item})
+    
+    if ItemName in ItemNames.keys():
+        return ItemNames[ItemName]
+    else:
+        print (ItemName, 'No Found')
+        return None
+
         
 def dict_to_xml(tag, d):
     '''
