@@ -134,14 +134,14 @@ def CheckFilesTime(FilesIn, TimeWind):
     FileInds = list(FileInds.flatten())
     FilesToRead = [FilesIn[i] for i in FileInds]
 
-    return FilesToRead
+    return FilesToRead, FileTimes[FileInds[0], 0] * pq.s
 
 
 def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
                  Multiproces=False, GlitchTh=None):
 
     FbData = None
-    FilesToRead = CheckFilesTime(FilesIn, TimeWind)
+    FilesToRead, Tstart = CheckFilesTime(FilesIn, TimeWind)
     
     if Multiproces:
         Args = []
@@ -158,6 +158,7 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
                 FbData = AppendData(FbData, Data)
     else:               
         for ifi, FileIn in enumerate(FilesToRead):
+            print('Tstart -->> ', Tstart)
             print(ifi, '-', len(FilesToRead), FileIn, )
             Data, _, _ = LoadMatFile(FileName=FileIn,
                                      InChannels=InChannels,
@@ -166,6 +167,7 @@ def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
         
             if FbData is None:
                 FbData = Data
+                FbData.t_start = Tstart
             else:
                 FbData = AppendData(FbData, Data)
     

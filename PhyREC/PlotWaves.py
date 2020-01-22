@@ -678,6 +678,7 @@ class PlotSlots():
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
                    LabPosition='top', **kwargs):
 
+        Times = Times.rescale('s')
         self.Texts = []
         if Labels is not None:
             for ilbl, lbl in enumerate(Labels):
