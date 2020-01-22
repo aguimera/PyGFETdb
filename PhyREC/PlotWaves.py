@@ -334,7 +334,7 @@ class WaveSlot():
         self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
-                    PltStd=False, StdAlpha=0.2,
+                    PlotMean=True, PltStd=False, StdAlpha=0.2,AvgColor='gold',
                     PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
         avsig = self.GetSignal((None, None), Units)
         avg = np.array([])
@@ -365,7 +365,8 @@ class WaveSlot():
         MeanTsig.name = MeanTsig.name
         MeanTsig.annotate(Process='LED averaging')
 #        self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
-        self._PlotSignal(MeanTsig)
+        if PlotMean:
+            self._PlotSignal(MeanTsig)
 
 
         if PltStd:
@@ -680,25 +681,25 @@ class PlotSlots():
 
         return EventLines
 
-    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, PltStd=False,
-                         StdAlpha=0.2,
+    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
+                         StdAlpha=0.2, 
                          PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
-                         ClearAxes=True, AvgColor=None):
+                         ClearAxes=True):
 
         if ClearAxes:
             self.ClearAxes()
 
         MeanSigs = []
         for sl in self.Slots:
-            if AvgColor is not None:
-                sl.Color = AvgColor
             MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent,
                                      Units=Units,
                                      PlotTrials=PlotTrials,
                                      TrialsColor=TrialsColor,
                                      TrialsAlpha=TrialsAlpha,
                                      PltStd=PltStd,
-                                     StdAlpha=StdAlpha)
+                                     PlotMean=PlotMean,
+                                     StdAlpha=StdAlpha,
+                                     )
             MeanSigs.append(MeanSig)
 
         sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
