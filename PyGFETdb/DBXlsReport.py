@@ -359,15 +359,22 @@ class XlsReportBase(object):
             if hasattr(val, '__iter__'):
                 if val.size == 0:
                     continue
-
+            
+            # if len(val)>1: #test
+            #     val=val[0]
+                
             if Lower:
-                # if val < RefVal:
-                if val.any() < RefVal:
-                    Count += 1
+                try:
+                    if val < RefVal:
+                        Count += 1
+                except:
+                    continue
             else:
-                # if val > RefVal:
-                if val.any() > RefVal:
-                    Count += 1
+                try:
+                    if val > RefVal:
+                        Count += 1
+                except:
+                    continue
 
         return Count
 
