@@ -36,7 +36,7 @@ def RemoveGlitch(dat, th=4e-8):
     return len(oinn[0]) + len(oinp[0])
 
 
-def LoadMatFile(FileName, InChannels=None, DownFact=None, GlitchTh=None):
+def LoadMatFile(FileName, FBChannels=None, InChannels=None, DownFact=None, GlitchTh=None):
     """
     Load single file
     """
@@ -52,7 +52,10 @@ def LoadMatFile(FileName, InChannels=None, DownFact=None, GlitchTh=None):
     Data = out['y'][1:, 0, :].transpose()
     (Samps, nChs) = Data.shape
 
-    fbChs = int(nChs/2)
+    if FBChannels is None:
+        fbChs = int(nChs/2)
+    else:
+        fbChs = FBChannels
 
     if InChannels is None:
         InChannels = range(fbChs)
@@ -137,30 +140,32 @@ def CheckFilesTime(FilesIn, TimeWind):
     return FilesToRead, FileTimes[FileInds[0], 0] * pq.s
 
 
-def LoadMatFiles(FilesIn, InChannels=None, DownFact=None, TimeWind=None,
+def LoadMatFiles(FilesIn, FBChannels=None, InChannels=None, DownFact=None, TimeWind=None,
                  Multiproces=False, GlitchTh=None):
 
     FbData = None
     FilesToRead, Tstart = CheckFilesTime(FilesIn, TimeWind)
     
     if Multiproces:
-        Args = []
-        for ifi, FileIn in enumerate(FilesToRead):
-            Args.append((FileIn, InChannels, DownFact))
-        Procs = Pool(len(FilesToRead))
-        Res = Procs.starmap(LoadMatFile, Args)
+        pass
+        # Args = []
+        # for ifi, FileIn in enumerate(FilesToRead):
+        #     Args.append((FileIn, InChannels, DownFact))
+        # Procs = Pool(len(FilesToRead))
+        # Res = Procs.starmap(LoadMatFile, Args)
         
-        for ifi, FileIn in enumerate(FilesToRead):
-            Data = Res[ifi, 0]
-            if FbData is None:
-                FbData = Data
-            else:
-                FbData = AppendData(FbData, Data)
+        # for ifi, FileIn in enumerate(FilesToRead):
+        #     Data = Res[ifi, 0]
+        #     if FbData is None:
+        #         FbData = Data
+        #     else:
+        #         FbData = AppendData(FbData, Data)
     else:               
         for ifi, FileIn in enumerate(FilesToRead):
             print('Tstart -->> ', Tstart)
             print(ifi, '-', len(FilesToRead), FileIn, )
             Data, _, _ = LoadMatFile(FileName=FileIn,
+                                     FBChannels=FBChannels,
                                      InChannels=InChannels,
                                      DownFact=DownFact,
                                      GlitchTh=GlitchTh)
@@ -203,7 +208,7 @@ def GetGtechChar(FileInput, ExcludeCh=(None,)):
 
 
 def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
-              Regim='hole', PlotChar=True):
+              Regim='hole', PlotChar=True, CalType='interp'):
 
     DCChar, _ = FETdata.LoadDataFromFile(CalFile)
 
@@ -225,7 +230,8 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
         Vsig = Spro.CalcVgeff(Csig.GetSignal(CalTime),
                               Tchar=Tchar,
                               VgsExp=VgsExp,
-                              Regim=Regim)
+                              Regim=Regim,
+                              CalType=CalType)
 
         if Vsigs is None:
             Vsigs = Vsig
