@@ -82,7 +82,8 @@ def RemoveDC(sig, Type='constant'):
 
 def SetZero(sig, TWind):
     st = np.array(sig)
-    offset = np.mean(sig.GetSignal(TWind))
+    # offset = np.mean(sig.GetSignal(TWind))
+    offset = np.mean(sig.time_slice(TWind[0],TWind[1]))
     print(sig.name, offset)
     st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
