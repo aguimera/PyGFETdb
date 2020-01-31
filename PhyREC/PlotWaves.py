@@ -398,7 +398,7 @@ class WaveSlot():
                                  clip_on=False)
 
         ylim = self.Ax.get_ylim()
-        self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
+        self.Ax.vlines((0,), ylim[0], ylim[1], 'g', 'dashdot', alpha=0.5)
         return MeanTsig
 
 
