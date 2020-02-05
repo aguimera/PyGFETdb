@@ -435,6 +435,41 @@ def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole'):
         
     return CalSig
 
+def CalcVgeffNoInterp(Sig, Tchar, VgsExp=None, Regim='hole'):    
+    gm=Tchar.GetGM(Vgs=VgsExp)
+
+
+    Calibrated = np.array((True,))
+    try:
+        st=Sig.magnitude/gm
+    except:
+        print(Sig.name, "Calibration error:", sys.exc_info()[0])
+        st = np.zeros(Sig.shape)
+        Calibrated = np.array((False,))
+        
+        
+    print(str(Sig.name), '-> ', 'GM', gm, 'Vgs', np.mean(st), Tchar.IsOK)
+    annotations = {'Calibrated': Calibrated,
+                   'Working':Calibrated,
+                   # 'IdsOff': IdsOff.flatten(),
+                   'VgsCal': np.array((np.mean(st), )),
+                   'IsOK': np.array((Tchar.IsOK, )),
+                   'Iname': np.array((Sig.name, )),                   
+                   }
+    
+    CalSig = NeoSignal(st*pq.V,
+                       units='V',
+                       t_start=Sig.t_start,
+                       sampling_rate=Sig.sampling_rate,
+                       name=str(Sig.name),
+                       file_origin=Sig.file_origin)
+
+#    CalSig.annotate(**annotations)    
+    CalSig.array_annotate(**annotations)
+        
+    return CalSig
+
+
 
 def ApplyProcessChain(sig, ProcessChain):
     sl = sig.copy()  

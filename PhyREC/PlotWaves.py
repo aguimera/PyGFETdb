@@ -109,6 +109,7 @@ class SpecSlot():
                 'yaxis': {'visible': True,
                   },
                 'ylabel':'Freq [Hz]',
+                # 'yscale':'log', ##to test
                 }
 
     DefImKwargs = {
@@ -729,3 +730,30 @@ class PlotSlots():
 
         self.FormatFigure()
         return MeanSigs
+    
+        def PlotSpecEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
+                         StdAlpha=0.2, 
+                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
+                         ClearAxes=True):
+
+            if ClearAxes:
+                self.ClearAxes()
+    
+            MeanSigs = []
+            for sl in self.Slots:
+                MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent,
+                                         Units=Units,
+                                         PlotTrials=PlotTrials,
+                                         TrialsColor=TrialsColor,
+                                         TrialsAlpha=TrialsAlpha,
+                                         PltStd=PltStd,
+                                         PlotMean=PlotMean,
+                                         StdAlpha=StdAlpha,
+                                         )
+                MeanSigs.append(MeanSig)
+    
+            sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
+            sl.Ax.set_xlim(right=TimeAvg[1].magnitude)
+    
+            self.FormatFigure()
+            return MeanSigs
