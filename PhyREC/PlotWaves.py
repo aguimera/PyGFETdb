@@ -731,7 +731,7 @@ class PlotSlots():
         self.FormatFigure()
         return MeanSigs
     
-        def PlotSpecEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
+    def PlotSpecEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
                          StdAlpha=0.2, 
                          PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
                          ClearAxes=True):

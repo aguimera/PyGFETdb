@@ -387,52 +387,66 @@ def xcorr(x, y, normed=True, detrend=mlab.detrend_none,
 #            kwargs.setdefault('linestyle', 'None')
 #            a, = self.plot(lags, correls, **kwargs)
 #            b = None
-        return lags, correls   
-    
+        return lags, correls
 
-def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole'):
+
+def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
     Vgs = Tchar.GetVgs()
     vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
-    
+
     if Regim == 'hole':
         Inds = np.where(vgs < Tchar.GetUd0())[1]
     else:
         Inds = np.where(vgs > Tchar.GetUd0())[1]
-    
+
     Ids = Tchar.GetIds(Vgs=vgs[Inds]) * pq.A
+    GM = Tchar.GetGM(Vgs=VgsExp) * pq.S
+
 
     IdsExp = Tchar.GetIds(Vgs=VgsExp) * pq.A
     IdsOff = np.mean(Sig)-IdsExp
+    IdsBias = np.mean(Sig)
 
     Calibrated = np.array((True,))
     try:
-        fgm = interpolate.interp1d(Ids[:, 0], vgs[Inds])
-        st = fgm(np.clip(Sig - IdsOff, np.min(Ids), np.max(Ids)))
+        if CalType == 'interp':
+            fgm = interpolate.interp1d(Ids[:, 0], vgs[Inds])
+            st = fgm(np.clip(Sig, np.min(Ids), np.max(Ids)))*pq.V
+        elif CalType=='linear':
+            st = Sig/GM
+        else:
+            print('Calibration Not defined')
     except:
         print(Sig.name, "Calibration error:", sys.exc_info()[0])
         st = np.zeros(Sig.shape)
         Calibrated = np.array((False,))
-        
-        
-    print(str(Sig.name), '-> ', 'IdsOff', IdsOff, 'Vgs', np.mean(st), Tchar.IsOK)
+
+    print(str(Sig.name), '-> ',
+          'IdsBias', IdsBias,
+          'IdsOff', IdsOff,
+          'Vgs', np.mean(st),
+          Tchar.IsOK)
+
     annotations = {'Calibrated': Calibrated,
-                   'Working':Calibrated,
-                   'IdsOff': IdsOff.flatten(),
-                   'VgsCal': np.array((np.mean(st), )),
-                   'IsOK': np.array((Tchar.IsOK, )),
-                   'Iname': np.array((Sig.name, )),                   
+                   'Working': Calibrated,
+                   'IdsOff': IdsOff.flatten()[0],
+                   'VgsCal': np.mean(st),
+                   'IdsBias': IdsBias.flatten()[0],
+                   'IsOK': Tchar.IsOK,
+                   'Iname': Sig.name,
+                   'GM': GM,
                    }
-    
-    CalSig = NeoSignal(st*pq.V,
+
+    CalSig = NeoSignal(st,
                        units='V',
                        t_start=Sig.t_start,
                        sampling_rate=Sig.sampling_rate,
                        name=str(Sig.name),
                        file_origin=Sig.file_origin)
 
-#    CalSig.annotate(**annotations)    
+#    CalSig.annotate(**annotations)
     CalSig.array_annotate(**annotations)
-        
+
     return CalSig
 
 def CalcVgeffNoInterp(Sig, Tchar, VgsExp=None, Regim='hole'):    

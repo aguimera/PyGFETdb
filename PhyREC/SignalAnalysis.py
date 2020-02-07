@@ -70,6 +70,8 @@ def threshold_detection(signal, threshold=0.0 * pq.mV, sign='above',
             if (te-told) > RelaxTime:
                 outevents.append(te)
                 told = te
+        outevents = np.array(outevents)*pq.s
+
     else:
         outevents = events
 
