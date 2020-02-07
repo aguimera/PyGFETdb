@@ -208,11 +208,7 @@ def GetGtechChar(FileInput, ExcludeCh=(None,)):
 
 
 def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
-<<<<<<< HEAD
-              Regim='hole', PlotChar=True, Interp=True):
-=======
               Regim='hole', PlotChar=True, CalType='interp'):
->>>>>>> ec5bcb6e4837ffc08a306cba7211121cfac8e4f0
 
     DCChar, _ = FETdata.LoadDataFromFile(CalFile)
 
@@ -231,13 +227,7 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
             continue
 
         Tchar = FETcl.DataCharDC(DCChar[Csig.name])
-        if Interp:
-            Vsig = Spro.CalcVgeff(Csig.GetSignal(CalTime),
-                              Tchar=Tchar,
-                              VgsExp=VgsExp,
-                              Regim=Regim)
-        else:
-            Vsig = Spro.CalcVgeffNoInterp(Csig.GetSignal(CalTime),
+        Vsig = Spro.CalcVgeff(Csig.GetSignal(CalTime),
                               Tchar=Tchar,
                               VgsExp=VgsExp,
                               Regim=Regim,
@@ -250,3 +240,5 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
 
     Vsigs.name = 'Calibrated Channels'
     return Vsigs
+
+
