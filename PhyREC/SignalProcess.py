@@ -55,7 +55,7 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
 
 
 def AvgSprectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
-                    Norm=True, NormTime=None):
+                    Norm=True, NormTime=None, **kwargs):
 
     Acc = np.array([])
     for t in TimesEvent:
@@ -70,7 +70,7 @@ def AvgSprectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
         return AvgSpect
 
     if NormTime is None:
-        NormTime = (AvgSpect.t_start, 0*pq.s)
+        NormTime = (AvgSpect.t_start, -0*pq.s)
 
     NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
     mean = np.mean(NormSig, axis=0)

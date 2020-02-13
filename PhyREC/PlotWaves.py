@@ -194,6 +194,29 @@ class SpecSlot():
                              )
         self.img = img
 
+    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
+                    **AvgKwargs):
+
+        sig = self.GetSignal((None, None), Units)
+
+        spect = Spro.AvgSprectrogram(sig, 
+                                     TimesEvent=TimesEvent,
+                                     TimeAvg=TimeAvg,
+                                     SpecArgs=self.specKwargs,
+                                     **AvgKwargs)
+        
+        print(self.imKwargs)
+        f = spect.annotations['Freq']
+        img = self.Ax.imshow(spect.transpose(),
+                             origin='lower',
+                             aspect='auto',
+                             extent=(spect.t_start, spect.t_stop,
+                                     np.min(f), np.max(f)),
+                             **self.imKwargs,
+                             )
+        self.img = img
+        return spect
+    
 
 class SpikeSlot():
     DefLineKwargs = {'color': 'r',
@@ -256,6 +279,13 @@ class SpikeSlot():
 
 class WaveSlot():
 
+    DefTrialLineKwargs = {'color': 'k',
+                          'linestyle': '-',
+                          'alpha': 0.05,
+                          'linewidth': 0.5,
+                          'clip_on': True,
+                          }
+
     DefLineKwargs = {'color': 'k',
                      'linestyle': '-',
                      'alpha': 1,
@@ -275,6 +305,8 @@ class WaveSlot():
     def __init__(self, Signal, Units=None, UnitsInLabel=False,
                  Position=None, Ax=None, AxKwargs=None,
                  **LineKwargs):
+
+        self.TrialLineKwargs = self.DefTrialLineKwargs.copy()
         self.LineKwargs = self.DefLineKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
 
@@ -355,8 +387,9 @@ class WaveSlot():
         self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
-                    PlotMean=True, PltStd=False, StdAlpha=0.2,AvgColor='gold',
-                    PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01):
+                    PlotMean=True, PlotStd=False, PlotTrials=False,
+                    TrialLineKwargs=None, StdAlpha=0.2, **kwargs):
+
         avsig = self.GetSignal((None, None), Units)
         avg = np.array([])
 
@@ -372,34 +405,26 @@ class WaveSlot():
             try:
                 avg = np.hstack([avg, st]) if avg.size else st
                 if PlotTrials:
-                    self.Ax.plot(t, st,
-                                 color=TrialsColor,
-                                 alpha=TrialsAlpha)
-#                                 clip_on=self.clip_on)
+                    self.Ax.plot(t, st, **self.TrialLineKwargs)
             except:
                 print ('Error', nSamps, et, avg.shape, st.shape)
 
         MeanT = np.mean(avg, axis=1)
-
         MeanTsig = avsig.duplicate_with_new_array(signal=MeanT*avsig.units)
         MeanTsig.t_start = TimeAvg[0]
         MeanTsig.name = MeanTsig.name
-        MeanTsig.annotate(Process='LED averaging')
-#        self._PlotSignal(MeanTsig, label=self.DispName + ' Avg')
+        MeanTsig.annotate(Process='Time Averaged')
+
         if PlotMean:
             self._PlotSignal(MeanTsig)
 
-
-        if PltStd:
+        if PlotStd:
             StdT = np.std(avg, axis=1)
             self.Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
                                  alpha=StdAlpha,
                                  facecolor=self.LineKwargs['color'],
                                  edgecolor=None,
                                  clip_on=False)
-
-        ylim = self.Ax.get_ylim()
-        self.Ax.vlines((0,), ylim[0], ylim[1], 'b', 'dashdot', alpha=0.5)
         return MeanTsig
 
 
@@ -704,25 +729,16 @@ class PlotSlots():
 
         return EventLines
 
-    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
-                         StdAlpha=0.2, 
-                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
-                         ClearAxes=True):
+    def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, ClearAxes=True,
+                         **Avgkwargs):
 
         if ClearAxes:
             self.ClearAxes()
 
         MeanSigs = []
         for sl in self.Slots:
-            MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent,
-                                     Units=Units,
-                                     PlotTrials=PlotTrials,
-                                     TrialsColor=TrialsColor,
-                                     TrialsAlpha=TrialsAlpha,
-                                     PltStd=PltStd,
-                                     PlotMean=PlotMean,
-                                     StdAlpha=StdAlpha,
-                                     )
+            MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent, Units=Units,
+                                     **Avgkwargs)
             MeanSigs.append(MeanSig)
 
         sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
