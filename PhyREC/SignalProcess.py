@@ -45,11 +45,39 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
         data = zscore(data, axis=1)       
     
     s = sig.duplicate_with_new_array(data.astype(dtype).transpose())
-    s.annotate(Freq = f[finds])
-    s.annotate(spec = True)
+    s.annotate(Freq=f[finds])
+    s.annotate(spec=True)
+    s.annotate(nFFT=nFFT)
+    s.annotate(WindowTime=nFFT*Ts)
     s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
-    s.t_start = s.t_start + s.sampling_period/2
+    s.t_start = s.t_start + (nFFT*Ts)/2
     return s
+
+
+def AvgSprectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
+                    Norm=True, NormTime=None):
+
+    Acc = np.array([])
+    for t in TimesEvent:
+        spect = Spectrogram(sig.time_slice(t+TimeAvg[0], t+TimeAvg[1]),
+                            **SpecArgs)
+        Acc = Acc + np.array(spect) if Acc.size else np.array(spect)
+
+    AvgSpect = spect.duplicate_with_new_array(Acc/len(TimesEvent))
+    AvgSpect.t_start = TimeAvg[0] + AvgSpect.annotations['WindowTime']/2
+
+    if Norm is False:
+        return AvgSpect
+
+    if NormTime is None:
+        NormTime = (AvgSpect.t_start, 0*pq.s)
+
+    NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
+    mean = np.mean(NormSig, axis=0)
+    std = np.std(NormSig, axis=0)
+    AvgNomrmSpect = (AvgSpect - mean) / std
+
+    return AvgNomrmSpect
 
 
 def Derivative(sig):

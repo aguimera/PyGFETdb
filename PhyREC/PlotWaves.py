@@ -93,6 +93,17 @@ def DrawBarScale(Ax, Location='Bottom Left',
             transform=AxTrans)
 
 
+def UpdateTreeDictProp(obj, prop):
+    ains = ArtistInspector(obj)
+    validp = ains.get_setters()
+    for p in prop.keys():
+        if p in validp:
+            obj.set(**{p: prop[p]})
+        else:
+            obj2 = getattr(obj, 'get_' + p)()
+            UpdateTreeDictProp(obj2, prop[p])
+
+
 class SpecSlot():
 
     DefspecKwargs = {
@@ -182,17 +193,6 @@ class SpecSlot():
                              **self.imKwargs,
                              )
         self.img = img
-
-
-def UpdateTreeDictProp(obj, prop):
-    ains = ArtistInspector(obj)
-    validp = ains.get_setters()
-    for p in prop.keys():
-        if p in validp:
-            obj.set(**{p: prop[p]})
-        else:
-            obj2 = getattr(obj, 'get_' + p)()
-            UpdateTreeDictProp(obj2, prop[p])
 
 
 class SpikeSlot():
@@ -399,7 +399,7 @@ class WaveSlot():
                                  clip_on=False)
 
         ylim = self.Ax.get_ylim()
-        self.Ax.vlines((0,), ylim[0], ylim[1], 'r', 'dashdot', alpha=0.5)
+        self.Ax.vlines((0,), ylim[0], ylim[1], 'b', 'dashdot', alpha=0.5)
         return MeanTsig
 
 
@@ -731,29 +731,3 @@ class PlotSlots():
         self.FormatFigure()
         return MeanSigs
     
-    def PlotSpecEventAvarage(self, TimeAvg, TimesEvent, Units=None,PlotMean=True, PltStd=False,
-                         StdAlpha=0.2, 
-                         PlotTrials=False, TrialsColor='k', TrialsAlpha=0.01,
-                         ClearAxes=True):
-
-            if ClearAxes:
-                self.ClearAxes()
-    
-            MeanSigs = []
-            for sl in self.Slots:
-                MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent,
-                                         Units=Units,
-                                         PlotTrials=PlotTrials,
-                                         TrialsColor=TrialsColor,
-                                         TrialsAlpha=TrialsAlpha,
-                                         PltStd=PltStd,
-                                         PlotMean=PlotMean,
-                                         StdAlpha=StdAlpha,
-                                         )
-                MeanSigs.append(MeanSig)
-    
-            sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
-            sl.Ax.set_xlim(right=TimeAvg[1].magnitude)
-    
-            self.FormatFigure()
-            return MeanSigs
