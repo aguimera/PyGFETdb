@@ -25,18 +25,18 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
                 Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True, NormTime=None,
                 dtype=np.float16,
                 **specKwarg):
-    
+
     nFFT = int(2**(np.around(np.log2(sig.sampling_rate/Fres))+1))
     Ts = sig.sampling_period
     noverlap = int((Ts*nFFT - TimeRes)/Ts)
-    
+
     f, t, Sxx = signal.spectrogram(sig,
                                    fs=sig.sampling_rate,
                                    nperseg=nFFT,
                                    noverlap=noverlap,
                                    axis=0,
                                    **specKwarg)
-        
+
     finds = np.where((Fmin < f) & (f < Fmax))[0][1:]
     r, g, c = Sxx.shape
     data = Sxx.reshape((r, c))[finds][:]
@@ -48,17 +48,17 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     s.annotate(WindowTime=nFFT*Ts)
     s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
     s.t_start = s.t_start + (nFFT*Ts)/2
-    
+
     if Zscored:
         if NormTime is None:
-            data = zscore(s, axis=1)
+            return zscore(s, axis=1)
         else:
-            NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
+            NormSig = s.time_slice(NormTime[0], NormTime[1])
             mean = np.mean(NormSig, axis=0)
             std = np.std(NormSig, axis=0)
-            AvgNormSpect = (data - mean) / std            
-
-    return s  
+            return ((s - mean) / std)
+    else:
+        return s
 
 
 def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,

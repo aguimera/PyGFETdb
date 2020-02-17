@@ -113,20 +113,20 @@ class SpecSlot():
                   'TimeRes': 0.1*pq.s,
                   'Zscored': True,
                  }
-                    
-    DefAxKwargs = {      
-                    'xaxis': {'visible': False,
-                              },
-                    'yaxis': {'visible': True,
-                              },
-                    'ylabel':'Freq [Hz]',
-                }
+
+    DefAxKwargs = {
+                   'ylabel': 'Freq [Hz]',
+                   'xaxis': {'visible': False,
+                             },
+                   'yaxis': {'visible': True,
+                             },                    
+                   }
 
     DefImKwargs = {
-                'norm': colors.Normalize(-3, 3),
-                'cmap': 'seismic',
-                'interpolation': 'bilinear',
-                   }
+                    'norm': colors.Normalize(-3, 3),
+                    'cmap': 'seismic',
+                    'interpolation': 'bilinear',
+                    }
     
     
     def UpdateLineKwargs(self, LineKwargs):
@@ -135,9 +135,9 @@ class SpecSlot():
 #        UpdateTreeDictProp(self.Line, self.LineKwargs)
 
     def UpdateAxKwargs(self, AxKwargs):
-        pass
-#        self.AxKwargs.update(AxKwargs)
-#        UpdateTreeDictProp(self.Ax, self.AxKwargs)
+        # pass
+        self.AxKwargs.update(AxKwargs)
+        UpdateTreeDictProp(self.Ax, self.AxKwargs)
         
     def __init__(self, Signal, Units=None, Position=None, imKwargs=None,
                  specKwargs=None, AxKwargs=None, Ax=None):
@@ -160,6 +160,27 @@ class SpecSlot():
             self.AxKwargs.update(AxKwargs)       
         if imKwargs is not None:
             self.imKwargs.update(imKwargs)
+
+
+    def CheckTime(self, Time):
+        if Time is None:
+            return (self.Signal.t_start, self.Signal.t_stop)
+
+        if len(Time) == 1:
+            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+
+        if Time[0] is None or Time[0] < self.Signal.t_start:
+            Tstart = self.Signal.t_start
+        else:
+            Tstart = Time[0]
+
+        if Time[1] is None or Time[1] > self.Signal.t_stop:
+            Tstop = self.Signal.t_stop
+        else:
+            Tstop = Time[1]
+
+        return (Tstart, Tstop)
+    
         
     def GetSignal(self, Time, Units=None):
         if Units is None:
@@ -167,6 +188,7 @@ class SpecSlot():
         else:
             _Units = Units     
         
+        Time = self.CheckTime(Time)
         sig = self.Signal.time_slice(Time[0], Time[1])
 
         if _Units is not None:
@@ -620,7 +642,6 @@ class PlotSlots():
             sl.Fig = self.Fig
             UpdateTreeDictProp(sl.Ax, sl.AxKwargs)
 
-
     def __init__(self, Slots, Fig=None, FigKwargs=None, RcGeneralParams=None,
                  AxKwargs=None, TimeAxis=-1,
                  ScaleBarAx=None, LiveControl=False):
@@ -724,13 +745,12 @@ class PlotSlots():
                 self.Texts.append(txt)
             return
 
-        EventLines = []
+        # EventLines = []
         for ax in self.Axs:
             ylim = ax.get_ylim()
             lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
 #            EventLines.append(lines[0])
-
-        return EventLines
+        # return EventLines
 
     def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, ClearAxes=True,
                          **Avgkwargs):
