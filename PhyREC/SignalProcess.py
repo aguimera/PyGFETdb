@@ -22,7 +22,7 @@ from . import DbgFplt
 
 
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
-                Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True,
+                Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True, NormTime=None,
                 dtype=np.float16,
                 **specKwarg):
     
@@ -40,10 +40,7 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     finds = np.where((Fmin < f) & (f < Fmax))[0][1:]
     r, g, c = Sxx.shape
     data = Sxx.reshape((r, c))[finds][:]
-    
-    if Zscored:
-        data = zscore(data, axis=1)       
-    
+
     s = sig.duplicate_with_new_array(data.astype(dtype).transpose())
     s.annotate(Freq=f[finds])
     s.annotate(spec=True)
@@ -51,11 +48,21 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     s.annotate(WindowTime=nFFT*Ts)
     s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
     s.t_start = s.t_start + (nFFT*Ts)/2
-    return s
+    
+    if Zscored:
+        if NormTime is None:
+            data = zscore(s, axis=1)
+        else:
+            NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
+            mean = np.mean(NormSig, axis=0)
+            std = np.std(NormSig, axis=0)
+            AvgNormSpect = (data - mean) / std            
+
+    return s  
 
 
-def AvgSprectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
-                    Norm=True, NormTime=None, **kwargs):
+def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
+                   SpecNorm=True, SpecNormTime=None, **kwargs):
 
     Acc = np.array([])
     for t in TimesEvent:
@@ -66,18 +73,25 @@ def AvgSprectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
     AvgSpect = spect.duplicate_with_new_array(Acc/len(TimesEvent))
     AvgSpect.t_start = TimeAvg[0] + AvgSpect.annotations['WindowTime']/2
 
-    if Norm is False:
+    if SpecNorm is False:
         return AvgSpect
 
-    if NormTime is None:
+    if SpecNormTime is None:
         NormTime = (AvgSpect.t_start, -0*pq.s)
+    else:
+        NormTime = SpecNormTime
+        if NormTime[0] is None:
+            NormTime[0] = AvgSpect.t_start
+        if NormTime[1] is None:
+            NormTime[1] = AvgSpect.t_stop
+
 
     NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
     mean = np.mean(NormSig, axis=0)
     std = np.std(NormSig, axis=0)
-    AvgNomrmSpect = (AvgSpect - mean) / std
+    AvgNormSpect = (AvgSpect - mean) / std
 
-    return AvgNomrmSpect
+    return AvgNormSpect
 
 
 def Derivative(sig):

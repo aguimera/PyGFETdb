@@ -115,12 +115,11 @@ class SpecSlot():
                  }
                     
     DefAxKwargs = {      
-                'xaxis': {'visible': False,
-                  },
-                'yaxis': {'visible': True,
-                  },
-                'ylabel':'Freq [Hz]',
-                # 'yscale':'log', ##to test
+                    'xaxis': {'visible': False,
+                              },
+                    'yaxis': {'visible': True,
+                              },
+                    'ylabel':'Freq [Hz]',
                 }
 
     DefImKwargs = {
@@ -199,13 +198,12 @@ class SpecSlot():
 
         sig = self.GetSignal((None, None), Units)
 
-        spect = Spro.AvgSprectrogram(sig, 
-                                     TimesEvent=TimesEvent,
-                                     TimeAvg=TimeAvg,
-                                     SpecArgs=self.specKwargs,
-                                     **AvgKwargs)
+        spect = Spro.AvgSpectrogram(sig, 
+                                    TimesEvent=TimesEvent,
+                                    TimeAvg=TimeAvg,
+                                    SpecArgs=self.specKwargs,
+                                    **AvgKwargs)
         
-        print(self.imKwargs)
         f = spect.annotations['Freq']
         img = self.Ax.imshow(spect.transpose(),
                              origin='lower',
@@ -331,6 +329,8 @@ class WaveSlot():
         else:
             self.name = self.LineKwargs['label']
 
+        self.TrialLineKwargs['color'] = self.LineKwargs['color']
+
     def CheckTime(self, Time):
         if Time is None:
             return (self.Signal.t_start, self.Signal.t_stop)
@@ -390,6 +390,9 @@ class WaveSlot():
                     PlotMean=True, PlotStd=False, PlotTrials=False,
                     TrialLineKwargs=None, StdAlpha=0.2, **kwargs):
 
+        if TrialLineKwargs is not None:
+            self.TrialLineKwargs.update(TrialLineKwargs)
+            
         avsig = self.GetSignal((None, None), Units)
         avg = np.array([])
 
