@@ -160,7 +160,8 @@ class SpecSlot():
             self.AxKwargs.update(AxKwargs)       
         if imKwargs is not None:
             self.imKwargs.update(imKwargs)
-
+        if self.Ax is not None:
+            UpdateTreeDictProp(self.Ax, self.AxKwargs)
 
     def CheckTime(self, Time):
         if Time is None:
@@ -729,8 +730,12 @@ class PlotSlots():
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
                    LabPosition='top', **kwargs):
 
+        # xlim = self.Axs[0].get_xlim()
+        
         Times = Times.rescale('s')
+        
         self.Texts = []
+        
         if Labels is not None:
             for ilbl, lbl in enumerate(Labels):
                 for ax in self.Axs:
@@ -751,6 +756,7 @@ class PlotSlots():
             lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
 #            EventLines.append(lines[0])
         # return EventLines
+        self.Axs[0].set_xlim(self.current_time)
 
     def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, ClearAxes=True,
                          **Avgkwargs):
