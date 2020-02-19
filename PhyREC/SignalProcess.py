@@ -58,7 +58,12 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
             std = np.std(NormSig, axis=0)
             return ((s - mean) / std)
     else:
-        return s
+        if NormTime is None:
+            return s
+        else:
+            NormSig = s.time_slice(NormTime[0], NormTime[1])
+            mean = np.mean(NormSig, axis=0)           
+            return (s / mean)
 
 
 def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
@@ -84,7 +89,6 @@ def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
             NormTime[0] = AvgSpect.t_start
         if NormTime[1] is None:
             NormTime[1] = AvgSpect.t_stop
-
 
     NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
     mean = np.mean(NormSig, axis=0)
@@ -125,7 +129,7 @@ def RemoveDC(sig, Type='constant'):
 def SetZero(sig, TWind):
     st = np.array(sig)
     # offset = np.mean(sig.GetSignal(TWind))
-    offset = np.mean(sig.time_slice(TWind[0],TWind[1]))
+    offset = np.mean(sig.time_slice(TWind[0], TWind[1]))
     print(sig.name, offset)
     st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
@@ -148,7 +152,7 @@ def Resample(sig, Fs=None, MaxPoints=None):
             uprate = 1
 
     if dowrate > 0:
-        print (sig.sampling_rate*f, f, uprate, dowrate)
+        print(sig.sampling_rate*f, f, uprate, dowrate)
         rs = signal.resample_poly(np.array(sig), uprate, dowrate)
         sig = sig.duplicate_with_new_array(signal=rs*sig.units)
         sig.sampling_rate = sig.sampling_rate*f

@@ -16,6 +16,7 @@ from scipy.interpolate import interp2d
 from matplotlib.widgets import Slider, Button, TextBox
 from matplotlib.artist import ArtistInspector
 import PhyREC.SignalProcess as Spro
+from . import SpectColBars
 
 #from NeoInterface import NeoTrain
 
@@ -119,7 +120,7 @@ class SpecSlot():
                    'xaxis': {'visible': False,
                              },
                    'yaxis': {'visible': True,
-                             },                    
+                             },
                    }
 
     DefImKwargs = {
@@ -127,8 +128,7 @@ class SpecSlot():
                     'cmap': 'seismic',
                     'interpolation': 'bilinear',
                     }
-    
-    
+
     def UpdateLineKwargs(self, LineKwargs):
         pass
 #        self.LineKwargs.update(LineKwargs)
@@ -138,14 +138,14 @@ class SpecSlot():
         # pass
         self.AxKwargs.update(AxKwargs)
         UpdateTreeDictProp(self.Ax, self.AxKwargs)
-        
+
     def __init__(self, Signal, Units=None, Position=None, imKwargs=None,
                  specKwargs=None, AxKwargs=None, Ax=None):
 
         self.specKwargs = self.DefspecKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
         self.imKwargs = self.DefImKwargs.copy()
-        
+
         if specKwargs is not None:
             self.specKwargs.update(specKwargs)
 
@@ -157,7 +157,7 @@ class SpecSlot():
 
         self.Ax = Ax
         if AxKwargs is not None:
-            self.AxKwargs.update(AxKwargs)       
+            self.AxKwargs.update(AxKwargs)
         if imKwargs is not None:
             self.imKwargs.update(imKwargs)
         if self.Ax is not None:
@@ -181,14 +181,13 @@ class SpecSlot():
             Tstop = Time[1]
 
         return (Tstart, Tstop)
-    
-        
+
     def GetSignal(self, Time, Units=None):
         if Units is None:
             _Units = self.units
         else:
-            _Units = Units     
-        
+            _Units = Units
+
         Time = self.CheckTime(Time)
         sig = self.Signal.time_slice(Time[0], Time[1])
 
@@ -204,7 +203,7 @@ class SpecSlot():
             spec = sig
         else:
             spec = Spro.Spectrogram(sig, **self.specKwargs)
-                
+
         f = spec.annotations['Freq']
         data = Spro.Resample(spec, MaxPoints=5000)
         img = self.Ax.imshow(np.array(data).astype(np.float).transpose(),
@@ -226,7 +225,7 @@ class SpecSlot():
                                     TimeAvg=TimeAvg,
                                     SpecArgs=self.specKwargs,
                                     **AvgKwargs)
-        
+
         f = spect.annotations['Freq']
         img = self.Ax.imshow(spect.transpose(),
                              origin='lower',
@@ -237,7 +236,7 @@ class SpecSlot():
                              )
         self.img = img
         return spect
-    
+
 
 class SpikeSlot():
     DefLineKwargs = {'color': 'r',
@@ -714,8 +713,11 @@ class PlotSlots():
     def PlotChannels(self, Time, Units=None, FormatFigure=True):
         self.ClearAxes()
         print('plot channels')
-        for sl in self.Slots:
+        SpectColBars.ImgDicts = {}
+        for isl, sl in enumerate(self.Slots):
             sl.PlotSignal(Time, Units=Units)
+            if hasattr(sl, 'img'):
+                SpectColBars.ImgDicts.update({isl: sl.img})
 #        if Time is not None:
 #            if Time[0] is not None:
 #                sl.Ax.set_xlim(left=Time[0].magnitude)
@@ -723,19 +725,19 @@ class PlotSlots():
 #                sl.Ax.set_xlim(right=Time[1].magnitude)
 
         self.current_time = sl.Ax.get_xlim()
-        
+
         if self.CtrFig is not None:
             self.CtrFig.SetTimes(self.current_time)
-            
+
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
                    LabPosition='top', **kwargs):
 
         # xlim = self.Axs[0].get_xlim()
-        
+
         Times = Times.rescale('s')
-        
+
         self.Texts = []
-        
+
         if Labels is not None:
             for ilbl, lbl in enumerate(Labels):
                 for ax in self.Axs:
