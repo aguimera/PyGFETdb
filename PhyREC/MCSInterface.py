@@ -10,7 +10,9 @@ import numpy as np
 import PyGFETdb.AnalyzeData as FETana
 import os
 import datetime
-
+from McsPy import McsData
+import neo
+import quantities as pq
 
 def GetMCSChar(FileInput, Vds, ExcludeCh=(None, )):
     Fin = open(FileInput, encoding='latin')
@@ -52,3 +54,37 @@ def GetMCSChar(FileInput, Vds, ExcludeCh=(None, )):
     FETana.CalcGM(DevDCVals)
 
     return DevDCVals
+
+def LoadMCSFile(FileInput):
+    Dat = McsData.RawData(FileInput)
+    Rec = Dat.recordings[0]
+    NSamps = Rec.duration
+
+    Seg = neo.Segment()
+
+    Sigs = None
+    for AnaStrn, AnaStr in Rec.analog_streams.items():
+        if len(AnaStr.channel_infos) == 1:
+            continue 
+        
+        for Chn, Chinfo in AnaStr.channel_infos.items():
+            print('Analog Stream ', Chinfo.label, Chinfo.sampling_frequency)
+            ChName = str(Chinfo.label)
+            print(ChName)
+ 
+            Fs = Chinfo.sampling_frequency
+            Var, Unit = AnaStr.get_channel_in_range(Chn, 0, NSamps)
+            sig = neo.AnalogSignal(pq.Quantity(Var, pq.V),
+                                   t_start=0*pq.s,
+                                   sampling_rate=Fs.magnitude*pq.Hz,
+                                   name=ChName)
+ 
+            if Sigs is None:
+                Sigs = sig
+            else:
+                Sigs = Sigs.merge(sig)
+
+    return Sigs
+
+
+

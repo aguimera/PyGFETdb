@@ -123,9 +123,10 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
 
     PSD = {}        
     for sl in Signals:
-        if not hasattr(sl, 'GetSignal'):
-            continue
-        sig = sl.GetSignal(Time, Units=Units)
+        if hasattr(sl, 'GetSignal'):            
+            sig = sl.GetSignal(Time, Units=Units)
+        else:
+            sig = sl.time_slice(*Time)
 
         if FMin is not None:
             nFFT = int(2**(np.around(np.log2(sig.sampling_rate.magnitude/FMin))+1))
