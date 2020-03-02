@@ -140,8 +140,9 @@ class SpecSlot():
         UpdateTreeDictProp(self.Ax, self.AxKwargs)
 
     def __init__(self, Signal, Units=None, Position=None, imKwargs=None,
-                 specKwargs=None, AxKwargs=None, Ax=None):
+                 specKwargs=None, AxKwargs=None, Ax=None, MaxPoints=10000):
 
+        self.MaxPoints = MaxPoints
         self.specKwargs = self.DefspecKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
         self.imKwargs = self.DefImKwargs.copy()
@@ -205,7 +206,7 @@ class SpecSlot():
             spec = Spro.Spectrogram(sig, **self.specKwargs)
 
         f = spec.annotations['Freq']
-        data = Spro.Resample(spec, MaxPoints=5000)
+        data = Spro.Resample(spec, MaxPoints=self.MaxPoints)
         img = self.Ax.imshow(np.array(data).astype(np.float).transpose(),
                              origin='lower',
                              aspect='auto',
@@ -227,7 +228,7 @@ class SpecSlot():
                                     **AvgKwargs)
 
         f = spect.annotations['Freq']
-        img = self.Ax.imshow(spect.transpose(),
+        img = self.Ax.imshow(np.array(spect).transpose(),
                              origin='lower',
                              aspect='auto',
                              extent=(spect.t_start, spect.t_stop,
@@ -732,7 +733,7 @@ class PlotSlots():
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
                    LabPosition='top', **kwargs):
 
-        # xlim = self.Axs[0].get_xlim()
+        xlim = self.Axs[0].get_xlim()
 
         Times = Times.rescale('s')
 
@@ -758,7 +759,7 @@ class PlotSlots():
             lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
 #            EventLines.append(lines[0])
         # return EventLines
-        self.Axs[0].set_xlim(self.current_time)
+        self.Axs[0].set_xlim(xlim)
 
     def PlotEventAvarage(self, TimeAvg, TimesEvent, Units=None, ClearAxes=True,
                          **Avgkwargs):
@@ -767,10 +768,12 @@ class PlotSlots():
             self.ClearAxes()
 
         MeanSigs = []
-        for sl in self.Slots:
+        for isl, sl in enumerate(self.Slots):
             MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent, Units=Units,
                                      **Avgkwargs)
             MeanSigs.append(MeanSig)
+            if hasattr(sl, 'img'):
+                SpectColBars.ImgDicts.update({isl: sl.img})
 
         sl.Ax.set_xlim(left=TimeAvg[0].magnitude)
         sl.Ax.set_xlim(right=TimeAvg[1].magnitude)

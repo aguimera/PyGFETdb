@@ -227,7 +227,7 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
             continue
 
         Tchar = FETcl.DataCharDC(DCChar[Csig.name])
-        Vsig = Spro.CalcVgeff(Csig.GetSignal(CalTime),
+        Vsig = Spro.CalcVgeff(Csig.time_slice(*CalTime),
                               Tchar=Tchar,
                               VgsExp=VgsExp,
                               Regim=Regim,

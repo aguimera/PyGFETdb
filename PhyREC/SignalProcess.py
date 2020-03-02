@@ -51,7 +51,7 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
 
     if Zscored:
         if NormTime is None:
-            return zscore(s, axis=1)
+            return zscore(s, axis=0)
         else:
             NormSig = s.time_slice(NormTime[0], NormTime[1])
             mean = np.mean(NormSig, axis=0)
@@ -67,7 +67,7 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
 
 
 def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
-                   SpecNorm=True, SpecNormTime=None, **kwargs):
+                   AvgSpectNorm='Zscore', AvgSpectNormTime=None, **kwargs):
 
     Acc = np.array([])
     for t in TimesEvent:
@@ -78,13 +78,13 @@ def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
     AvgSpect = spect.duplicate_with_new_array(Acc/len(TimesEvent))
     AvgSpect.t_start = TimeAvg[0] + AvgSpect.annotations['WindowTime']/2
 
-    if SpecNorm is False:
+    if AvgSpectNorm is None:
         return AvgSpect
 
-    if SpecNormTime is None:
+    if AvgSpectNormTime is None:
         NormTime = (AvgSpect.t_start, -0*pq.s)
     else:
-        NormTime = SpecNormTime
+        NormTime = AvgSpectNormTime
         if NormTime[0] is None:
             NormTime[0] = AvgSpect.t_start
         if NormTime[1] is None:
@@ -93,8 +93,12 @@ def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
     NormSig = AvgSpect.time_slice(NormTime[0], NormTime[1])
     mean = np.mean(NormSig, axis=0)
     std = np.std(NormSig, axis=0)
-    AvgNormSpect = (AvgSpect - mean) / std
-
+    
+    if AvgSpectNorm == 'Zscore':
+        AvgNormSpect = (AvgSpect - mean) / std
+    else:
+        AvgNormSpect = AvgSpect / mean
+    
     return AvgNormSpect
 
 
