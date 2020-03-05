@@ -19,6 +19,7 @@ from scipy import interpolate
 import sys
 from scipy.stats.mstats import zscore
 from . import DbgFplt
+from scipy.interpolate import UnivariateSpline
 
 
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
@@ -269,8 +270,25 @@ def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):
                      name=sig.name,
                      sampling_rate=SigH.sampling_rate,
                      t_start=SigH.t_start)
+
+def HilbertAngle(sig):
+    SigH = elephant.signal_processing.hilbert(sig)   
+    return sig.duplicate_with_new_data(signal=np.angle(SigH),
+                                       units=pq.radians)
+
+
+def HilbertAmp(sig):
+    SigH = elephant.signal_processing.hilbert(sig)
     
-    
+    return sig.duplicate_with_new_data(signal=np.array(np.abs(SigH))*sig.units)
+
+
+def SplineSmooth(sig, sFact=2, **kwargs):
+    s = sig.shape[0]/sFact
+    spl = UnivariateSpline(sig.times, sig, s=s)    
+    return sig.duplicate_with_new_data(signal=spl(sig.times)*sig.units)
+
+   
 def Strid_signal(sig, timewidth, steptime=None):
     if steptime is None:
         steptime = timewidth/10
