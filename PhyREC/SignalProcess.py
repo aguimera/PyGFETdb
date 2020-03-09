@@ -20,6 +20,13 @@ import sys
 from scipy.stats.mstats import zscore
 from . import DbgFplt
 from scipy.interpolate import UnivariateSpline
+from scipy.signal import medfilt
+
+
+
+
+
+
 
 
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
@@ -287,6 +294,18 @@ def SplineSmooth(sig, sFact=2, **kwargs):
     s = sig.shape[0]/sFact
     spl = UnivariateSpline(sig.times, sig, s=s)    
     return sig.duplicate_with_new_data(signal=spl(sig.times)*sig.units)
+
+def MedianFilt(sig, window_size=None, **kwargs): #window_size in pq.s
+    if window_size==None:
+        kernel_size=int(sig.shape[0]/10)
+    else:
+        kernel_size=int(sig.sampling_rate*window_size)
+    if bool(kernel_size & 1): ##kernel_size has to be an odd number
+        kernel_size=kernel_size
+    else:
+        kernel_size=kernel_size-1
+    SigFilt=medfilt(np.array(sig).reshape(len(sig),), kernel_size=kernel_size)    
+    return sig.duplicate_with_new_data(signal=np.array(SigFilt)*sig.units)
 
    
 def Strid_signal(sig, timewidth, steptime=None):
