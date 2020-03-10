@@ -325,6 +325,9 @@ class DataCharDC(object):
         else:
             return self.Vgs
 
+    def Get(self, Param, **kwargs):
+        return self.__getattribute__('Get' + Param)(**kwargs)        
+
     def _GetParam(self, Param, Vgs=None, Vds=None,
                   Ud0Norm=False, Normalize=False, **kwargs):
 
