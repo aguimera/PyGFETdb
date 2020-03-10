@@ -17,18 +17,6 @@ import sys
 
 DebugPrint = True
 
-DefaultUnits = {'Vds': pq.V,
-                'Ud0': pq.V,
-#                'PSD': pq.A**2/pq.Hz,
-#                'Fgm': pq.S,
-#                'gm': pq.S,
-                'Vgs': pq.V,
-#                'Fpsd': pq.Hz,
-#                'Ig': pq.A,
-                'Irms': pq.V,
-                'Ids': pq.A,
-                }
-
 
 class DataCharDC(object):
     PolyOrder = 10
@@ -37,6 +25,20 @@ class DataCharDC(object):
 #    FEMRc = 300  # absolute value Ohms
 #    FEMCdl = 2e-6  # F/cm^2
     IntMethod = 'linear'
+    DefaultUnits = {'Vds': pq.V,
+                  'Ud0': pq.V,
+                  # 'PSD': pq.A ** 2 / pq.Hz,
+                  'Fgm': pq.Hz,
+                 'GM': pq.S,
+                 'GMV': pq.S / pq.V,
+                  'Vgs': pq.V,
+                  # 'Fpsd': pq.Hz,
+                  'Ig': pq.A,
+                 'Irms': pq.A,
+                 'Vrms': pq.V,
+                  'Ids': pq.A,
+                  'Rds': pq.ohm
+                  }
 
     def __init__(self, Data):
         for k, v in Data.items():
@@ -49,17 +51,17 @@ class DataCharDC(object):
                         print ('NaN in gate values')
                 else:
                     self.__setattr__('Ig', v['Ig'])
-#            if k in DefaultUnits:
-##                print(k, v, DefaultUnits[k])
-#                v = v * DefaultUnits[k]
+            if k in self.DefaultUnits:
+#                print(k, v, DefaultUnits[k])
+                v = v * self.DefaultUnits[k]
             self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
            
     def _FormatOutput(self, Par, **kwargs):
-        if 'Units' in kwargs:
-            Par.rescale(kwargs['Units'])
+        if 'Units' in kwargs:            
+            Par = Par.rescale(kwargs['Units'])          
 
         if not hasattr(Par, '__iter__'):
             return Par[None, None]
@@ -230,10 +232,10 @@ class DataCharDC(object):
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
-            ids = np.polyval(self.IdsPoly[:, ivd], vg)
+            ids = np.polyval(self.IdsPoly[:, ivd], vg.rescale('V').magnitude)
             Ids = np.vstack((Ids, ids)) if Ids.size else ids
 
-#        Ids = Ids * DefaultUnits['Ids']
+        Ids = Ids * self.DefaultUnits['Ids']
         return self._FormatOutput(Ids, **kwargs)
 
     def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
@@ -255,11 +257,12 @@ class DataCharDC(object):
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
-            gm = np.polyval(self.GMPoly[:, ivd], vg)
+            gm = np.polyval(self.GMPoly[:, ivd], vg.rescale('V').magnitude)
             if Normalize:
                 gm = gm/self.Vds[ivd] #*(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM = np.vstack((GM, gm)) if GM.size else gm
 
+        GM = GM * self.DefaultUnits['GM']
         return self._FormatOutput(GM, **kwargs)
 
     def GetGMV(self, AbsVal=True, **kwargs):
