@@ -138,7 +138,9 @@ def RemoveDC(sig, Type='constant'):
     return sig.duplicate_with_new_array(signal=st*sig.units)
 
 
-def SetZero(sig, TWind):
+def SetZero(sig, TWind=None):
+    if TWind is None:
+        TWind=(sig.t_start,sig.t_start+30*pq.s)
     st = np.array(sig)
     # offset = np.mean(sig.GetSignal(TWind))
     offset = np.mean(sig.time_slice(TWind[0], TWind[1]))
