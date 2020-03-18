@@ -49,6 +49,9 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     r, g, c = Sxx.shape
     data = Sxx.reshape((r, c))[finds][:]
 
+    if Zscored and (NormTime is None):
+        data = zscore(data, axis=1)
+
     s = sig.duplicate_with_new_array(data.astype(dtype).transpose())
     s.annotate(Freq=f[finds])
     s.annotate(spec=True)
@@ -57,14 +60,14 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     s.sampling_period = np.mean(t[1:]-t[:-1])*pq.s
     s.t_start = s.t_start + (nFFT*Ts)/2
 
+    if Zscored and (NormTime is None):
+        return s
+
     if Zscored:
-        if NormTime is None:
-            return zscore(s, axis=0)
-        else:
-            NormSig = s.time_slice(NormTime[0], NormTime[1])
-            mean = np.mean(NormSig, axis=0)
-            std = np.std(NormSig, axis=0)
-            return ((s - mean) / std)
+        NormSig = s.time_slice(NormTime[0], NormTime[1])
+        mean = np.mean(NormSig, axis=0)
+        std = np.std(NormSig, axis=0)
+        return ((s - mean) / std)
     else:
         if NormTime is None:
             return s
