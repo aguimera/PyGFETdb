@@ -114,6 +114,17 @@ class SpecSlot():
                   'TimeRes': 0.1*pq.s,
                   'Zscored': True,
                  }
+    
+    DefAvgSpectKwargs = {'SpecArgs': {
+                                      'Fmax': 100*pq.Hz,
+                                      'Fmin': 0.5*pq.Hz,
+                                      'Fres': 0.5*pq.Hz,
+                                      'TimeRes': 0.1*pq.s,
+                                      'Zscored': False,
+                                      },
+                         'AvgSpectNorm': 'Zscore',
+                         'AvgSpectNormTime': None,
+                         }
 
     DefAxKwargs = {
                    'ylabel': 'Freq [Hz]',
@@ -140,12 +151,14 @@ class SpecSlot():
         UpdateTreeDictProp(self.Ax, self.AxKwargs)
 
     def __init__(self, Signal, Units=None, Position=None, imKwargs=None,
-                 specKwargs=None, AxKwargs=None, Ax=None, MaxPoints=10000):
+                 specKwargs=None, AxKwargs=None, Ax=None, MaxPoints=10000,
+                 AvgSpectKwargs=None):
 
         self.MaxPoints = MaxPoints
         self.specKwargs = self.DefspecKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
         self.imKwargs = self.DefImKwargs.copy()
+        self.AvgSpectKwargs = self.DefAvgSpectKwargs.copy()
 
         if specKwargs is not None:
             self.specKwargs.update(specKwargs)
@@ -161,6 +174,8 @@ class SpecSlot():
             self.AxKwargs.update(AxKwargs)
         if imKwargs is not None:
             self.imKwargs.update(imKwargs)
+        if AvgSpectKwargs is not None:
+            self.AvgSpectKwargs.update(AvgSpectKwargs)
         if self.Ax is not None:
             UpdateTreeDictProp(self.Ax, self.AxKwargs)
 
@@ -216,16 +231,14 @@ class SpecSlot():
                              )
         self.img = img
 
-    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
-                    **AvgKwargs):
+    def CalcAvarage(self, TimeAvg, TimesEvent, Units=None, **Kwargs):
 
         sig = self.GetSignal((None, None), Units)
 
         spect = Spro.AvgSpectrogram(sig, 
                                     TimesEvent=TimesEvent,
                                     TimeAvg=TimeAvg,
-                                    SpecArgs=self.specKwargs,
-                                    **AvgKwargs)
+                                    **self.AvgSpectKwargs)
 
         f = spect.annotations['Freq']
         img = self.Ax.imshow(np.array(spect).transpose(),

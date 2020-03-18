@@ -23,15 +23,9 @@ from scipy.interpolate import UnivariateSpline
 from scipy.signal import medfilt
 
 
-
-
-
-
-
-
 def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
                 Fmin=1*pq.Hz, Fmax=200*pq.Hz, Zscored=True, NormTime=None,
-                dtype=np.float16,
+                dtype=np.float,
                 **specKwarg):
 
     nFFT = int(2**(np.around(np.log2(sig.sampling_rate/Fres))+1))
