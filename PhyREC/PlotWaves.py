@@ -337,12 +337,14 @@ class WaveSlot():
         UpdateTreeDictProp(self.Ax, self.AxKwargs)
 
     def __init__(self, Signal, Units=None, UnitsInLabel=False,
-                 Position=None, Ax=None, AxKwargs=None,
+                 Position=None, Ax=None, AxKwargs=None, TrialProcessChain=None,
                  **LineKwargs):
 
         self.TrialLineKwargs = self.DefTrialLineKwargs.copy()
         self.LineKwargs = self.DefLineKwargs.copy()
         self.AxKwargs = self.DefAxKwargs.copy()
+        
+        self.TrialProcessChain = TrialProcessChain
 
         self.Signal = Signal
         self.name = self.Signal.name
@@ -424,47 +426,40 @@ class WaveSlot():
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
                     PlotMean=True, PlotStd=False, PlotTrials=False,
-                    TrialLineKwargs=None, StdAlpha=0.2, **kwargs):
+                    TrialLineKwargs=None, StdAlpha=0.2, TrialProcessChain=None,
+                    **kwargs):
 
         if TrialLineKwargs is not None:
             self.TrialLineKwargs.update(TrialLineKwargs)
             
-        avsig = self.GetSignal((None, None), Units)
-        avg = np.array([])
-
-        Ts = avsig.sampling_period
-        nSamps = int((TimeAvg[1]-TimeAvg[0])/Ts)
-        t = np.arange(nSamps)*Ts + TimeAvg[0]
-
-        for et in TimesEvent:
-            start = et+TimeAvg[0]
-            stop = et+TimeAvg[1]
-
-            st = np.array(avsig.time_slice(start, stop)[:nSamps])
-            try:
-                avg = np.hstack([avg, st]) if avg.size else st
-                if PlotTrials:
-                    self.Ax.plot(t, st, **self.TrialLineKwargs)
-            except:
-                print ('Error', nSamps, et, avg.shape, st.shape)
-
-        MeanT = np.mean(avg, axis=1)
-        MeanTsig = avsig.duplicate_with_new_array(signal=MeanT*avsig.units)
-        MeanTsig.t_start = TimeAvg[0]
-        MeanTsig.name = MeanTsig.name
-        MeanTsig.annotate(Process='Time Averaged')
+        if TrialProcessChain is not None:
+            self.TrialProcessChain = TrialProcessChain
+        
+        sig = self.GetSignal((None, None), Units)
+        avg = Spro.TrigAveraging(sig,
+                                 TimesEvent=TimesEvent,
+                                 TimeAvg=TimeAvg,
+                                 TrialProcessChain=self.TrialProcessChain)
 
         if PlotMean:
-            self._PlotSignal(MeanTsig)
+            self._PlotSignal(avg)
+
+        if PlotTrials:
+            acc = avg.annotations['acc']
+            self.Ax.plot(acc.times,
+                         acc,
+                         **self.TrialLineKwargs)
 
         if PlotStd:
-            StdT = np.std(avg, axis=1)
-            self.Ax.fill_between(t, MeanT+StdT, MeanT-StdT,
+            std = avg.annotations['std']
+            self.Ax.fill_between(std.times,
+                                 np.array(avg+std).flatten(),
+                                 np.array(avg-std).flatten(),
                                  alpha=StdAlpha,
                                  facecolor=self.LineKwargs['color'],
                                  edgecolor=None,
                                  clip_on=False)
-        return MeanTsig
+        return avg
 
 
 class ControlFigure():
@@ -793,4 +788,11 @@ class PlotSlots():
 
         self.FormatFigure()
         return MeanSigs
+    
+
+    
+    
+    
+    
+    
     

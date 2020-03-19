@@ -72,15 +72,30 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
 
 
 def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
-                   AvgSpectNorm='Zscore', AvgSpectNormTime=None, **kwargs):
+                   AvgSpectNorm='Zscore', AvgSpectNormTime=None,
+                   TrialProcessChain=None, **kwargs):
 
     Acc = np.array([])
-    for t in TimesEvent:
-        spect = Spectrogram(sig.time_slice(t+TimeAvg[0], t+TimeAvg[1]),
-                            **SpecArgs)
+    Trials = 0
+    for et in TimesEvent:
+        if et+TimeAvg[0] < sig.t_start:
+            print(et, ' not valid')
+            continue
+        elif et+TimeAvg[1] > sig.t_stop:
+            print(et, ' not valid')
+            continue
+        
+        Trials += 1
+        s = sig.time_slice(et+TimeAvg[0], et+TimeAvg[1])
+        if TrialProcessChain is not None:
+            st = ApplyProcessChain(s, TrialProcessChain)
+        else:
+            st = s  
+      
+        spect = Spectrogram(st, **SpecArgs)
         Acc = Acc + np.array(spect) if Acc.size else np.array(spect)
 
-    AvgSpect = spect.duplicate_with_new_array(Acc/len(TimesEvent))
+    AvgSpect = spect.duplicate_with_new_array(Acc / Trials)
     AvgSpect.t_start = TimeAvg[0] + AvgSpect.annotations['WindowTime']/2
 
     if AvgSpectNorm is None:
@@ -106,6 +121,40 @@ def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
     
     return AvgNormSpect
 
+
+def TrigAveraging(sig, TimesEvent, TimeAvg, TrialProcessChain=None):
+    Ts = sig.sampling_period
+    nSamps = int((TimeAvg[1] - TimeAvg[0])/Ts)
+    acc = None
+    for et in TimesEvent:
+        if et+TimeAvg[0] < sig.t_start:
+            print(et, ' not valid')
+            continue
+        elif et+TimeAvg[1] > sig.t_stop:
+            print(et, ' not valid')
+            continue
+    
+        Samp1 = sig.time_index(et+TimeAvg[0])
+        s = sig[Samp1:Samp1+nSamps, :]    
+    
+        if TrialProcessChain is not None:
+            st = ApplyProcessChain(s, TrialProcessChain)
+        else:
+            st = s
+    
+        st.t_start = TimeAvg[0]
+        st.array_annotations = {}
+        st.annotations = {}
+        if acc is None:
+            acc = st
+        else:
+            acc = acc.merge(st)
+
+    avg = acc.duplicate_with_new_array(np.mean(acc, axis=1))
+    std = acc.duplicate_with_new_array(np.std(acc, axis=1))
+    avg.annotate(std=std)
+    avg.annotate(acc=acc)
+    return avg
 
 def Derivative(sig):
     derivative_sig = NeoSignal(
@@ -137,7 +186,7 @@ def RemoveDC(sig, Type='constant'):
 
 def SetZero(sig, TWind=None):
     if TWind is None:
-        TWind=(sig.t_start,sig.t_start+30*pq.s)
+        TWind=(sig.t_start, sig.t_start+30*pq.s)
     st = np.array(sig)
     # offset = np.mean(sig.GetSignal(TWind))
     offset = np.mean(sig.time_slice(TWind[0], TWind[1]))
