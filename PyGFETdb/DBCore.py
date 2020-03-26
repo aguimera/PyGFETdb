@@ -333,6 +333,8 @@ class PyFETdb():
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
+                  'Devices.Name',
+                  'Wafers.Name',
                   'TrtTypes.Name',
                   'TrtTypes.Width',
                   'TrtTypes.Length',
