@@ -46,7 +46,7 @@ def Spectrogram(sig, Fres=2*pq.Hz, TimeRes=0.01*pq.s,
     if Zscored and (NormTime is None):
         data = zscore(data, axis=1)
 
-    s = sig.duplicate_with_new_array(data.astype(dtype).transpose())
+    s = sig.duplicate_with_new_data(data.astype(dtype).transpose())
     s.annotate(Freq=f[finds])
     s.annotate(spec=True)
     s.annotate(nFFT=nFFT)
@@ -95,7 +95,7 @@ def AvgSpectrogram(sig, TimesEvent, TimeAvg, SpecArgs,
         spect = Spectrogram(st, **SpecArgs)
         Acc = Acc + np.array(spect) if Acc.size else np.array(spect)
 
-    AvgSpect = spect.duplicate_with_new_array(Acc / Trials)
+    AvgSpect = spect.duplicate_with_new_data(Acc / Trials)
     AvgSpect.t_start = TimeAvg[0] + AvgSpect.annotations['WindowTime']/2
 
     if AvgSpectNorm is None:
@@ -150,8 +150,8 @@ def TrigAveraging(sig, TimesEvent, TimeAvg, TrialProcessChain=None):
         else:
             acc = acc.merge(st)
 
-    avg = acc.duplicate_with_new_array(np.mean(acc, axis=1))
-    std = acc.duplicate_with_new_array(np.std(acc, axis=1))
+    avg = acc.duplicate_with_new_data(np.mean(acc, axis=1))
+    std = acc.duplicate_with_new_data(np.std(acc, axis=1))
     avg.annotate(std=std)
     avg.annotate(acc=acc)
     return avg
@@ -173,7 +173,7 @@ def DownSampling(sig, Fact, zero_phase=True):
                          zero_phase=zero_phase,
                          ftype='iir',
                          axis=0)
-    sig = sig.duplicate_with_new_array(signal=rs*sig.units)
+    sig = sig.duplicate_with_new_data(signal=rs*sig.units)
     sig.sampling_rate = sig.sampling_rate/Fact
     return sig
 
@@ -181,7 +181,7 @@ def DownSampling(sig, Fact, zero_phase=True):
 def RemoveDC(sig, Type='constant'):
     st = np.array(sig)
     st = signal.detrend(st, type=Type, axis=0)
-    return sig.duplicate_with_new_array(signal=st*sig.units)
+    return sig.duplicate_with_new_data(signal=st*sig.units)
 
 
 def SetZero(sig, TWind=None):
@@ -192,7 +192,7 @@ def SetZero(sig, TWind=None):
     offset = np.mean(sig.time_slice(TWind[0], TWind[1]))
     print(sig.name, offset)
     st_corrected = st-offset.magnitude
-    return sig.duplicate_with_new_array(signal=st_corrected*sig.units)
+    return sig.duplicate_with_new_data(signal=st_corrected*sig.units)
 
 
 def Gain(sig, Gain):
@@ -214,7 +214,7 @@ def Resample(sig, Fs=None, MaxPoints=None):
     if dowrate > 0:
         print(sig.sampling_rate*f, f, uprate, dowrate)
         rs = signal.resample_poly(np.array(sig), uprate, dowrate)
-        sig = sig.duplicate_with_new_array(signal=rs*sig.units)
+        sig = sig.duplicate_with_new_data(signal=rs*sig.units)
         sig.sampling_rate = sig.sampling_rate*f
         return sig
     else:
@@ -225,13 +225,13 @@ def Abs(sig):
     st = np.array(sig)
     st = np.abs(st)
 
-    return sig.duplicate_with_new_array(signal=st*sig.units)
+    return sig.duplicate_with_new_data(signal=st*sig.units)
 
 
 def power(sig):  # to solve units
     st = np.array(sig)**2
 #    st = st**2
-    return sig.duplicate_with_new_array(signal=st*sig.units)
+    return sig.duplicate_with_new_data(signal=st*sig.units)
 
 
 def Filter(sig, Type, Order, Freqs):
@@ -244,7 +244,7 @@ def Filter(sig, Type, Order, Freqs):
     
     DbgFplt.PlotResponse(a, b, Fs)
     
-    return sig.duplicate_with_new_array(signal=st*sig.units)
+    return sig.duplicate_with_new_data(signal=st*sig.units)
 
 
 def rms(x, axis=None):
@@ -343,7 +343,7 @@ def SplineSmooth(sig, sFact=2, **kwargs):
     spl = UnivariateSpline(sig.times, sig, s=s)    
     return sig.duplicate_with_new_data(signal=spl(sig.times)*sig.units)
 
-def MedianFilt(sig, window_size=None, **kwargs): #window_size in pq.s
+def MedianFilt(sig, window_size=None, **kwargs): #window_size in pq.s 
     if window_size==None:
         kernel_size=int(sig.shape[0]/10)
     else:
@@ -352,7 +352,7 @@ def MedianFilt(sig, window_size=None, **kwargs): #window_size in pq.s
         kernel_size=kernel_size
     else:
         kernel_size=kernel_size-1
-    SigFilt=medfilt(np.array(sig).reshape(len(sig),), kernel_size=kernel_size)    
+    SigFilt=medfilt(np.array(sig).reshape(len(sig),), kernel_size=kernel_size)    # TODO change by axis
     return sig.duplicate_with_new_data(signal=np.array(SigFilt)*sig.units)
 
    
