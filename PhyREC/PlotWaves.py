@@ -739,7 +739,7 @@ class PlotSlots():
             self.CtrFig.SetTimes(self.current_time)
 
     def PlotEvents(self, Times, Labels=None, lAx=0, fontsize='xx-small',
-                   LabPosition='top', **kwargs):
+                   LabPosition='top', duration=None, **kwargs):
 
         xlim = self.Axs[0].get_xlim()
 
@@ -751,7 +751,10 @@ class PlotSlots():
             for ilbl, lbl in enumerate(Labels):
                 for ax in self.Axs:
                     ylim = ax.get_ylim()
-                    ax.vlines(Times[ilbl], ylim[0], ylim[1], **kwargs)
+                    if duration is not None:
+                        ax.vspan(Times[ilbl],Times[ilbl]+duration,ylim[0], ylim[1], **kwargs )                        
+                    else:
+                        ax.vlines(Times[ilbl], ylim[0], ylim[1], **kwargs)
                 lax = self.Axs[lAx]
                 if LabPosition == 'top':
                     ylim = lax.get_ylim()[1]
@@ -764,7 +767,10 @@ class PlotSlots():
         # EventLines = []
         for ax in self.Axs:
             ylim = ax.get_ylim()
-            lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
+            if duration is not None:
+                lines= ax.axvspan(Times,Times+duration,ylim[0], ylim[1], **kwargs )                        
+            else:
+                lines = ax.vlines(Times, ylim[0], ylim[1], **kwargs)
 #            EventLines.append(lines[0])
         # return EventLines
         self.Axs[0].set_xlim(xlim)
