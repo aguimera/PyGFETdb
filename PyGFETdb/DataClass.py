@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 import scipy.optimize as optim
 from scipy.integrate import simps
 import quantities as pq
+import copy
 
 from PyGFETdb import PlotDataClass
 import sys
@@ -19,6 +20,11 @@ DebugPrint = True
 
 
 class DataCharDC(object):
+    """
+    Class to manage the DC characteristics of GFET characteristics.
+
+    """
+
     PolyOrder = 10
 #    FEMn0 = 8e11  # 1/cm^2
 #    FEMq = 1.602176565e-19
@@ -26,42 +32,50 @@ class DataCharDC(object):
 #    FEMCdl = 2e-6  # F/cm^2
     IntMethod = 'linear'
     DefaultUnits = {'Vds': pq.V,
-                  'Ud0': pq.V,
-                  # 'PSD': pq.A ** 2 / pq.Hz,
-                  'Fgm': pq.Hz,
-                 'GM': pq.S,
-                 'GMV': pq.S / pq.V,
-                  'Vgs': pq.V,
-                  # 'Fpsd': pq.Hz,
-                  'Ig': pq.A,
-                 'Irms': pq.A,
-                 'Vrms': pq.V,
-                  'Ids': pq.A,
-                  'Rds': pq.ohm
-                  }
+                    'Ud0': pq.V,
+                    # 'PSD': pq.A ** 2 / pq.Hz,
+                    'Fgm': pq.Hz,
+                    'GM': pq.S,
+                    'GMV': pq.S / pq.V,
+                    'Vgs': pq.V,
+                    # 'Fpsd': pq.Hz,
+                    'Ig': pq.A,
+                    'Irms': pq.A,
+                    'Vrms': pq.V,
+                    'Ids': pq.A,
+                    'Rds': pq.ohm
+                    }
 
     def __init__(self, Data):
+        """
+        Create a class to manage the GFET characteristics.
+
+        Parameters
+        ----------
+        Data: Dictionary from DB
+
+        """
         for k, v in Data.items():
             if k == 'Gate':
                 if v is None:
                     if DebugPrint:
-                        print ('No gate values')
+                        print('No gate values')
                 elif np.isnan(v['Ig']).any():
                     if DebugPrint:
-                        print ('NaN in gate values')
+                        print('NaN in gate values')
                 else:
                     self.__setattr__('Ig', v['Ig'])
             if k in self.DefaultUnits:
-#                print(k, v, DefaultUnits[k])
+                # print(k, v, DefaultUnits[k])
                 v = v * self.DefaultUnits[k]
             self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
-           
+
     def _FormatOutput(self, Par, **kwargs):
-        if 'Units' in kwargs:            
-            Par = Par.rescale(kwargs['Units'])          
+        if 'Units' in kwargs:
+            Par = Par.rescale(kwargs['Units'])
 
         if not hasattr(Par, '__iter__'):
             return Par[None, None]
@@ -70,9 +84,8 @@ class DataCharDC(object):
             return Par[None, None]
         if len(s) == 1:
             return Par[:, None]
-
         return Par.transpose()
-     
+
     def UpdateData(self, Data):
         for k, v in Data.items():
             self.__setattr__(k, v)
@@ -210,48 +223,98 @@ class DataCharDC(object):
                 else:
                     print ('Vds = ', vd, 'Not in data')
         else:
-            iVds = range(len(self.Vds))
+            iVds = np.arange(len(self.Vds))
         return iVds
 
     def GetIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        """
+        Return Ids values interpolated by the polinomial fit.
+
+        Parameters
+        ----------
+        vgs: vector with vgs values to calc, the invalid points will be NaN
+        Vds: vector with vds values to calc
+        Ud0Norm: True, indicates that the vgs values are refered to CNP
+        kwargs: Other arguments, like Units
+
+        Return
+        ----------
+        Array with Ids values (len(Vgs),len(Vds)) NaN in the invalid Vgs points
+
+        """
+        # Get Valid Vds indexes
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None
 
-        if Vgs is not None:
-            vgs = Vgs  # TODO Check Vgs range
-        else:
-            vgs = self.Vgs
-
+        # Check self consitency
+        if len(self.Vgs) < 2:
+            print('self Vgs len error', self.Vgs)
+            return None
         if 'IdsPoly' not in self.__dict__:
             self.CalcIdsPoly()
 
-        Ids = np.array([])
+        # Get Valid Vgs indexes
+        vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+
+        # Dimensioning output
+        if Vgs is None:
+            nVg = len(self.Vgs)
+        else:
+            nVg = Vgs.size
+        Ids = np.ones((nVg, iVds.size)) * np.NaN
+
+        # Get Values
         for ivd in iVds:
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
             ids = np.polyval(self.IdsPoly[:, ivd], vg.rescale('V').magnitude)
-            Ids = np.vstack((Ids, ids)) if Ids.size else ids
+            Ids[vginds, ivd] = ids
 
+        # Check for units
         Ids = Ids * self.DefaultUnits['Ids']
         return self._FormatOutput(Ids, **kwargs)
 
-    def GetGM(self, Vgs=None, Vds=None, Normalize=False, Ud0Norm=False, **kwargs):
+    def GetGM(self, Vgs=None, Vds=None, Normalize=False,
+              Ud0Norm=False, **kwargs):
+        """
+        Return GM values interpolated by the polinomial fit.
+
+        Parameters
+        ----------
+        vgs: vector with vgs values to calc, the invalid points will be NaN
+        Vds: vector with vds values to calc
+        Ud0Norm: True, indicates that the vgs values are refered to CNP
+        Normalize: True, GM / Vds
+        kwargs: Other arguments, like Units
+
+        Return
+        ----------
+        Array with GM values (len(Vgs),len(Vds)) NaN in the invalid Vgs points
+
+        """
+        # Get Valid Vds indexes
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None
 
-        if Vgs is not None:
-            vgs = Vgs  # TODO Check Vgs range
-        else:
-            vgs = self.Vgs
-
+        # Check self consitency
         if 'GMPoly' not in self.__dict__:
             self.CalcGMPoly()
 
-        GM = np.array([])
+        # Get Valid Vgs indexes
+        vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+
+        # Dimensioning output
+        if Vgs is None:
+            nVg = len(self.Vgs)
+        else:
+            nVg = Vgs.size
+        GM = np.ones((nVg, iVds.size)) * np.NaN
+
+        # Get Values
         for ivd in iVds:
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
@@ -259,10 +322,15 @@ class DataCharDC(object):
                 vg = vgs
             gm = np.polyval(self.GMPoly[:, ivd], vg.rescale('V').magnitude)
             if Normalize:
-                gm = gm/self.Vds[ivd] #*(self.TrtTypes['Length']/self.TrtTypes['Width'])/
-            GM = np.vstack((GM, gm)) if GM.size else gm
+                gm = gm/self.Vds[ivd]
+                # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
+            GM[vginds, ivd] = gm
 
-        GM = GM * self.DefaultUnits['GM']
+        # Check for units
+        if Normalize:
+            GM = GM * self.DefaultUnits['GMV']
+        else:
+            GM = GM * self.DefaultUnits['GM']
         return self._FormatOutput(GM, **kwargs)
 
     def GetGMV(self, AbsVal=True, **kwargs):
@@ -311,46 +379,118 @@ class DataCharDC(object):
             return None
         return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
+    def CheckVgsInds(self, Vgs, iVds, Ud0Norm):
+        """
+        Find the valid indexes for the vgs vector.
+
+        Parameters
+        ----------
+        vgs: vector with the vgs values to check
+        iVds: list of indexes for Vds
+        Ud0Norm: True, indicates that the vgs values are refered to CNP
+
+        Return
+        ----------
+        Vector with valid Vgs values
+        Vector with indexes of valid Vgs points referred to the input Vgs
+
+        """
+        # TODO !!!!!! check for serveral Vds
+
+        if Vgs is None:
+            return self.Vgs, np.arange(len(self.Vgs))
+        
+        for ivd in iVds:
+            VgsM = self.Vgs
+            if Ud0Norm is None or Ud0Norm is False:
+                vg = Vgs                    
+            else:
+                vg = Vgs + self.Ud0[ivd]
+
+            if (np.min(vg) < np.min(VgsM)) or (np.max(vg) > np.max(VgsM)):
+                Inds = np.where((vg > np.min(VgsM)) & (vg < np.max(VgsM)))
+                print(self.Name,
+                      'Valid Vgs range', vg[Inds], len(Inds))                    
+                return Vgs[Inds], Inds
+        return Vgs, np.arange(Vgs.size)
+
     def CheckVgsRange(self, Vgs, iVds, Ud0Norm):
         if Vgs is not None:
             for ivd in iVds:
+                VgsM = self.Vgs
                 if Ud0Norm is None or Ud0Norm is False:
                     vg = Vgs
-                    VgsM = self.Vgs
                 else:
                     vg = Vgs + self.Ud0[ivd]
-                    VgsM = self.Vgs
 
                 if (np.min(vg) < np.min(VgsM)) or (np.max(vg) > np.max(VgsM)):
-                    print (self.Name, 'Vgs range not valid', vg, VgsM, self.Ud0)
+                    Inds = np.where((vg > np.min(VgsM)) & (vg < np.max(VgsM)))
+                    print(self.Name, 'Valid Vgs range', vg[Inds])
                     return None
             return Vgs
         else:
             return self.Vgs
 
     def Get(self, Param, **kwargs):
-        return self.__getattribute__('Get' + Param)(**kwargs)        
+        """
+        Get any kind of value, generic form.
+
+        Parameters
+        ----------
+        Param: String with the name of the parameter, 'Ids', 'Vrms'
+        **kwargs: arguments for the calling function
+
+        Return
+        ----------
+        Values
+
+        """
+        return self.__getattribute__('Get' + Param)(**kwargs)
 
     def _GetParam(self, Param, Vgs=None, Vds=None,
                   Ud0Norm=False, Normalize=False, **kwargs):
+        """
+        Get any kind of value, generic form.
 
+        Parameters
+        ----------
+        Param: String with the name of the parameter, 'Ids', 'Vrms'
+        **kwargs: arguments for the calling function
+
+        Return
+        ----------
+        Values
+
+        """
+        # Get Valid Vds indexes
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
             return None
 
-        vgs = self.CheckVgsRange(Vgs, iVds, Ud0Norm)
-        if vgs is None:
-            return None
-        if len(self.Vgs) < 2:
-            print ('self Vgs len error', self.Vgs)
-            return None
-
+        # Check self consitency
         if Param not in self.__dict__:
-            print ('Not Data')
+            print(Param, 'Not valid parameter', self.Name)
             return None
         Par = self.__getattribute__(Param)
 
-        PAR = np.array([])
+        # vgs = self.CheckVgsRange(Vgs, iVds, Ud0Norm)
+        # if vgs is None:
+        #     return None
+        # if len(self.Vgs) < 2:
+        #     print ('self Vgs len error', self.Vgs)
+        #     return None
+
+        # Get Valid Vgs indexes
+        vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+
+        # Dimensioning output
+        if Vgs is None:
+            nVg = len(self.Vgs)
+        else:
+            nVg = Vgs.size
+        PAR = np.ones((nVg, iVds.size)) * np.NaN
+
+        # Get values
         for ivd in iVds:
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
@@ -360,18 +500,20 @@ class DataCharDC(object):
             par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
                 par = par/self.Vds[ivd]
-            PAR = np.vstack((PAR, par)) if PAR.size else par
-        
+            PAR[vginds, ivd] = par
+
         return self._FormatOutput(PAR, **kwargs)
-    
 
     def GetName(self, **kwargs):
+        """Get the device name."""
         return self.Name
 
     def GetWL(self, **kwargs):
+        """Get the Width Length ratio."""
         return self.TrtTypes['Width']/self.TrtTypes['Length']
 
     def GetPass(self, **kwargs):
+        """Get the Passivation Length."""
         return self.TrtTypes['Pass']
 
     def GetLength(self, **kwargs):
@@ -438,6 +580,86 @@ def FitLogFnoise(Freq, psd):
     return a, b, np.sqrt(np.diag(pcov))
 
 
+def FnoiseTh(f, a, b, c):
+    """
+    Flicker noise plus thermal noise.
+
+    n = a/f^b + c
+
+    Parameters
+    ----------
+    f: array frequency values
+    a: flicker noise constant
+    b: flicker noise frequency exponent
+    c: flicker thermal noise constant value
+
+    Return
+    ----------
+    noise array with the same shape as f
+
+    """
+    return (a/f**b)+c
+
+
+def LogFnoiseTh(f, a, b, c):
+    """
+    Flicker noise plus thermal noise computed on log values to facilitate the
+    fitting operation.
+
+    n = a/f^b + c
+
+    Parameters
+    ----------
+    f: array log10 frequency values
+    a: flicker log10 noise constant
+    b: flicker noise frequency exponent
+    c: flicker log 10 thermal noise constant value
+
+    Return
+    ----------
+    log10 noise array with the same shape as f
+
+    """
+
+    f1 = 10**f
+    a1 = 10**a
+    c1 = 10**c
+    return np.log10(a1+c1*f1**b)-b*f
+
+
+def FitLogFnoiseTh(Freq, psd):
+    """
+    Flicker noise plus thermal noise computed on log values to facilitate the
+    fitting operation.
+
+    n = a/f^b + c
+
+    Parameters
+    ----------
+    f: array log10 frequency values
+    a: flicker log10 noise constant
+    b: flicker noise frequency exponent
+    c: flicker log 10 thermal noise constant value
+
+    Return
+    ----------
+    log10 noise array with the same shape as f
+
+    """
+    bound = ((-22, 0.5, -23),
+             (-10, 1.2, -15))
+    poptV, pcov = optim.curve_fit(LogFnoiseTh,
+                                  np.log10(Freq),
+                                  np.log10(psd),
+                                  bounds=bound)
+
+    # print(Freq)#, psd.Shape, Freq[0], Freq[-1])
+    a = 10 ** poptV[0]
+    b = poptV[1]
+    c = 10 ** poptV[2]
+    return a, b, c, np.sqrt(np.diag(pcov))
+
+
 class DataCharAC(DataCharDC):
     FFmin = None
     FFmax = None
@@ -477,10 +699,15 @@ class DataCharAC(DataCharDC):
         nVgs = len(self.Vgs)
         nVds = len(self.Vds)
 
+        self.__setattr__('NoC', [])
+
         NoA = np.ones((nVgs, nVds))*np.NaN
         NoB = np.ones((nVgs, nVds))*np.NaN
+        NoC = np.ones((nVgs, nVds))*np.NaN
         FitErrA = np.ones((nVgs, nVds))*np.NaN
         FitErrB = np.ones((nVgs, nVds))*np.NaN
+        FitErrC = np.ones((nVgs, nVds))*np.NaN
+        FitPSD = copy.deepcopy(self.PSD)
 
         for ivd in range(nVds):
             for ivg in range(nVgs):
@@ -491,15 +718,23 @@ class DataCharAC(DataCharDC):
 
                 try:
                     Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
-                    a, b, err = FitLogFnoise(Fpsd[Inds], psd[Inds])
+                    # print(Fmin, Fmax, Inds)
+                    a, b, c, err = FitLogFnoiseTh(Fpsd[Inds], psd[Inds])
+                    # print(a, b, c, err)
                     NoA[ivg, ivd] = a
                     NoB[ivg, ivd] = b
+                    NoC[ivg, ivd] = c
                     FitErrA[ivg, ivd] = err[0]
                     FitErrB[ivg, ivd] = err[1]
+                    FitErrC[ivg, ivd] = err[2]
+                    FitPSD['Vd{}'.format(ivd)][ivg, :] = FnoiseTh(Fpsd, a, b ,c)
                     self.NoA = NoA
                     self.NoB = NoB
+                    self.NoC = NoC
                     self.FitErrA = FitErrA
                     self.FitErrB = FitErrB
+                    self.FitErrC = FitErrC
+                    self.FitPSD = FitPSD
                 except:
                     print ("Fitting error:", sys.exc_info()[0])
 
@@ -518,6 +753,12 @@ class DataCharAC(DataCharDC):
                 Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
                 Irms[ivg, ivd] = np.sqrt(simps(psd[Inds], Fpsd[Inds]))
         self.Irms = Irms
+
+    def GetFitPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
+        if VgsInd is None:
+            return None
+        return self.FitPSD[SiVds[0]][VgsInd, :].transpose()
 
     def GetPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
@@ -572,18 +813,25 @@ class DataCharAC(DataCharDC):
                 print ('Calc fitting')
                 self.FFmin = FFmin
                 self.FFmax = FFmax
-                if self.IsOK:
-                    self.FitNoise(Fmin=FFmin, Fmax=FFmax)
+                # if self.IsOK:
+                self.FitNoise(Fmin=FFmin, Fmax=FFmax)
 
     def GetNoA(self, Vgs=None, Vds=None, Ud0Norm=False,
                FFmin=None, FFmax=None, **kwargs):
-        self._CheckFitting(FFmin, FFmax)
+        self._CheckFitting(FFmin=FFmin,
+                           FFmax=FFmax)
         return self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
     def GetNoB(self, Vgs=None, Vds=None, Ud0Norm=False,
                FFmin=None, FFmax=None, **kwargs):
         self._CheckFitting(FFmin, FFmax)
         return self._GetParam('NoB', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+
+    def GetNoC(self, Vgs=None, Vds=None, Ud0Norm=False,
+               FFmin=None, FFmax=None, **kwargs):
+        self._CheckFitting(FFmin, FFmax)
+        return self._GetParam('NoC', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+
 
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
