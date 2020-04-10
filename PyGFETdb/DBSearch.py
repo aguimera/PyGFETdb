@@ -18,7 +18,9 @@ def GenGroups(GroupBase, GroupBy, LongName=True):
                                  Parameter=GroupBy)
 
     Groups = {}
-    for Item in sorted(GroupList):
+    for Item in GroupList:
+        if Item is None:
+            continue
         Cgr = GroupBase.copy()
         Cond = GroupBase['Conditions'].copy()
         if Item is None:
