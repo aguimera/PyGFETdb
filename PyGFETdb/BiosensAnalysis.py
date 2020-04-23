@@ -77,7 +77,7 @@ BioSensMap = {'Shape': (6, 8),
                }
 
 
-def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort, Parameters,
+def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
                             CharTable='DCcharacts',
                             AnalyteStep = 'Tromb',
                             ValuesField = 'CharTable.AnalyteCon',
@@ -126,14 +126,12 @@ def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort, Parameters,
                         d, t = DBs.GetFromDB(**Gra)
                         dat = d[t[0]][0]
                         pdsera['Analyte'] = np.log10(dat.GetAnalyteCon().flatten())
-                        for parn, park in Parameters.items():
-                            pdsera[parn] = dat.Get(**park).flatten().magnitude
+                        pdsera['CharCl'] = dat
                         pdSeries.append(pdsera)
                 else:
                     d, t = DBs.GetFromDB(**Gr)
                     dat = d[t[0]][0]
-                    for parn, park in Parameters.items():
-                        pdser[parn] = dat.Get(**park).flatten().magnitude                    
+                    pdser['CharCl'] = dat
                     pdSeries.append(pdser)   
     return pdSeries
 

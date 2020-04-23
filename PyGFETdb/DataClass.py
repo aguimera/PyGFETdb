@@ -43,7 +43,10 @@ class DataCharDC(object):
                     'Irms': pq.A,
                     'Vrms': pq.V,
                     'Ids': pq.A,
-                    'Rds': pq.ohm
+                    'Rds': pq.ohm,
+                    'NoA': pq.A,
+                    'NoC': pq.A,
+                    'NoB': pq.dimensionless,
                     }
 
     def __init__(self, Data):
@@ -236,7 +239,6 @@ class DataCharDC(object):
         Vds: vector with vds values to calc
         Ud0Norm: True, indicates that the vgs values are refered to CNP
         kwargs: Other arguments, like Units
-
         Return
         ----------
         Array with Ids values (len(Vgs),len(Vds)) NaN in the invalid Vgs points
@@ -256,6 +258,8 @@ class DataCharDC(object):
 
         # Get Valid Vgs indexes
         vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+        if vgs is None:
+            return np.ones((1, iVds.size)) * np.NaN
 
         # Dimensioning output
         if Vgs is None:
@@ -306,6 +310,8 @@ class DataCharDC(object):
 
         # Get Valid Vgs indexes
         vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+        if vgs is None:
+            return np.ones((1, iVds.size)) * np.NaN
 
         # Dimensioning output
         if Vgs is None:
@@ -399,18 +405,23 @@ class DataCharDC(object):
 
         if Vgs is None:
             return self.Vgs, np.arange(len(self.Vgs))
-        
+
         for ivd in iVds:
             VgsM = self.Vgs
             if Ud0Norm is None or Ud0Norm is False:
-                vg = Vgs                    
+                vg = Vgs
             else:
                 vg = Vgs + self.Ud0[ivd]
 
             if (np.min(vg) < np.min(VgsM)) or (np.max(vg) > np.max(VgsM)):
                 Inds = np.where((vg > np.min(VgsM)) & (vg < np.max(VgsM)))
-                print(self.Name,
-                      'Valid Vgs range', vg[Inds], len(Inds))                    
+                # print('\n', self.Name, '\n')
+                # print('\n Vgs asked', Vgs, vg, vg.size)
+                # print('Vgs Meas', VgsM)
+                if vg.size == 1:
+                    return None, None
+                # print('Valid Vgs range', np.min(vg[Inds]), np.max(vg[Inds]),
+                #       '\n len inds len Vg', len(Inds), len(vg))
                 return Vgs[Inds], Inds
         return Vgs, np.arange(Vgs.size)
 
@@ -482,6 +493,8 @@ class DataCharDC(object):
 
         # Get Valid Vgs indexes
         vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+        if vgs is None:
+            return np.ones((1, iVds.size)) * np.NaN
 
         # Dimensioning output
         if Vgs is None:
@@ -501,6 +514,10 @@ class DataCharDC(object):
             if Normalize:
                 par = par/self.Vds[ivd]
             PAR[vginds, ivd] = par
+
+        if Param in self.DefaultUnits:
+            # print(Param, self.DefaultUnits[Param])
+            PAR = PAR * self.DefaultUnits[Param]
 
         return self._FormatOutput(PAR, **kwargs)
 
@@ -798,14 +815,22 @@ class DataCharAC(DataCharDC):
     def GetIrms(self, Vgs=None, Vds=None, Ud0Norm=False,
                 NFmin=None, NFmax=None, **kwargs):
         self._CheckRMS(NFmax=NFmax, NFmin=NFmin)
-        return self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetVrms(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'Units' in kwargs:
+            Units = kwargs['Units']
+            kwargs['Units'] = 'A'
+        else:
+            Units = None
         Irms = self.GetIrms(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
         if Irms is None:
             return None
         gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        return Irms/gm
+        PAR = Irms/gm    
+        if Units is not None:
+            kwargs['Units'] = Units
+        return self._FormatOutput(PAR, **kwargs)
 
     def _CheckFitting(self, FFmin, FFmax):
         if FFmin is not None or FFmax is not None:
