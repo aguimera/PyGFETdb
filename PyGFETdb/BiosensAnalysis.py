@@ -79,7 +79,7 @@ BioSensMap = {'Shape': (6, 8),
 
 def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
                             CharTable='DCcharacts',
-                            AnalyteStep = 'Tromb',
+                            AnalyteStep = ('Tromb', 'BSA'),
                             ValuesField = 'CharTable.AnalyteCon',
                             ):
     
@@ -117,7 +117,7 @@ def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
                 pdser['MAPx'] = BioSensMap[TnameBio.split('-')[-1]][0]
                 pdser['MAPy'] = BioSensMap[TnameBio.split('-')[-1]][1]
                 
-                if FuncStepsSort[fn] == AnalyteStep:
+                if FuncStepsSort[fn] in AnalyteStep:
                     Gras = DBs.GenGroups(Gr,
                                           GroupBy=ValuesField,
                                           LongName=False)
@@ -153,7 +153,7 @@ def CalcNormalization(df, RefStep, ScalarValues):
             for icc in range(ic):
                 gds = Func.iloc[icc,:]
                 for par in ScalarValues: 
-                    gds[par+'Norm'] = refVal[par] - gds[par]
+                    gds[par + 'N' + RefStep] = refVal[par] - gds[par]
                 pdSeries.append(gds)
     
     return pd.concat(pdSeries, axis=1).transpose()
@@ -179,11 +179,12 @@ def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, cmap='jet'):
         for g2n in dg2.groups:
             g2 = dg2.get_group(g2n)
             vgs = np.array([i for i in g2.Vgs]).transpose()
-            vgsCNP = np.array([i for i in g2.VgsCNP]).transpose()
+            VgsNorm = np.array([i for i in g2.VgsNorm]).transpose()
             for ip, par in enumerate(vPars):
                 y = np.array([i for i in g2[par]]).transpose()
                 axs[ip].plot(vgs, y, color=G2ColorDict[g2n], label=g2n)
-                axs[ip].plot(vgsCNP, y, '--', color=G2ColorDict[g2n])
+                y = np.array([i for i in g2[par+'Norm']]).transpose()
+                axs[ip].plot(VgsNorm, y, '--', color=G2ColorDict[g2n])
         axs[ip].legend()
         plt.title(g1n)
         PDF.savefig(fig)
@@ -215,9 +216,11 @@ def GenHeatMaps(df, GroupBy, value, nRows=2, figsize=(12, 7), **kwargs):
             Axs.append(Ax) 
     Cax = Fig.add_subplot(gspec[:,-1])
     
-    for ic, ffg in enumerate(dg.groups):
-        if ffg == 'Tromb':
+    ic = -1
+    for ffg in dg.groups:
+        if ffg in ('Tromb', 'BSA'):
             continue
+        ic += 1
         d = dg.get_group(ffg)
         m = d.pivot('MAPx', 'MAPy', value).astype(np.float)
         Axs[ic].set_title(ffg)
