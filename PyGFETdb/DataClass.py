@@ -33,19 +33,19 @@ class DataCharDC(object):
     IntMethod = 'linear'
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
-                    # 'PSD': pq.A ** 2 / pq.Hz,
+                    'PSD': pq.A ** 2 / pq.Hz,
                     'Fgm': pq.Hz,
                     'GM': pq.S,
                     'GMV': pq.S / pq.V,
                     'Vgs': pq.V,
-                    # 'Fpsd': pq.Hz,
+                    'Fpsd': pq.Hz,
                     'Ig': pq.A,
                     'Irms': pq.A,
                     'Vrms': pq.V,
                     'Ids': pq.A,
                     'Rds': pq.ohm,
-                    'NoA': pq.A,
-                    'NoC': pq.A,
+                    'NoA': pq.A**2,
+                    'NoC': pq.A**2,
                     'NoB': pq.dimensionless,
                     }
 
@@ -183,8 +183,8 @@ class DataCharDC(object):
             ud0 = self.Ud0[ivd]
             if Normalize:
                 ud0 = ud0-(self.Vds[ivd]/2)
-            Ud0 = np.vstack((Ud0, ud0)) if Ud0.size else ud0
-
+            Ud0 = np.vstack((Ud0, ud0)) * pq.V if Ud0.size else ud0
+        
         return self._FormatOutput(Ud0, **kwargs)
 
     def GetDateTime(self, **kwargs):
@@ -663,7 +663,7 @@ def FitLogFnoiseTh(Freq, psd):
     log10 noise array with the same shape as f
 
     """
-    bound = ((-22, 0.5, -23),
+    bound = ((-22, 0.7, -23),
              (-10, 1.2, -15))
     poptV, pcov = optim.curve_fit(LogFnoiseTh,
                                   np.log10(Freq),
@@ -827,7 +827,7 @@ class DataCharAC(DataCharDC):
         if Irms is None:
             return None
         gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        PAR = Irms/gm    
+        PAR = (Irms/gm).transpose()
         if Units is not None:
             kwargs['Units'] = Units
         return self._FormatOutput(PAR, **kwargs)
