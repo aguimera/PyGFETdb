@@ -26,7 +26,9 @@ FileIn = 'DbData2.pkl'
 (ScalarValues, ArrayValues, ArrayValuesNorm, Vgs, VgsNorm) = ExtraVars
 
 # %% plotting array values
+# Create a copy of the data frame to aviod destroy values in the selections
 df2Plot = dfDat.copy()
+# Increase the default color lines in matplotlib
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=mpl.colors.CSS4_COLORS.values())
 
 # data selection
@@ -37,7 +39,6 @@ plt.figure()
 Vals = np.array([])
 for index, row in df2Plot.iterrows():
     v = row['Ids']
-    print(Vals.shape, v.shape)
     Vals = np.vstack((Vals, v)) if Vals.size else v
 Vals = Vals.transpose() 
 
@@ -64,75 +65,131 @@ df2Plot = dfDat.copy()
 
 df2Plot.query("IsOk == True", inplace=True)
 
+# Print unique values for a column
 print(df2Plot.Device.value_counts())
+# Create a colors cycle
+Colors = itertools.cycle(mpl.colors.TABLEAU_COLORS)
 
+# Grouping rows for unique values of some column
 # dgroups = df2Plot.groupby('Device')
 dgroups = df2Plot.groupby('Wafer')
 
-# Plot Ids 
+plt.figure()
+# Plot Ids for groups
 for gn in dgroups.groups:
     gg = dgroups.get_group(gn)
 
-    plt.figure()
     Vals = np.array([])
     for index, row in gg.iterrows():
-        v = row['IdsNorm']    
+        v = row['IdsNorm']
         Vals = np.vstack((Vals, v)) if Vals.size else v
-    Vals = Vals.magnitude.transpose() 
-    
-    plt.plot(VgsNorm, Vals, alpha=0.1)
+    Vals = Vals.magnitude.transpose()
+
+    Col = next(Colors)
+    plt.plot(VgsNorm, Vals, color=Col, alpha=0.2)
     mean = np.nanmean(Vals, axis=1)
     std = np.nanstd(Vals, axis=1)
-    plt.plot(VgsNorm, mean, lw=1.5)
-    plt.fill_between(VgsNorm, mean+std, mean-std, alpha=0.4)
-    plt.title(gn)
-    
+    plt.plot(VgsNorm, mean, color=Col, lw=1.5, label=gn)
+    plt.fill_between(VgsNorm, mean+std, mean-std, color=Col, alpha=0.4)
+plt.legend()
+plt.xlabel('Vgs - CNP [V]')
+plt.ylabel('Ids [uA]')
 
-# %% debuggin noise fitting
+# %% Noise Parameters
 
 df2Plot = dfDat.copy()
+
 
 df2Plot.query("IsOk == True", inplace=True)
 df2Plot.query("Device == 'B12708W2-S9' ", inplace=True)
 
-Pars = ('NoANorm', 'NoBNorm', 'NoCNorm', 'IrmsNorm', 'VrmsNorm')
+# Pars = ('NoANorm', 'NoBNorm', 'NoCNorm', 'IrmsNorm', 'VrmsNorm')
+# xvar = VgsNorm
+# ArVals = ArrayValuesNorm
+Pars = ('NoA', 'NoB', 'NoC', 'Irms', 'Vrms')
+xvar = Vgs
+ArVals = ArrayValues
 
-for par in Pars:
-    plt.figure()
+nRows = 2
+nCols = math.ceil(len(Pars)/2)
+fig, Axs = plt.subplots(nrows=nRows, ncols=nCols, sharex=True)
+Axs = Axs.flatten()
+
+for ip, par in enumerate(Pars):
     Vals = np.array([])
     for index, row in df2Plot.iterrows():
         v = row[par]
-        print(Vals.shape, v.shape)
         Vals = np.vstack((Vals, v)) if Vals.size else v
-    Vals = Vals.magnitude.transpose() 
-    
-    plt.plot(VgsNorm, Vals, alpha=0.1)
+    Vals = Vals.magnitude.transpose()
+    Axs[ip].plot(xvar, Vals, 'k', alpha=0.2)
     mean = np.nanmean(Vals, axis=1)
     std = np.nanstd(Vals, axis=1)
-    plt.semilogy(VgsNorm, mean, lw=1.5)
-    plt.fill_between(VgsNorm, mean+std, mean-std, alpha=0.4)
+    Axs[ip].semilogy(xvar, mean, 'r', lw=1.5)
+    Axs[ip].fill_between(xvar, mean+std, mean-std, color='r', alpha=0.2)
+    if 'Units' in ArVals[par]:
+        Axs[ip].set_ylabel(par + '[' + ArVals[par]['Units'] + ']')
+    else:
+        Axs[ip].set_ylabel(par)
 
+# %% debug 1/f fitting
 
-# %%
 df2Plot = dfDat.copy()
 df2Plot.query("IsOk == True", inplace=True)
 df2Plot.query("Device == 'B12708W2-S9' ", inplace=True)
 
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=mpl.colors.CSS4_COLORS.values())
+mpl.rcParams['axes.grid'] = True
 
 dgroups = df2Plot.groupby('TrtName')
 
-for gn in dgroups.groups:
+nRows = 4
+nCols = math.ceil(len(dgroups)/nRows)
+fig, Axs = plt.subplots(nrows=nRows, ncols=nCols, sharex=True, sharey=True)
+Axs = Axs.flatten()
+
+for ic, gn in enumerate(dgroups.groups):
     gg = dgroups.get_group(gn)
 
-    plt.figure()    
     CharCl = gg.CharCl.values[0]
     fpsd = CharCl.GetFpsd()
     PSD = CharCl.GetPSD()
     NoA = CharCl.GetNoA().flatten()
     NoB = CharCl.GetNoB().flatten()
-    NoC = CharCl.GetNoC().flatten()   
+    NoC = CharCl.GetNoC().flatten()
     for p, a, b, c in zip(PSD.transpose(), NoA, NoB, NoC):
-        plt.loglog(fpsd, p)
+        Axs[ic].loglog(fpsd, p)
         fp = FnoiseTh(fpsd, a, b, c)
-        plt.loglog(fpsd, fp, '--k')
-        
+        Axs[ic].loglog(fpsd, fp, '--k')
+    Axs[ic].set_title(gn, fontsize='small')
+
+# %% debug 1/f fitting
+
+df2Plot = dfDat.copy()
+df2Plot.query("IsOk == True", inplace=True)
+df2Plot.query("TrtName=='B12708W2-S9-Ch06' or TrtName=='B12708W2-S9-Ch05'", inplace=True)
+
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=mpl.colors.CSS4_COLORS.values())
+mpl.rcParams['axes.grid'] = True
+
+dgroups = df2Plot.groupby('TrtName')
+
+nRows = 1
+nCols = math.ceil(len(dgroups)/nRows)
+fig, Axs = plt.subplots(nrows=nRows, ncols=nCols, sharex=True, sharey=True)
+Axs = Axs.flatten()
+
+for ic, gn in enumerate(dgroups.groups):
+    gg = dgroups.get_group(gn)
+
+    CharCl = gg.CharCl.values[0]
+    fpsd = CharCl.GetFpsd()
+    PSD = CharCl.GetPSD()
+    NoA = CharCl.GetNoA().flatten()
+    NoB = CharCl.GetNoB().flatten()
+    NoC = CharCl.GetNoC().flatten()
+    for p, a, b, c in zip(PSD.transpose(), NoA, NoB, NoC):
+        Axs[ic].loglog(fpsd, p)
+        fp = FnoiseTh(fpsd, a, b, c)
+        Axs[ic].loglog(fpsd, fp, '--k')
+    Axs[ic].set_title(gn, fontsize='small')
+

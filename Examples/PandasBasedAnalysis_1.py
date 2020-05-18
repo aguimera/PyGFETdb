@@ -88,6 +88,7 @@ ArrayValues = {
                       # !!!!! First call to noise, force fitting
                       'FFmin': 5,
                       'FFmax': 7e3,
+                      'Units': 'A**2',
                       },
               'NoB': {'Param': 'NoB',
                       'Vds': None,
@@ -98,6 +99,7 @@ ArrayValues = {
                       'Vds': None,
                       'Vgs': Vgs,
                       'Ud0Norm': False,
+                      'Units': 'A**2',
                       },
               }
 
@@ -140,6 +142,7 @@ ArrayValuesNorm = {
                           # !!!!! First call to noise, force fitting
                           # 'FFmin': 5,
                           # 'FFmax': 7e3,
+                          'Units': 'A**2',
                           },
               'NoBNorm': {'Param': 'NoB',
                           'Vds': None,
@@ -150,6 +153,7 @@ ArrayValuesNorm = {
                           'Vds': None,
                           'Vgs': VgsNorm,
                           'Ud0Norm': True,
+                          'Units': 'A**2',
                           },
               }
 
@@ -188,6 +192,7 @@ for p in ScalarValues:
     ScalarTypes[p] = np.float
 dfDat = dfDat.astype(ScalarTypes)
 
+# adding extra variables for easy performance
 ExtraVars = (ScalarValues, ArrayValues, ArrayValuesNorm, Vgs, VgsNorm)
 pickle.dump((dfDat, ExtraVars), open(FileOut, 'wb'))
 
