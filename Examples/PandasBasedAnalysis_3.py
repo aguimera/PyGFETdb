@@ -74,7 +74,10 @@ Axs = Axs.flatten()
 
 LoopColors = itertools.cycle(mcolors.TABLEAU_COLORS)
 
+
+dfDat.query("Wafer == 'B12708W2' ", inplace=True)
 dfg = dfDat[dfDat.IsOk == True].groupby('Device')
+
 
 for ic, ParN in enumerate(Vals2Plot.keys()):
     Ax = Axs[ic]
@@ -94,7 +97,7 @@ for ic, ParN in enumerate(Vals2Plot.keys()):
         Ax.plot(xVals, Val, color=col, alpha=0.01)
         Ax.plot(xVals, Mean, color=col, lw=2, label=g)
         Ax.fill_between(xVals, Mean-Std, Mean+Std, color=col, alpha=0.2)
-    Ax.legend(fontsize='small')
+    # Ax.legend(fontsize='small')
      
 
 
