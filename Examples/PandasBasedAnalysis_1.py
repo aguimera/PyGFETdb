@@ -48,7 +48,7 @@ ArrayValues = {
               'Vrms': {'Param': 'Vrms',
                         'Vds': None,
                         'Vgs': Vgs,
-                        'Ud0Norm': False,
+                        'Ud0Norm': False,                        
                         'Units': 'uV'
                         },
               'NoA': {'Param': 'NoA',

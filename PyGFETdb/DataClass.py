@@ -33,7 +33,7 @@ class DataCharDC(object):
     IntMethod = 'linear'
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
-                    'PSD': pq.A ** 2 / pq.Hz,
+                    # 'PSD': pq.A ** 2 / pq.Hz,
                     'Fgm': pq.Hz,
                     'GM': pq.S,
                     'GMV': pq.S / pq.V,
