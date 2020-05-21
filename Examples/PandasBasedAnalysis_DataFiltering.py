@@ -45,7 +45,7 @@ queries = (
             "CNP > 200 ",
             "Ids01 < 30 ",
             "NoC01 < 1e-21 ",
-           )
+            )
 for query in queries:
     dSel.query(query, inplace=True)
 
