@@ -664,7 +664,7 @@ def FitLogFnoiseTh(Freq, psd):
 
     """
     bound = ((-22, 0.7, -23),
-             (-10, 1.2, -15))
+             (-10, 1.2, -10))
     poptV, pcov = optim.curve_fit(LogFnoiseTh,
                                   np.log10(Freq),
                                   np.log10(psd),

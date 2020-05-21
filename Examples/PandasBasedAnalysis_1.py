@@ -18,36 +18,6 @@ dfRaw = pickle.load(open(FileIn, 'rb'))
 
 # %% Define the desidered values to calculate
 
-# Scalar values
-ScalarValues = {'CNP': {'Param': 'Ud0',
-                        'Units': 'mV'
-                        },
-                'Ids01': {'Param': 'Ids',
-                          'Vgs': -0.1*pq.V,
-                          'Vds': None,
-                          'Ud0Norm': True,
-                          'Units': 'uA'
-                          },
-                'GM01': {'Param': 'GMV',
-                          'Vgs': -0.1*pq.V,
-                          'Vds': None,
-                          'Ud0Norm': True,
-                          'Units': 'mS/V',
-                          },
-                'Vrms01': {'Param': 'Vrms',
-                            'Vgs': -0.1*pq.V,
-                            'Vds': None,
-                            'Ud0Norm': True,
-                            'Units': 'uV',
-                            },
-                'IdsCNP': {'Param': 'Ids',
-                            'Vgs': 0*pq.V,
-                            'Vds': None,
-                            'Ud0Norm': True,
-                            'Units': 'uA'
-                            },
-                }
-
 # Array values on measured Vgs range
 Vgs = np.linspace(-0.1, 0.5, 100) * pq.V
 ArrayValues = {
@@ -157,12 +127,62 @@ ArrayValuesNorm = {
                           },
               }
 
+# Scalar values
+ScalarValues = {'CNP': {'Param': 'Ud0',
+                        'Units': 'mV'
+                        },
+                'Ids01': {'Param': 'Ids',
+                          'Vgs': -0.1*pq.V,
+                          'Vds': None,
+                          'Ud0Norm': True,
+                          'Units': 'uA'
+                          },
+                'GM01': {'Param': 'GMV',
+                          'Vgs': -0.1*pq.V,
+                          'Vds': None,
+                          'Ud0Norm': True,
+                          'Units': 'mS/V',
+                          },
+                'Vrms01': {'Param': 'Vrms',
+                            'Vgs': -0.1*pq.V,
+                            'Vds': None,
+                            'Ud0Norm': True,
+                            'Units': 'uV',
+                            },
+                'IdsCNP': {'Param': 'Ids',
+                            'Vgs': 0*pq.V,
+                            'Vds': None,
+                            'Ud0Norm': True,
+                            'Units': 'uA'
+                            },
+                'NoA01': {'Param': 'NoA',
+                          'Vgs': -0.1*pq.V,
+                          'Vds': None,
+                          'Ud0Norm': True,
+                          'Units': 'A**2',
+                            },
+                'NoB01': {'Param': 'NoB',
+                          'Vgs': -0.1*pq.V,
+                          'Vds': None,
+                          'Ud0Norm': True,
+                          # 'Units': 'A**2',
+                            },
+                'NoC01': {'Param': 'NoC',
+                          'Vgs': -0.1*pq.V,
+                          'Vds': None,
+                          'Ud0Norm': True,
+                          'Units': 'A**2',
+                            },
+
+                }
+
+
 # %% add values to dataframe
 
 FileOut = 'DbData2.pkl'
 
-Parameters = ScalarValues.copy()
-Parameters.update(ArrayValues)
+Parameters = ArrayValues.copy()
+Parameters.update(ScalarValues)
 Parameters.update(ArrayValuesNorm)
 
 df1 = dfRaw.copy()
@@ -189,6 +209,8 @@ dfDat = pd.concat(PdSeries, axis=1).transpose()
 
 ScalarTypes = {}
 for p in ScalarValues:
+    ScalarTypes[p] = np.float
+for p in ('Width', 'Length', 'Pass', 'Area', 'Ph', 'IonStrength'):
     ScalarTypes[p] = np.float
 dfDat = dfDat.astype(ScalarTypes)
 
