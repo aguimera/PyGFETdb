@@ -33,7 +33,7 @@ class DataCharDC(object):
     IntMethod = 'linear'
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
-                    # 'PSD': pq.A ** 2 / pq.Hz,
+                    'PSD': pq.A ** 2 / pq.Hz,
                     'Fgm': pq.Hz,
                     'GM': pq.S,
                     'GMV': pq.S / pq.V,
@@ -69,9 +69,16 @@ class DataCharDC(object):
                 else:
                     self.__setattr__('Ig', v['Ig'])
             if k in self.DefaultUnits:
-                # print(k, v, DefaultUnits[k])
-                v = v * self.DefaultUnits[k]
-            self.__setattr__(k, v)
+                if k == 'PSD':
+                    d = {}
+                    for kk, vv in v.items():
+                        d[kk] = vv * self.DefaultUnits[k]
+                    self.__setattr__(k, d)
+                else:
+                    v = v * self.DefaultUnits[k]
+                    self.__setattr__(k, v)
+            else:
+                self.__setattr__(k, v)
 
         if 'Ud0' not in self.__dict__:
             self.CalcUd0()
@@ -736,7 +743,8 @@ class DataCharAC(DataCharDC):
                 try:
                     Inds = self._CheckFreqIndexes(Fpsd, Fmin, Fmax)
                     # print(Fmin, Fmax, Inds)
-                    a, b, c, err = FitLogFnoiseTh(Fpsd[Inds], psd[Inds])
+                    a, b, c, err = FitLogFnoiseTh(Fpsd[Inds].magnitude,
+                                                  psd[Inds].magnitude)
                     # print(a, b, c, err)
                     NoA[ivg, ivd] = a
                     NoB[ivg, ivd] = b
@@ -744,7 +752,8 @@ class DataCharAC(DataCharDC):
                     FitErrA[ivg, ivd] = err[0]
                     FitErrB[ivg, ivd] = err[1]
                     FitErrC[ivg, ivd] = err[2]
-                    FitPSD['Vd{}'.format(ivd)][ivg, :] = FnoiseTh(Fpsd, a, b ,c)
+                    fit = FnoiseTh(Fpsd.magnitude, a, b, c) * self.DefaultUnits['PSD']
+                    FitPSD['Vd{}'.format(ivd)][ivg, :] = fit
                     self.NoA = NoA
                     self.NoB = NoB
                     self.NoC = NoC
