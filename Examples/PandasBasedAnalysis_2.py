@@ -153,12 +153,9 @@ for ic, gn in enumerate(dgroups.groups):
     CharCl = gg.CharCl.values[0]
     fpsd = CharCl.GetFpsd()
     PSD = CharCl.GetPSD()
-    NoA = CharCl.GetNoA().flatten()
-    NoB = CharCl.GetNoB().flatten()
-    NoC = CharCl.GetNoC().flatten()
-    for p, a, b, c in zip(PSD.transpose(), NoA, NoB, NoC):
-        Axs[ic].loglog(fpsd, p)
-        fp = FnoiseTh(fpsd, a, b, c)
+    FitPSD = CharCl.GetFitPSD()
+    for p, fp in zip(PSD.transpose(), FitPSD.transpose()):
+        Axs[ic].loglog(fpsd, p)        
         Axs[ic].loglog(fpsd, fp, '--k')
     Axs[ic].set_title(gn, fontsize='small')
 
@@ -184,12 +181,9 @@ for ic, gn in enumerate(dgroups.groups):
     CharCl = gg.CharCl.values[0]
     fpsd = CharCl.GetFpsd()
     PSD = CharCl.GetPSD()
-    NoA = CharCl.GetNoA().flatten()
-    NoB = CharCl.GetNoB().flatten()
-    NoC = CharCl.GetNoC().flatten()
-    for p, a, b, c in zip(PSD.transpose(), NoA, NoB, NoC):
-        Axs[ic].loglog(fpsd, p)
-        fp = FnoiseTh(fpsd, a, b, c)
+    FitPSD = CharCl.GetFitPSD()
+    for p, fp in zip(PSD.transpose(), FitPSD.transpose()):
+        Axs[ic].loglog(fpsd, p)        
         Axs[ic].loglog(fpsd, fp, '--k')
     Axs[ic].set_title(gn, fontsize='small')
 
