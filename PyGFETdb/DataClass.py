@@ -58,6 +58,12 @@ class DataCharDC(object):
         Data: Dictionary from DB
 
         """
+        if 'Ud0' not in Data:
+            self.__setattr__('Vgs', Data['Vgs'])
+            self.__setattr__('Vds', Data['Vds'])
+            self.__setattr__('Ids', Data['Ids'])
+            self.CalcUd0()
+
         for k, v in Data.items():
             if k == 'Gate':
                 if v is None:
@@ -79,9 +85,6 @@ class DataCharDC(object):
                     self.__setattr__(k, v)
             else:
                 self.__setattr__(k, v)
-
-        if 'Ud0' not in self.__dict__:
-            self.CalcUd0()
 
     def _FormatOutput(self, Par, **kwargs):
         if 'Units' in kwargs:
@@ -232,6 +235,7 @@ class DataCharDC(object):
                     iVds.append(ind[0])
                 else:
                     print ('Vds = ', vd, 'Not in data')
+            iVds = np.array(iVds)
         else:
             iVds = np.arange(len(self.Vds))
         return iVds
