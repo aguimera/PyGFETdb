@@ -106,7 +106,7 @@ def UpdateTreeDictProp(obj, prop):
 
 
 class SpecSlot():
-
+    """Comment"""
     DefspecKwargs = {
                   'Fmax': 100*pq.Hz,
                   'Fmin': 0.5*pq.Hz,

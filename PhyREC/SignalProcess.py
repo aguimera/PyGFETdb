@@ -584,6 +584,66 @@ def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
 
     return CalSig
 
+
+def CalcVgeff2(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
+    Vgs = Tchar.GetVgs()
+    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
+
+    if Regim == 'hole':
+        Inds = np.where(vgs < Tchar.GetUd0())[1]
+    else:
+        Inds = np.where(vgs > Tchar.GetUd0())[1]
+
+    Ids = Tchar.GetIds(Vgs=vgs[Inds]).flatten() 
+    GM = Tchar.GetGM(Vgs=VgsExp).flatten() 
+
+
+    IdsExp = Tchar.GetIds(Vgs=VgsExp).flatten() 
+    IdsOff = np.mean(Sig)-IdsExp
+    IdsBias = np.mean(Sig)
+
+    Calibrated = np.array((True,))
+    try:
+        if CalType == 'interp':
+            fgm = interpolate.interp1d(Ids, vgs[Inds])
+            st = fgm(np.clip(Sig, np.min(Ids), np.max(Ids)))*pq.V
+        elif CalType=='linear':
+            st = Sig/GM
+        else:
+            print('Calibration Not defined')
+    except:
+        print(Sig.name, "Calibration error:", sys.exc_info()[0])
+        st = np.zeros(Sig.shape)
+        Calibrated = np.array((False,))
+
+    print(str(Sig.name), '-> ',
+          'IdsBias', IdsBias,
+          'IdsOff', IdsOff,
+          'Vgs', np.mean(st),
+          Tchar.IsOK)
+
+    annotations = {'Calibrated': Calibrated,
+                   'Working': Calibrated,
+                   'IdsOff': IdsOff.flatten()[0],
+                   'VgsCal': np.mean(st),
+                   'IdsBias': IdsBias.flatten()[0],
+                   'IsOK': Tchar.IsOK,
+                   'Iname': Sig.name,
+                   'GM': GM,
+                   }
+
+    CalSig = NeoSignal(st,
+                       units='V',
+                       t_start=Sig.t_start,
+                       sampling_rate=Sig.sampling_rate,
+                       name=str(Sig.name),
+                       file_origin=Sig.file_origin)
+
+#    CalSig.annotate(**annotations)
+    CalSig.array_annotate(**annotations)
+
+    return CalSig
+
 def CalcVgeffNoInterp(Sig, Tchar, VgsExp=None, Regim='hole'):    
     gm=Tchar.GetGM(Vgs=VgsExp)
 
