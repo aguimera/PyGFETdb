@@ -371,12 +371,11 @@ class DataCharDC(object):
 
         iVds = self.GetVdsIndexes(Vds)
 
-        Rds = np.array([])
-        for iid, ivd in enumerate(iVds):
-            rds = self.Vds[ivd]/Ids[:, iid]
-            Rds = np.vstack((Rds, rds)) if Rds.size else rds
+        Rds = np.ndarray(Ids.shape) * pq.Ohm
+        for iid, ivd in enumerate(iVds):            
+            Rds[iid, :] = (self.Vds[ivd]/Ids[iid, :])
 
-        return self._FormatOutput(Rds, **kwargs)
+        return self._FormatOutput(Rds.transpose(), **kwargs)
 
     def GetFEMn(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMn' not in self.__dict__:
