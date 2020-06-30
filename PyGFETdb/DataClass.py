@@ -84,6 +84,9 @@ class DataCharDC(object):
                     v = v * self.DefaultUnits[k]
                     self.__setattr__(k, v)
             else:
+                if k == 'ChName':
+                    if type(v) == np.bytes_:
+                        v = v.decode()
                 self.__setattr__(k, v)
 
     def _FormatOutput(self, Par, **kwargs):
