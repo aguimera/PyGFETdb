@@ -11,13 +11,14 @@ import pandas as pd
 import PyGFETdb.DBSearch as DBs
 import pickle
 import numpy as np
+import datetime
 
 # %% Define search
 
 WafersList = ('B13044W1',
                )
 
-CharTable = 'DCcharacts'
+CharTable = 'ACcharacts'
 Conditions = {'Wafers.name = ': WafersList,
               }
 
@@ -44,11 +45,12 @@ for tn, dats in Data.items():
         pdser['IsOk'] = dd.IsOK
         pdser['Wafer'] = dd.Wafers['Name']
         pdser['Device'] = dd.Devices['Name']
-        pdser['TrtName'] = tn
+        pdser['Name'] = tn
+        pdser['ChName'] = dd.ChName
         pdser['Date'] = dd.GetDateTime()
         for k, v in dd.TrtTypes.items():
             if k == 'Name':
-                pdser['TrtName'] = v
+                pdser['TrtType'] = v
             else:
                 pdser[k] = v
         for k, v in dd.Info.items():
@@ -75,6 +77,7 @@ for col in dfRaw.keys():
 
 DataTypes['CharCl'] = object
 DataTypes['IsOk'] = bool
+DataTypes['Date'] = 'datetime64[ns]'
 
 dfRaw = dfRaw.astype(DataTypes)
 
