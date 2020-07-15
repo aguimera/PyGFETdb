@@ -47,6 +47,9 @@ class DataCharDC(object):
                     'NoA': pq.A**2,
                     'NoC': pq.A**2,
                     'NoB': pq.dimensionless,
+                    'FEMmu': pq.cm**2/(pq.s*pq.V),
+                    'FEMn': pq.cm**-2,
+                    'FEMmuGm': pq.cm**2/(pq.s*pq.V),
                     }
 
     def __init__(self, Data):
@@ -161,16 +164,17 @@ class DataCharDC(object):
             Vgmeas = self.GetVgs(Ud0Norm=True)
             VgInds =  np.where((Vgmeas>np.min(RcVgs)) & (Vgmeas<np.max(RcVgs)))[0]
             FEMRc[VgInds] = rcint(Vgmeas[VgInds,0])
-            print (FEMRc)
+
+        # print(FEMRc, FEMCdl)
 
 
         L = self.TrtTypes['Length']
         W = self.TrtTypes['Width']
 
-        VgUd = np.abs(self.GetVgs(Ud0Norm=True))
-        Ids = self.GetIds()
-        Gm = np.abs(self.GetGM())
-        for ivd, Vds in enumerate(self.Vds):
+        VgUd = np.abs(self.GetVgs(Ud0Norm=True)).magnitude
+        Ids = self.GetIds().magnitude
+        Gm = np.abs(self.GetGM()).magnitude
+        for ivd, Vds in enumerate(self.Vds.magnitude):
             n = (FEMCdl * VgUd[:, ivd])/FEMq
             self.FEMn[:, ivd] = np.sqrt(n**2 + FEMn0**2)
 
@@ -179,8 +183,12 @@ class DataCharDC(object):
             self.FEMmu[:, ivd] = mu
 
             Vdseff = Vds - Ids[:, ivd]*FEMRc
-            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W)
+            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W) 
             self.FEMmuGm[:, ivd] = muGM
+        
+        self.FEMn *= self.DefaultUnits['FEMn']
+        self.FEMmu *= self.DefaultUnits['FEMn']
+        self.FEMmuGm *= self.DefaultUnits['FEMn']
 
     def GetUd0(self, Vds=None, Vgs=None, Ud0Norm=False,
                Normalize=False, **kwargs):
@@ -363,6 +371,7 @@ class DataCharDC(object):
     def GetGMMax(self, **kwargs):
         return np.max(np.abs(self.GetGM(**kwargs)))
     
+    
     def GetRds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
@@ -376,28 +385,36 @@ class DataCharDC(object):
             Rds[iid, :] = (self.Vds[ivd]/Ids[iid, :])
 
         return self._FormatOutput(Rds.transpose(), **kwargs)
+    def GetConductivity(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        Rds = self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)   
+        sigma = (1/Rds)*(self.TrtTypes['Length']/self.TrtTypes['Width'])
+
+        return self._FormatOutput(sigma.transpose(), **kwargs)
 
     def GetFEMn(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMn' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
 
     def GetFEMmu(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmu' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
 
     def GetFEMmuGm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmuGm' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
 
     def GetIg(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'Ig' not in self.__dict__:
 #            print 'No Gate data'
             return None
         return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-
+    
+    def GetGIgMax(self, **kwargs):
+        return np.max(np.abs(self.GetIg(**kwargs)))
+    
     def CheckVgsInds(self, Vgs, iVds, Ud0Norm):
         """
         Find the valid indexes for the vgs vector.
@@ -857,18 +874,18 @@ class DataCharAC(DataCharDC):
                 self.FitNoise(Fmin=FFmin, Fmax=FFmax)
 
     def GetNoA(self, Vgs=None, Vds=None, Ud0Norm=False,
-               FFmin=None, FFmax=None, **kwargs):
+               FFmin=5, FFmax=7e3, **kwargs):
         self._CheckFitting(FFmin=FFmin,
                            FFmax=FFmax)
         return self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
     def GetNoB(self, Vgs=None, Vds=None, Ud0Norm=False,
-               FFmin=None, FFmax=None, **kwargs):
+               FFmin=5, FFmax=7e3, **kwargs):
         self._CheckFitting(FFmin, FFmax)
         return self._GetParam('NoB', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
     def GetNoC(self, Vgs=None, Vds=None, Ud0Norm=False,
-               FFmin=None, FFmax=None, **kwargs):
+               FFmin=5, FFmax=7e3, **kwargs):
         self._CheckFitting(FFmin, FFmax)
         return self._GetParam('NoC', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
