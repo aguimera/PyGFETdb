@@ -367,6 +367,13 @@ class DataCharDC(object):
             return np.abs(self.GetGM(**kwargs))
         else:
             return self.GetGM(**kwargs)
+    
+    def GetGMVWL(self, AbsVal=True, **kwargs):
+        kwargs.update({'Normalize': True})
+        if AbsVal:
+            return np.abs(self.GetGM(**kwargs))*(self.TrtTypes['Length']/self.TrtTypes['Width'])
+        else:
+            return self.GetGM(**kwargs)*(self.TrtTypes['Length']/self.TrtTypes['Width'])
         
     def GetGMMax(self, **kwargs):
         return np.max(np.abs(self.GetGM(**kwargs)))
