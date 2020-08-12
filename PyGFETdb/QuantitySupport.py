@@ -69,7 +69,7 @@ class QuantitySupport(object):
         :param key: name of the parameter
         :return: the default units for the parameter
         """
-        if key is not 'PSD' and key is not 'Fpsd':
+        if key != 'PSD' and key != 'Fpsd':
             return self.__DefaultUnits.get(key)
 
     def createDefaultQuantity(self, key, value):
