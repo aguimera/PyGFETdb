@@ -136,7 +136,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         ff, psd = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
                                window='hanning',
                                nperseg=nFFT,
-                               noverlap=noverlap,
+                                noverlap=noverlap,
                                scaling=scaling)
 
         if scaling == 'density':

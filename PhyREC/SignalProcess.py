@@ -527,7 +527,7 @@ def xcorr(x, y, normed=True, detrend=mlab.detrend_none,
 
 def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
     Vgs = Tchar.GetVgs()
-    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
+    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 10000)
 
     if Regim == 'hole':
         Inds = np.where(vgs < Tchar.GetUd0())[1]
@@ -587,23 +587,27 @@ def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
 
 def CalcVgeff2(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
     Vgs = Tchar.GetVgs()
-    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 1000)
+    vgs = np.linspace(np.min(Vgs), np.max(Vgs), 10000)
 
     if Regim == 'hole':
         Inds = np.where(vgs < Tchar.GetUd0())[1]
     else:
         Inds = np.where(vgs > Tchar.GetUd0())[1]
 
-    Ids = Tchar.GetIds(Vgs=vgs[Inds]).flatten() 
-    GM = Tchar.GetGM(Vgs=VgsExp).flatten() 
+    IdsBias = np.array((np.nan,))*pq.A
+    IdsOff = np.array((np.nan,))*pq.A
+    GM = np.nan*pq.S
+    try:    
+        Ids = Tchar.GetIds(Vgs=vgs[Inds]).flatten() 
+        GM = Tchar.GetGM(Vgs=VgsExp).flatten() 
 
 
-    IdsExp = Tchar.GetIds(Vgs=VgsExp).flatten() 
-    IdsOff = np.mean(Sig)-IdsExp
-    IdsBias = np.mean(Sig)
-
-    Calibrated = np.array((True,))
-    try:
+        IdsExp = Tchar.GetIds(Vgs=VgsExp).flatten() 
+        IdsOff = np.mean(Sig)-IdsExp
+        IdsBias = np.mean(Sig)
+    
+        Calibrated = np.array((True,))
+    
         if CalType == 'interp':
             fgm = interpolate.interp1d(Ids, vgs[Inds])
             st = fgm(np.clip(Sig, np.min(Ids), np.max(Ids)))*pq.V
@@ -613,23 +617,24 @@ def CalcVgeff2(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
             print('Calibration Not defined')
     except:
         print(Sig.name, "Calibration error:", sys.exc_info()[0])
-        st = np.zeros(Sig.shape)
+        st = np.zeros(Sig.shape)*pq.V
         Calibrated = np.array((False,))
 
     print(str(Sig.name), '-> ',
           'IdsBias', IdsBias,
           'IdsOff', IdsOff,
           'Vgs', np.mean(st),
+          'GM', GM,
           Tchar.IsOK)
 
-    annotations = {'Calibrated': Calibrated,
-                   'Working': Calibrated,
-                   'IdsOff': IdsOff.flatten()[0],
-                   'VgsCal': np.mean(st),
-                   'IdsBias': IdsBias.flatten()[0],
+    annotations = {'Calibrated': Calibrated[0],
+                   'Working': Calibrated[0],
+                   'IdsOff': float(IdsOff.flatten()[0].magnitude),
+                   'VgsCal': float(np.mean(st).magnitude),
+                   'IdsBias': float(IdsBias.flatten()[0].magnitude),
                    'IsOK': Tchar.IsOK,
                    'Iname': Sig.name,
-                   'GM': GM,
+                   'GM': float(GM.magnitude),
                    }
 
     CalSig = NeoSignal(st,
@@ -639,8 +644,8 @@ def CalcVgeff2(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
                        name=str(Sig.name),
                        file_origin=Sig.file_origin)
 
-#    CalSig.annotate(**annotations)
-    CalSig.array_annotate(**annotations)
+    CalSig.annotate(**annotations)
+    # CalSig.array_aºnnotate(**annotations)
 
     return CalSig
 
