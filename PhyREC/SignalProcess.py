@@ -239,10 +239,14 @@ def Filter(sig, Type, Order, Freqs):
     Fs = sig.sampling_rate
     freqs = Freqs/(0.5 * Fs)
 
-    b, a = signal.butter(Order, freqs, Type)
-    st = signal.filtfilt(b, a, st, axis=0)
+    # b, a = signal.butter(Order, freqs, Type)
+    # st = signal.filtfilt(b, a, st, axis=0)
     
-    DbgFplt.PlotResponse(a, b, Fs)
+    sos = signal.butter(Order, freqs, Type, output='sos')
+    st = signal.sosfiltfilt(sos, st, axis=0)
+    
+    # DbgFplt.PlotResponse(a, b, Fs)
+    DbgFplt.PlotResponse(sos, Fs)
     
     return sig.duplicate_with_new_data(signal=st*sig.units)
 

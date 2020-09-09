@@ -21,13 +21,14 @@ class DebugFilterPlot():
         self.Fig, self.AxM = plt.subplots()
         self.AxP = plt.twinx(self.AxM)
 
-    def PlotResponse(self, a, b, Fs):
+    def PlotResponse(self, sos, Fs):
         if self.Fig is None:
             self.InitFigure()
 
-        w, h = signal.freqz(b, a,
-                            worN=self.nFFT,
-                            fs=2*np.pi*Fs)
+        # w, h = signal.freqz(b, a,
+        w, h = signal.sosfreqz(sos,
+                               worN=self.nFFT,
+                               fs=2*np.pi*Fs)
         ff = (w/(2*np.pi))[1:]
         self.AxM.semilogx(ff, np.abs(h[1:]))
         self.AxP.semilogx(ff, np.unwrap(np.angle(h)[1:]), '--')
