@@ -1026,7 +1026,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 Valx = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
             func = Data.__getattribute__('Get' + axn)
-            Valy = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
+            Valy = func(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs).flatten()
 
             if Valx is not None and Valy is not None:
                 ax.plot(Valx, Valy, Mark, color=self.color, label=label)
