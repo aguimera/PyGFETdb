@@ -136,12 +136,13 @@ def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
     return pdSeries
 
 
-def CalcNormalization(df, RefStep, ScalarValues):
+def CalcNormalization(df, RefStep, ScalarValues, Experiment=None,
+                      StepField='FuncStep', SortTrtField='TrtName'):
     pdSeries = []
-    gTrts = df.groupby('TrtName')
+    gTrts = df.groupby(SortTrtField, observed=True)
     for nTrt in gTrts.groups:
         Trt = gTrts.get_group(nTrt)
-        gFuncs = Trt.groupby('FuncStep')
+        gFuncs = Trt.groupby(StepField, observed=True)
         if RefStep in gFuncs.groups:
             refVal = gFuncs.get_group(RefStep).iloc[0,:]
         else:
@@ -154,6 +155,8 @@ def CalcNormalization(df, RefStep, ScalarValues):
                 gds = Func.iloc[icc,:]
                 for par in ScalarValues: 
                     gds[par + 'N' + RefStep] = refVal[par] - gds[par]
+                if Experiment is not None:
+                    gds['Experiment'] = Experiment
                 pdSeries.append(gds)
     
     return pd.concat(pdSeries, axis=1).transpose()
