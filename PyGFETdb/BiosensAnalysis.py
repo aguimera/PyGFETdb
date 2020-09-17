@@ -191,7 +191,9 @@ def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, Vgs, VgsNorm, cmap='jet'
                 for index, row in g2.iterrows():
                     v = row[par+'Norm'].flatten()
                     y = np.vstack((y, v)) if y.size else v
-                axs[ip].plot(VgsNorm, y.transpose(), '--', color=G2ColorDict[g2n])
+                axs[ip].plot(VgsNorm, y.transpose(), '-.',
+                             color=G2ColorDict[g2n],
+                             alpha=0.5)
         axs[ip].legend()
         plt.title(g1n)
         PDF.savefig(fig)
