@@ -15,10 +15,10 @@ import datetime
 import deepdish as dd
 import os
 
-import PyGFETdb.PlotDataClass as FETplt
-import PyGFETdb.DataStructures as FETdata
-import PyGFETdb.DataClass as FETcl
-import PyGFETdb.AnalyzeData as FETana
+import PhyREC.PyGFETdb.DataStructures as FETdata
+import PhyREC.PyGFETdb.AnalyzeData as FETana
+from PhyREC.PyGFETdb.DataClass import PyFETPlotDataClass as FETplt
+from PhyREC.PyGFETdb.DataClass import DataCharAC as FETcl
 
 from multiprocessing import Pool
 
@@ -179,7 +179,7 @@ def LoadMatFiles(FilesIn, FBChannels=None, InChannels=None, DownFact=None, TimeW
     return FbData
 
 
-def GetGtechChar(FileInput, ExcludeCh=(None,)):
+def GetGtechChar(FileInput, ExcludeCh=(None, )):
     MatCon = spio.loadmat(FileInput)
     Data = np.array(MatCon['DCcharacterization'])
 
@@ -211,11 +211,15 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
               Regim='hole', PlotChar=True, CalType='interp'):
 
     DCChar, _ = FETdata.LoadDataFromFile(CalFile)
+    DataTrts = {}
+    for tn, datadic in DCChar.items():
+        DataTrts[tn] = (FETcl(datadic),)
 
     if PlotChar:
-        pltDC = FETplt.PyFETPlot()
-        pltDC.AddAxes(('Ids', 'Gm', 'Rds'))
-        pltDC.PlotDataCh(DCChar)
+        pltDC = FETplt()
+        pltDC.AddAxes(('Ids', 'GM', 'Rds'))
+        Trts = list(DCChar.keys())
+        pltDC.PlotDataSet(DataTrts, Trts, PltIsOK=True, ColorOn='Trt')
         pltDC.AddLegend()
 
     Vsigs = None
@@ -226,7 +230,7 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
         if Csig.name not in DCChar.keys():
             continue
 
-        Tchar = FETcl.DataCharDC(DCChar[Csig.name])
+        Tchar = DataTrts[Csig.name][0]
         Vsig = Spro.CalcVgeff(Csig.time_slice(*CalTime),
                               Tchar=Tchar,
                               VgsExp=VgsExp,
