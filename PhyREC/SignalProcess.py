@@ -589,7 +589,7 @@ def CalcVgeff(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
     return CalSig
 
 
-def CalcVgeff2(Sig, Tchar, VgsExp=None, Regim='hole', CalType='interp'):
+def CalcVgeff2(Sig, Tchar, VgsExp, Regim='hole', CalType='interp'):
     Vgs = Tchar.GetVgs()
     vgs = np.linspace(np.min(Vgs), np.max(Vgs), 10000)
 

@@ -105,7 +105,7 @@ def LoadMatFile(FileName, FBChannels=None, InChannels=None, DownFact=None, Glitc
 def AppendData(sig, data):
     v_old = np.array(sig)
     v_new = np.vstack((v_old, np.array(data)))
-    return sig.duplicate_with_new_array(signal=v_new*sig.units)
+    return sig.duplicate_with_new_data(signal=v_new*sig.units)
 
 
 def CheckFilesTime(FilesIn, TimeWind):
@@ -220,7 +220,7 @@ def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
 
     Vsigs = None
     for ic, sig in enumerate(FbData.transpose()):
-        Csig = FbData.duplicate_with_new_array(sig)
+        Csig = FbData.duplicate_with_new_data(sig)
         Csig.name = 'Ch{0:02d}'.format(ic+1)
 
         if Csig.name not in DCChar.keys():

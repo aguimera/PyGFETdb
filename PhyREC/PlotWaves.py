@@ -783,6 +783,7 @@ class PlotSlots():
 
         MeanSigs = []
         for isl, sl in enumerate(self.Slots):
+            print('Calculating Avg ', sl.name, isl)
             MeanSig = sl.CalcAvarage(TimeAvg, TimesEvent, Units=Units,
                                      **Avgkwargs)
             MeanSigs.append(MeanSig)
