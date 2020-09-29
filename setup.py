@@ -36,7 +36,7 @@ install_requires = ['numpy',
                     'elephant>=0.7',
                     'scipy',
                     'deepdish',
-                    
+                    'h5py',                    
 					]
 
 console_scripts = ['PhyRecExplorer3 = PhyREC.GuiRecordView.GuiRecordExplorer:main',
@@ -56,7 +56,7 @@ classifiers = ['Development Status :: 3 - Alpha',
                'Operating System :: Unix',
                'Operating System :: OS Independent',
                'Programming Language :: Python',
-               'Programming Language :: Python :: 2.7',
+               'Programming Language :: Python :: 3.7',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: User Interfaces']
 

@@ -44,7 +44,7 @@ from ..io.proxyobjects import BaseProxy
 from ..version import version as neover
 
 try:
-    import nixio as nix
+    import PhyREC.nixio as nix
 
     HAVE_NIX = True
 except ImportError:
