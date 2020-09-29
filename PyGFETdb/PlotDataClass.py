@@ -100,7 +100,7 @@ class PyFETPlotBase:
             Axs['Ids'].set_ylabel('Ids[A]', fontsize=fontsize)
             Axs['Ids'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['Ids'].grid()
-            Axs['Ids'].tick_params(axis='both', which='Both',
+            Axs['Ids'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['Ids'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -109,14 +109,14 @@ class PyFETPlotBase:
             Axs['IdsPoly'].set_ylabel('Ids[A]', fontsize=fontsize)
             Axs['IdsPoly'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['IdsPoly'].grid()
-            Axs['IdsPoly'].tick_params(axis='both', which='Both',
+            Axs['IdsPoly'].tick_params(axis='both', which='both',
                                        labelsize=labelsize)
             Axs['IdsPoly'].ticklabel_format(axis='y', style='sci',
                                             scilimits=scilimits)
 
         if 'Ig' in Axs:
             Axs['Ig'].set_ylabel('Ig[A]', fontsize=fontsize)
-            Axs['Ig'].tick_params(axis='both', which='Both',
+            Axs['Ig'].tick_params(axis='both', which='both',
                                   labelsize=labelsize)
             Axs['Ig'].ticklabel_format(axis='y', style='sci',
                                        scilimits=scilimits)
@@ -125,7 +125,7 @@ class PyFETPlotBase:
             Axs['Rds'].set_ylabel(r'$RDS [\Omega]$', fontsize=fontsize)
             Axs['Rds'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['Rds'].grid()
-            Axs['Rds'].tick_params(axis='both', which='Both',
+            Axs['Rds'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['Rds'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -136,7 +136,7 @@ class PyFETPlotBase:
             Axs['GMPoly'].set_ylabel('Gm[S]', fontsize=fontsize)
             Axs['GMPoly'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['GMPoly'].grid()
-            Axs['GMPoly'].tick_params(axis='both', which='Both',
+            Axs['GMPoly'].tick_params(axis='both', which='both',
                                       labelsize=labelsize)
             Axs['GMPoly'].ticklabel_format(axis='y', style='sci',
                                            scilimits=scilimits)
@@ -145,7 +145,7 @@ class PyFETPlotBase:
             Axs['Gm'].set_ylabel('Gm[S]', fontsize=fontsize)
             Axs['Gm'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['Gm'].grid()
-            Axs['Gm'].tick_params(axis='both', which='Both',
+            Axs['Gm'].tick_params(axis='both', which='both',
                                   labelsize=labelsize)
             Axs['Gm'].ticklabel_format(axis='y', style='sci',
                                        scilimits=scilimits)
@@ -154,7 +154,7 @@ class PyFETPlotBase:
             Axs['FEMn'].set_ylabel('n[1/cm2]', fontsize=fontsize)
             Axs['FEMn'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['FEMn'].grid()
-            Axs['FEMn'].tick_params(axis='both', which='Both',
+            Axs['FEMn'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['FEMn'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
@@ -163,7 +163,7 @@ class PyFETPlotBase:
             Axs['FEMmu'].set_ylabel('mu[cm2/Vs]', fontsize=fontsize)
             Axs['FEMmu'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['FEMmu'].grid()
-            Axs['FEMmu'].tick_params(axis='both', which='Both',
+            Axs['FEMmu'].tick_params(axis='both', which='both',
                                      labelsize=labelsize)
             Axs['FEMmu'].ticklabel_format(axis='y', style='sci',
                                           scilimits=scilimits)
@@ -172,7 +172,7 @@ class PyFETPlotBase:
             Axs['FEMmuGm'].set_ylabel('mu[cm2/Vs]', fontsize=fontsize)
             Axs['FEMmuGm'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['FEMmuGm'].grid()
-            Axs['FEMmuGm'].tick_params(axis='both', which='Both',
+            Axs['FEMmuGm'].tick_params(axis='both', which='both',
                                        labelsize=labelsize)
             Axs['FEMmuGm'].ticklabel_format(axis='y', style='sci',
                                             scilimits=scilimits)
@@ -181,7 +181,7 @@ class PyFETPlotBase:
             Axs['GM'].set_ylabel('Gm[S]', fontsize=fontsize)
             Axs['GM'].set_xlabel('Vgs[V]', fontsize=fontsize)
             Axs['GM'].grid()
-            Axs['GM'].tick_params(axis='both', which='Both',
+            Axs['GM'].tick_params(axis='both', which='both',
                                   labelsize=labelsize)
             Axs['GM'].ticklabel_format(axis='y', style='sci',
                                        scilimits=scilimits)
@@ -190,7 +190,7 @@ class PyFETPlotBase:
             Axs['GmMag'].set_ylabel('Gm[S]', fontsize=fontsize)
             Axs['GmMag'].set_xlabel('Frequency [Hz]', fontsize=fontsize)
             Axs['GmMag'].grid()
-            Axs['GmMag'].tick_params(axis='both', which='Both',
+            Axs['GmMag'].tick_params(axis='both', which='both',
                                      labelsize=labelsize)
             Axs['GmMag'].ticklabel_format(axis='y', style='sci',
                                           scilimits=scilimits)
@@ -199,7 +199,7 @@ class PyFETPlotBase:
             Axs['GmPh'].set_ylabel('Phase[0]', fontsize=fontsize)
             Axs['GmPh'].set_xlabel('Frequency [Hz]', fontsize=fontsize)
             Axs['GmPh'].grid()
-            Axs['GmPh'].tick_params(axis='both', which='Both',
+            Axs['GmPh'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['GmPh'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
@@ -208,7 +208,7 @@ class PyFETPlotBase:
             Axs['PSD'].set_ylabel('PSD [A2/Hz]', fontsize=fontsize)
             Axs['PSD'].set_xlabel('Frequency [Hz]', fontsize=fontsize)
             Axs['PSD'].grid()
-            Axs['PSD'].tick_params(axis='both', which='Both',
+            Axs['PSD'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['PSD'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -217,7 +217,7 @@ class PyFETPlotBase:
             Axs['NoA'].set_ylabel('a [A^2]', fontsize=fontsize)
             Axs['NoA'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['NoA'].grid()
-            Axs['NoA'].tick_params(axis='both', which='Both',
+            Axs['NoA'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['NoA'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -226,7 +226,7 @@ class PyFETPlotBase:
             Axs['NoB'].set_ylabel('b []', fontsize=fontsize)
             Axs['NoB'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['NoB'].grid()
-            Axs['NoB'].tick_params(axis='both', which='Both',
+            Axs['NoB'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['NoB'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -235,7 +235,7 @@ class PyFETPlotBase:
             Axs['Irms'].set_ylabel('Irms [Arms]', fontsize=fontsize)
             Axs['Irms'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['Irms'].grid()
-            Axs['Irms'].tick_params(axis='both', which='Both',
+            Axs['Irms'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['Irms'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
@@ -244,7 +244,7 @@ class PyFETPlotBase:
             Axs['IrmsIds'].set_ylabel('Irms [Arms]', fontsize=fontsize)
             Axs['IrmsIds'].set_xlabel('Ids [A]', fontsize=fontsize)
             Axs['IrmsIds'].grid()
-            Axs['IrmsIds'].tick_params(axis='both', which='Both',
+            Axs['IrmsIds'].tick_params(axis='both', which='both',
                                        labelsize=labelsize)
             Axs['IrmsIds'].ticklabel_format(axis='y', style='sci',
                                             scilimits=scilimits)
@@ -253,7 +253,7 @@ class PyFETPlotBase:
             Axs['Vrms'].set_ylabel('Vrms [Vrms]', fontsize=fontsize)
             Axs['Vrms'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['Vrms'].grid()
-            Axs['Vrms'].tick_params(axis='both', which='Both',
+            Axs['Vrms'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['Vrms'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
@@ -262,7 +262,7 @@ class PyFETPlotBase:
             Axs['FitErrA'].set_ylabel('a fit error', fontsize=fontsize)
             Axs['FitErrA'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['FitErrA'].grid()
-            Axs['FitErrA'].tick_params(axis='both', which='Both',
+            Axs['FitErrA'].tick_params(axis='both', which='both',
                                        labelsize=labelsize)
             Axs['FitErrA'].ticklabel_format(axis='y', style='sci',
                                             scilimits=scilimits)
@@ -271,7 +271,7 @@ class PyFETPlotBase:
             Axs['FitErrB'].set_ylabel('b fit error', fontsize=fontsize)
             Axs['FitErrB'].set_xlabel('Vgs [V]', fontsize=fontsize)
             Axs['FitErrB'].grid()
-            Axs['FitErrB'].tick_params(axis='both', which='Both',
+            Axs['FitErrB'].tick_params(axis='both', which='both',
                                        labelsize=labelsize)
             Axs['FitErrB'].ticklabel_format(axis='y', style='sci',
                                             scilimits=scilimits)
@@ -281,7 +281,7 @@ class PyFETPlotBase:
                                    fontsize=fontsize)
             Axs['GMax'].set_xlabel('Cicle', fontsize=fontsize)
             Axs['GMax'].grid()
-            Axs['GMax'].tick_params(axis='both', which='Both',
+            Axs['GMax'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['GMax'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
@@ -289,7 +289,7 @@ class PyFETPlotBase:
         if 'Ud0' in Axs:
             Axs['Ud0'].set_ylabel('Vd [V]', fontsize=fontsize)
             Axs['Ud0'].grid()
-            Axs['Ud0'].tick_params(axis='both', which='Both',
+            Axs['Ud0'].tick_params(axis='both', which='both',
                                    labelsize=labelsize)
             Axs['Ud0'].ticklabel_format(axis='y', style='sci',
                                         scilimits=scilimits)
@@ -298,7 +298,7 @@ class PyFETPlotBase:
             Axs['Ud'].set_ylabel('Dirac Point [V]',  fontsize=fontsize)
             Axs['Ud'].set_xlabel('Cicle', fontsize=fontsize)
             Axs['Ud'].grid()
-            Axs['Ud'].tick_params(axis='both', which='Both',
+            Axs['Ud'].tick_params(axis='both', which='both',
                                   labelsize=labelsize)
             Axs['Ud'].ticklabel_format(axis='y', style='sci',
                                        scilimits=scilimits)
@@ -307,7 +307,7 @@ class PyFETPlotBase:
             Axs['Imin'].set_ylabel('Min. Current [A]', fontsize=fontsize)
             Axs['Imin'].set_xlabel('Cicle', fontsize=fontsize)
             Axs['Imin'].grid()
-            Axs['Imin'].tick_params(axis='both', which='Both',
+            Axs['Imin'].tick_params(axis='both', which='both',
                                     labelsize=labelsize)
             Axs['Imin'].ticklabel_format(axis='y', style='sci',
                                          scilimits=scilimits)
