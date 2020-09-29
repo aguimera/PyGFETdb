@@ -14,7 +14,7 @@ import matplotlib.cm as cmx
 from itertools import cycle
 import numpy as np
 import math
-import PyGFETdb.NoiseModel as noise
+# import PyGFETdb.NoiseModel as noise
 from scipy.interpolate import interp1d
 import sys
 

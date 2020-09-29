@@ -11,7 +11,7 @@ TODO implement graph for selected channels
 
 """
 import numpy as np
-import PyGFETdb.NoiseModel as noise
+# import PyGFETdb.NoiseModel as noise
 import sys
 from scipy import interpolate
 
