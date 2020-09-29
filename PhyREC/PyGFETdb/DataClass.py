@@ -12,7 +12,7 @@ import scipy.optimize as optim
 from scipy.integrate import simps
 import quantities as pq
 
-from PyGFETdb import PlotDataClass
+from PhyREC.PyGFETdb import PlotDataClass
 import sys
 
 DebugPrint = True

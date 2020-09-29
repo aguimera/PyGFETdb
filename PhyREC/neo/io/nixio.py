@@ -143,7 +143,7 @@ class NixIO(BaseIO):
 
         :param filename: Full path to the file
         """
-        check_nix_version()
+        # check_nix_version()
         BaseIO.__init__(self, filename)
         self.filename = filename
         if mode == "ro":
@@ -1234,13 +1234,14 @@ class NixIO(BaseIO):
                         values = ""
                 elif len(values) == 1:
                     values = values[0]
-                if prop.definition == ARRAYANNOTATION:
+                elif prop.definition == ARRAYANNOTATION:
                     if 'array_annotations' in neo_attrs:
                         neo_attrs['array_annotations'][prop.name] = values
                     else:
                         neo_attrs['array_annotations'] = {prop.name: values}
                 else:
-                    neo_attrs[prop.name] = values
+                    values = list(values)
+                neo_attrs[prop.name] = values
         # since the 'neo_name' NIX property becomes the actual object's name,
         # there's no reason to keep it in the annotations
         neo_attrs["name"] = stringify(neo_attrs.pop("neo_name", None))
