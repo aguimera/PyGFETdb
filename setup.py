@@ -26,16 +26,18 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.2.0'
+_version = '0.4.0'
 
 long_description = "Library for electrphysiological analysis based on neo"
 
 install_requires = ['numpy',
                     'matplotlib',
-                    'quantities>=0.12',
+                    'quantities>=0.12.4',
+                    'elephant>=0.7',
                     'scipy',
-                    'neo>=0.5.2',
-                    'nixio']
+                    'deepdish',
+                    
+					]
 
 console_scripts = ['PhyRecExplorer3 = PhyREC.GuiRecordView.GuiRecordExplorer:main',
                    ]
