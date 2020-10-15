@@ -136,12 +136,13 @@ def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
     return pdSeries
 
 
-def CalcNormalization(df, RefStep, ScalarValues):
+def CalcNormalization(df, RefStep, ScalarValues, Experiment=None,
+                      StepField='FuncStep', SortTrtField='TrtName', **kwargs):
     pdSeries = []
-    gTrts = df.groupby('TrtName')
+    gTrts = df.groupby(SortTrtField, observed=True)
     for nTrt in gTrts.groups:
         Trt = gTrts.get_group(nTrt)
-        gFuncs = Trt.groupby('FuncStep')
+        gFuncs = Trt.groupby(StepField, observed=True)
         if RefStep in gFuncs.groups:
             refVal = gFuncs.get_group(RefStep).iloc[0,:]
         else:
@@ -154,20 +155,22 @@ def CalcNormalization(df, RefStep, ScalarValues):
                 gds = Func.iloc[icc,:]
                 for par in ScalarValues: 
                     gds[par + 'N' + RefStep] = refVal[par] - gds[par]
+                if Experiment is not None:
+                    gds['Experiment'] = Experiment
                 pdSeries.append(gds)
     
     return pd.concat(pdSeries, axis=1).transpose()
     
 
-def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, cmap='jet'):
+def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, Vgs, VgsNorm, cmap='jet'):
     plt.ioff()
     
-    dg1 = df.groupby(GroupBy1)
+    dg1 = df.groupby(GroupBy1, observed=True)
 
     for g1n in dg1.groups:
         fig, axs = plt.subplots(1, len(vPars))
         g1 = dg1.get_group(g1n)
-        dg2 = g1.groupby(GroupBy2)
+        dg2 = g1.groupby(GroupBy2, observed=True)
         
         # create color map
         cm = ScalarMappable(norm=colors.Normalize(vmin=0, vmax=len(dg2)),
@@ -178,13 +181,17 @@ def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, cmap='jet'):
 
         for g2n in dg2.groups:
             g2 = dg2.get_group(g2n)
-            vgs = np.array([i for i in g2.Vgs]).transpose()
-            VgsNorm = np.array([i for i in g2.VgsNorm]).transpose()
             for ip, par in enumerate(vPars):
-                y = np.array([i for i in g2[par]]).transpose()
-                axs[ip].plot(vgs, y, color=G2ColorDict[g2n], label=g2n)
-                y = np.array([i for i in g2[par+'Norm']]).transpose()
-                axs[ip].plot(VgsNorm, y, '--', color=G2ColorDict[g2n])
+                y = np.array([])
+                for index, row in g2.iterrows():
+                    v = row[par].flatten()
+                    y = np.vstack((y, v)) if y.size else v
+                axs[ip].plot(Vgs, y.transpose(), color=G2ColorDict[g2n], label=g2n)
+                y = np.array([])
+                for index, row in g2.iterrows():
+                    v = row[par+'Norm'].flatten()
+                    y = np.vstack((y, v)) if y.size else v
+                axs[ip].plot(VgsNorm, y.transpose(), '--', color=G2ColorDict[g2n])
         axs[ip].legend()
         plt.title(g1n)
         PDF.savefig(fig)
