@@ -154,7 +154,7 @@ def CalcNormalization(df, RefStep, ScalarValues, Experiment=None,
             for icc in range(ic):
                 gds = Func.iloc[icc,:]
                 for par in ScalarValues: 
-                    gds[par + 'N' + RefStep] = refVal[par] - gds[par]
+                    gds[par + 'N' + str(RefStep)] = refVal[par] - gds[par]
                 if Experiment is not None:
                     gds['Experiment'] = Experiment
                 pdSeries.append(gds)
