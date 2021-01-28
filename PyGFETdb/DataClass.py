@@ -291,13 +291,13 @@ class DataCharDC(object):
         Ids = np.ones((nVg, iVds.size)) * np.NaN
 
         # Get Values
-        for ivd in iVds:
+        for ic, ivd in enumerate(iVds):
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
             else:
                 vg = vgs
             ids = np.polyval(self.IdsPoly[:, ivd], vg.rescale('V').magnitude)
-            Ids[vginds, ivd] = ids
+            Ids[vginds, ic] = ids
 
         # Check for units
         Ids = Ids * self.DefaultUnits['Ids']
@@ -343,7 +343,7 @@ class DataCharDC(object):
         GM = np.ones((nVg, iVds.size)) * np.NaN
 
         # Get Values
-        for ivd in iVds:
+        for ic, ivd in enumerate(iVds):
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
             else:
@@ -352,7 +352,7 @@ class DataCharDC(object):
             if Normalize:
                 gm = gm/self.Vds[ivd]
                 # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
-            GM[vginds, ivd] = gm
+            GM[vginds, ic] = gm
 
         # Check for units
         if Normalize:
@@ -541,7 +541,7 @@ class DataCharDC(object):
         PAR = np.ones((nVg, iVds.size)) * np.NaN
 
         # Get values
-        for ivd in iVds:
+        for ic, ivd in enumerate(iVds):
             if Ud0Norm and Vgs is not None:
                 vg = vgs + self.Ud0[ivd]
             else:
@@ -550,7 +550,7 @@ class DataCharDC(object):
             par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
                 par = par/self.Vds[ivd]
-            PAR[vginds, ivd] = par
+            PAR[vginds, ic] = par
 
         if Param in self.DefaultUnits:
             # print(Param, self.DefaultUnits[Param])

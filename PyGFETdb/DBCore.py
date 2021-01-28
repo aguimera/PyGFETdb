@@ -350,6 +350,7 @@ class PyFETdb():
                   '{}.Ph'.format(Table),
                   '{}.Solution'.format(Table),
                   '{}.IonStrength'.format(Table),
+                  '{}.IsCmp'.format(Table),
                   '{}.FuncStep'.format(Table),
                   '{}.AnalyteCon'.format(Table),
                   '{}.Comments'.format(Table)]

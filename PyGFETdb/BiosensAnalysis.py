@@ -137,7 +137,7 @@ def GetBiosensSeriesDataSet(DevicesList, FuncStepsSort,
 
 
 def CalcNormalization(df, RefStep, ScalarValues, Experiment=None,
-                      StepField='FuncStep', SortTrtField='TrtName', **kwargs):
+                      StepField='FuncStep', SortTrtField='TrtName', Operation='VmR'):
     pdSeries = []
     gTrts = df.groupby(SortTrtField, observed=True)
     for nTrt in gTrts.groups:
@@ -154,12 +154,24 @@ def CalcNormalization(df, RefStep, ScalarValues, Experiment=None,
             for icc in range(ic):
                 gds = Func.iloc[icc,:]
                 for par in ScalarValues: 
-                    gds[par + 'N' + RefStep] = refVal[par] - gds[par]
+                    if Operation == 'VmR':
+                        gds[par + 'N' + str(RefStep)] = gds[par] - refVal[par]
+                    elif Operation == 'RmV':
+                        gds[par + 'N' + str(RefStep)] = refVal[par] -gds[par]
                 if Experiment is not None:
                     gds['Experiment'] = Experiment
                 pdSeries.append(gds)
     
-    return pd.concat(pdSeries, axis=1).transpose()
+    dNorm = pd.concat(pdSeries, axis=1).transpose()
+    
+    # Format dataset
+    DataTypes = df.dtypes
+    NormPars = np.setdiff1d(list(dNorm.keys()), list(df.keys()))
+    for f in NormPars:
+        DataTypes[f] = np.float
+    dNorm = dNorm.astype(DataTypes)
+   
+    return dNorm
     
 
 def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, Vgs, VgsNorm, cmap='jet'):
@@ -191,7 +203,9 @@ def GenPDFLinePlots(df, GroupBy1, GroupBy2, vPars, PDF, Vgs, VgsNorm, cmap='jet'
                 for index, row in g2.iterrows():
                     v = row[par+'Norm'].flatten()
                     y = np.vstack((y, v)) if y.size else v
-                axs[ip].plot(VgsNorm, y.transpose(), '--', color=G2ColorDict[g2n])
+                axs[ip].plot(VgsNorm, y.transpose(), '-.',
+                             color=G2ColorDict[g2n],
+                             alpha=0.5)
         axs[ip].legend()
         plt.title(g1n)
         PDF.savefig(fig)
