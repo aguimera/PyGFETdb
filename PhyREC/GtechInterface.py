@@ -207,10 +207,10 @@ def GetGtechChar(FileInput, ExcludeCh=(None, )):
     return DevDCVals
 
 
-def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
+def Calibrate(DCChar, FbData, VgsExp, CalTime=(60*pq.s, None),
               Regim='hole', PlotChar=True, CalType='interp'):
 
-    DCChar, _ = FETdata.LoadDataFromFile(CalFile)
+    # DCChar, _ = FETdata.LoadDataFromFile(CalFile)
     DataTrts = {}
     for tn, datadic in DCChar.items():
         DataTrts[tn] = (FETcl(datadic),)
