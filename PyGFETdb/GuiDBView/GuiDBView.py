@@ -785,11 +785,11 @@ def main():
     import pkg_resources
 
     # Add version option
-    __version__ = pkg_resources.require("PyGFETdb")[0].version
+    # __version__ = pkg_resources.require("PyGFETdb")[0].version
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s {version}'.format(
-                            version=__version__))
+    # parser.add_argument('--version', action='version',
+    #                     version='%(prog)s {version}'.format(
+    #                         version=__version__))
     parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
