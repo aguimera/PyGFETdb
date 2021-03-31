@@ -333,6 +333,13 @@ class PyFETdb():
 
         DataF = '{}.Data'.format(Table)
         Output = ['Trts.Name',
+                  'Devices.Name',
+                  'Devices.Comments',
+                  'Wafers.Name',
+                  'Wafers.Substrate',
+                  'Wafers.Masks',
+                  'Wafers.Graphene',
+                  'Wafers.Comments',
                   'TrtTypes.Name',
                   'TrtTypes.Width',
                   'TrtTypes.Length',
@@ -343,6 +350,7 @@ class PyFETdb():
                   '{}.Ph'.format(Table),
                   '{}.Solution'.format(Table),
                   '{}.IonStrength'.format(Table),
+                  '{}.IsCmp'.format(Table),
                   '{}.FuncStep'.format(Table),
                   '{}.AnalyteCon'.format(Table),
                   '{}.Comments'.format(Table)]
