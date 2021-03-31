@@ -92,6 +92,14 @@ class DataCharDC(object):
                         v = v.decode()
                 self.__setattr__(k, v)
 
+    def __getitem__(self, key):
+        print ("Inside `__getitem__` method!")
+        return self.__dict__[key]
+    
+    def __iter__(self):
+         for attr, value in self.__dict__.iteritems():
+             yield attr, value
+
     def _FormatOutput(self, Par, **kwargs):
         if 'Units' in kwargs:
             Par = Par.rescale(kwargs['Units'])
