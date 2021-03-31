@@ -18,7 +18,9 @@ def GenGroups(GroupBase, GroupBy, LongName=True):
                                  Parameter=GroupBy)
 
     Groups = {}
-    for Item in sorted(GroupList):
+    for Item in GroupList:
+        if Item is None:
+            continue
         Cgr = GroupBase.copy()
         Cond = GroupBase['Conditions'].copy()
         if Item is None:
@@ -170,8 +172,12 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True,
     for Trtn, Cys in DataD.items():
         Chars = []
         for Cyn, Dat in sorted(Cys.items()):
-            Char = DataCharAC(Dat)
-            Chars.append(Char)
+            try:
+                Char = DataCharAC(Dat)
+                Chars.append(Char)
+            except:
+                print('Failed loading', Trtn ,' \n')
+                print(Dat)                
         Data[Trtn] = Chars
 
     logging.debug('Getting Data from %s', Conditions)

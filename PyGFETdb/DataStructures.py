@@ -16,6 +16,7 @@ import datetime
 #from PlotData import PlotDC, PlotAC
 import deepdish as dd
 import os.path
+import pickle
 #from DaqInterface import *
 
 ##############################################################################
@@ -162,7 +163,10 @@ def InitACRecord(nVds, nVgs, nFgm, nFpsd, ChNames):
 #####
 ###############################################################################
 def LoadDataFromFile (FileName): # TODO check the dictionary order DC, AC
-    DataIn = dd.io.load(FileName)
+    try:
+        DataIn = dd.io.load(FileName)
+    except:
+        DataIn = pickle.load(open(FileName, 'rb'), encoding='latin')
 
     if type(DataIn) == dict:
         DevDCVals = DataIn
