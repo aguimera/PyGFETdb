@@ -17,6 +17,7 @@ from matplotlib.widgets import Slider, Button, TextBox
 from matplotlib.artist import ArtistInspector
 import PhyREC.SignalProcess as Spro
 from . import SpectColBars
+from sklearn.impute import KNNImputer
 
 #from NeoInterface import NeoTrain
 
@@ -368,6 +369,8 @@ class WaveSlot():
             self.name = self.LineKwargs['label']
 
         self.TrialLineKwargs['color'] = self.LineKwargs['color']
+        
+        self.current_time = None
 
     def CheckTime(self, Time):
         if Time is None:
@@ -420,8 +423,10 @@ class WaveSlot():
                                   sig,
                                   **self.LineKwargs
                                   )
-        self.Ax.set_xlim(left=sig.t_start.rescale('s').magnitude,
-                         right=sig.t_stop.rescale('s').magnitude)
+        self.current_time = (sig.t_start.rescale('s').magnitude,
+                             sig.t_stop.rescale('s').magnitude)
+        self.Ax.set_xlim(left=self.current_time[0],
+                         right=self.current_time[1])
         self.Line = self.Lines[0]
 
     def CalcAvarage(self, TimeAvg, TimesEvent, Units=None,
@@ -468,10 +473,15 @@ class ControlFigure():
 
         self.pltSL = pltSL
 
+        self.MapSlots = []
+        for sl in pltSL.Slots:
+            if hasattr(sl, 'Map'):
+                self.MapSlots.append(sl)
+                
         TMax = np.max([sl.Signal.t_stop.rescale('s') for sl in pltSL.Slots])
         TMin = np.min([sl.Signal.t_start.rescale('s') for sl in pltSL.Slots])
 
-        self.Fig, ax = plt.subplots(6, 1, figsize=figsize)
+        self.Fig, ax = plt.subplots(10, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
                               label='TStart [s]',
                               valmax=TMax,
@@ -501,14 +511,78 @@ class ControlFigure():
         self.OldStart = 0
         self.OldStop = 0
         
-        self.bStart = Button(ax[4],
-                             label='Start')        
-        self.bStart.on_clicked(self.StartAnimation)
-        self.Timer = None
-        self.TextInterval = TextBox(ax[5],
-                                 'Interval [ms]',
-                                 initial='2000')
+        # self.bStart = Button(ax[4],
+        #                      label='Start')        
+        # self.bStart.on_clicked(self.StartAnimation)
+        # self.Timer = None
+        # self.TextInterval = TextBox(ax[5],
+        #                             'Interval [ms]',
+        #                             initial='2000')
 
+        self.bStartMapAni = Button(ax[6],
+                                   label='Annimate Maps START')    
+        self.TextMapAniSpeed = TextBox(ax[7],
+                                       'Map Speed [1x]',
+                                       initial='1')   
+        self.TextMapAniPoints = TextBox(ax[8],
+                                        'Map Points [n]',
+                                        initial='500') 
+        self.bStartMapAni.on_clicked(self.StartMapAnimation)
+        self.TimerMap = None
+
+        self.bStartSetZero = Button(ax[9],
+                                   label='Set Zero at Start Time')
+        self.bStartSetZero.on_clicked(self.BtSetZero)
+    
+    def BtSetZero(self, val):
+        Twind = (self.sTstart.val * pq.s,
+                 (self.sTstart.val+5) * pq.s)
+        
+        for sl in self.MapSlots:
+            nSigs = []
+            for sig in sl.Signals:
+                # print(sig)
+                nSigs.append(Spro.SetZero(sig, TWind=Twind))
+            sl.Signals = nSigs
+            
+        for sl in self.pltSL.Slots:
+            if 'LiveZero' in sl.Signal.annotations:
+                if sl.Signal.annotations['LiveZero']:
+                    # print('s', sl.Signal)
+                    sl.Signal = Spro.SetZero(sl.Signal, TWind=Twind)
+        self.Update(None)
+
+    def StartMapAnimation(self, val):
+        if self.TimerMap is not None:
+            self.bStartMapAni.label.set_label('Annimate Maps START')
+            self.TimerMap.stop()
+            self.TimerMap = None
+            return
+
+        twind = (self.sTstart.val * pq.s,
+                 self.sTstart.val * pq.s + self.sTshow.val * pq.s)
+
+        points = int(self.TextMapAniPoints.text)
+        speed = float(self.TextMapAniSpeed.text)
+        interval = ((twind[1] - twind[0])/points)/speed
+        self.MapCount = 0
+        self.MapTimes = np.linspace(twind[0], twind[1], points)
+        print('Start', interval)
+        
+        self.TimerMap = self.Fig.canvas.new_timer(interval=interval.rescale('ms'))
+        self.TimerMap.add_callback(self.UpdateMapAnimation)
+        self.TimerMap.start()
+        self.bStartMapAni.label.set_label('Annimate Maps STOP')
+
+    def UpdateMapAnimation(self):
+        for sl in self.MapSlots:
+            sl.PlotSignal((self.MapTimes[self.MapCount],
+                           self.MapTimes[self.MapCount]+1*pq.s))
+        print('update', self.MapCount)
+        if self.MapCount >= (len(self.MapTimes)-1):
+            self.MapCount = 0
+        else:
+            self.MapCount += 1
 
     def StartAnimation(self, val):         
         if self.Timer is not None:
@@ -732,8 +806,8 @@ class PlotSlots():
 #                sl.Ax.set_xlim(left=Time[0].magnitude)
 #            if Time[1] is not None:
 #                sl.Ax.set_xlim(right=Time[1].magnitude)
-
-        self.current_time = sl.Ax.get_xlim()
+            if sl.current_time is not None:
+                self.current_time = sl.current_time
 
         if self.CtrFig is not None:
             self.CtrFig.SetTimes(self.current_time)
@@ -796,10 +870,62 @@ class PlotSlots():
         self.FormatFigure()
         return MeanSigs
     
+    
+class MapSlot():
+    DefAxKwargs = {}
+    DefImKwargs = {
+                    'norm': colors.Normalize(-10, 10),
+                    'cmap': 'seismic',
+                    'interpolation': 'bicubic',
+                    }
+    
+    def __init__(self, Signals, Shape, FillMissing=True, Ax=None,
+                 AxKwargs=None, Units=None, imKwargs=None,):
+        
+        self.Signals = Signals
+        self.Signal = Signals[0]
+        self.Shape = Shape
+        self.Ax = Ax
+        self.Data = np.ones(self.Shape) * np.nan
 
+        self.current_time = None
+        self.units = Units
+        self.Map = True        
+        
+        self.imKwargs = self.DefImKwargs.copy()
+        if imKwargs is not None:
+            self.imKwargs.update(imKwargs)
+
+        self.Img = self.Ax.imshow(self.Data,
+                                  **self.imKwargs,
+                                  )
+
+        self.FillMissing = FillMissing
+        
+    def PlotSignal(self, Time, Units=None):
+        if Units is None:
+            _Units = self.units
+        else:
+            _Units = Units
+            
+        self.FillMap(Time[0], Units=_Units)
+        self.Img.set_array(self.Data)
+        self.Ax.figure.canvas.draw()
+        self.Ax.set_title(str(Time[0]))
+
+    def FillMap(self, Time, Units):        
+        for sig in self.Signals:
+            sig = sig.time_slice(Time, Time+sig.sampling_period).rescale(Units)
+            self.Data[sig.annotations['x'], sig.annotations['y']] = sig[0]
+        
+        if self.FillMissing:
+            imputer = KNNImputer(missing_values=np.NaN, 
+                                 n_neighbors=4,
+                                 weights="distance") #parameters to be optimized
+            self.Data=imputer.fit_transform(self.Data)
     
-    
-    
-    
+    def UpdateAxKwargs(self, AxKwargs):
+        pass
+  
     
     
