@@ -720,9 +720,16 @@ class ControlFigure():
         for sl in pltSL.Slots:
             if hasattr(sl, 'Map'):
                 self.MapSlots.append(sl)
+        
+        TMax = []
+        TMin = []
+        for sl in pltSL.Slots:
+            if not hasattr(sl, 'Map'):
+                TMax.append(sl.Signal.t_stop.rescale('s'))
+                TMin.append(sl.Signal.t_start.rescale('s'))
                 
-        TMax = np.max([sl.Signal.t_stop.rescale('s') for sl in pltSL.Slots])
-        TMin = np.min([sl.Signal.t_start.rescale('s') for sl in pltSL.Slots])
+        TMax = np.max(TMax)
+        TMin = np.min(TMin)
 
         self.Fig, ax = plt.subplots(10, 1, figsize=figsize)
         self.sTstart = Slider(ax[0],
@@ -779,15 +786,8 @@ class ControlFigure():
     
     def BtSetZero(self, val):
         Twind = (self.sTstart.val * pq.s,
-                 (self.sTstart.val+5) * pq.s)
-        
-        for sl in self.MapSlots:
-            nSigs = []
-            for sig in sl.Signals:
-                # print(sig)
-                nSigs.append(Spro.SetZero(sig, TWind=Twind))
-            sl.Signals = nSigs
-            
+                 (self.sTstart.val+5) * pq.s)        
+           
         for sl in self.pltSL.Slots:
             if 'LiveZero' in sl.Signal.annotations:
                 if sl.Signal.annotations['LiveZero']:
@@ -821,7 +821,7 @@ class ControlFigure():
         for sl in self.MapSlots:
             sl.PlotSignal((self.MapTimes[self.MapCount],
                            self.MapTimes[self.MapCount]+1*pq.s))
-        print('update', self.MapCount)
+
         if self.MapCount >= (len(self.MapTimes)-1):
             self.MapCount = 0
         else:
@@ -1050,9 +1050,9 @@ class PlotSlots():
 #            if Time[1] is not None:
 #                sl.Ax.set_xlim(right=Time[1].magnitude)
             if sl.current_time is not None:
-                self.current_time = sl.current_time
+                if not hasattr(sl, 'Map'):
+                    self.current_time = sl.current_time
 
-        print(self.current_time)
         if self.CtrFig is not None:            
             self.CtrFig.SetTimes(self.current_time)
 
@@ -1118,7 +1118,8 @@ class PlotSlots():
 class ImgSlot():
     DefAxKwargs = {}
     DefImKwargs = {
-                    'norm': colors.Normalize(-10, 10),
+                    'vmin': -10,
+                    'vmax': 10,
                     'cmap': 'seismic',
                     'interpolation': 'bicubic',
                     }
@@ -1128,6 +1129,8 @@ class ImgSlot():
         
         self.Signal = Signal
         self.Ax = Ax
+        
+        self.Map=True
 
         self.current_time = None
         self.units = Units
@@ -1142,22 +1145,21 @@ class ImgSlot():
 
     def CheckTime(self, Time):
         if Time is None:
-            return (self.Signal.t_start, self.Signal.t_stop)
+            return (self.Signal.t_start,
+                    self.Signal.t_start + self.Signal.sampling_period)
 
         if len(Time) == 1:
-            Time = (Time[0], Time[0] + self.Signal.sampling_period)
+            return (Time[0], Time[0] + self.Signal.sampling_period)
 
         if Time[0] is None or Time[0] < self.Signal.t_start:
             Tstart = self.Signal.t_start
         else:
             Tstart = Time[0]
 
-        if Time[1] is None or Time[1] > self.Signal.t_stop:
-            Tstop = self.Signal.t_stop
-        else:
-            Tstop = Time[1]
+        if Time[0] > self.Signal.t_stop:
+            Tstart = self.Signal.t_stop - 2*self.Signal.sampling_period
 
-        return (Tstart, Tstop)
+        return (Tstart, Tstart+ self.Signal.sampling_period)
 
     def GetSignal(self, Time, Units=None):
         if Units is None:
@@ -1174,10 +1176,10 @@ class ImgSlot():
         
     def PlotSignal(self, Time, Units=None):
         sig = self.GetSignal(Time, Units)
-            
+    
         self.Img.set_array(np.array(sig[0, :, :]))
         self.Ax.figure.canvas.draw()
-        self.Ax.set_title(str(Time[0]))
+        self.Ax.set_title(str(sig.t_start))
         self.current_time = (sig.t_start.rescale('s'),
                              sig.t_stop.rescale('s'))
 
