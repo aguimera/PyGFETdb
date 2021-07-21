@@ -1177,11 +1177,11 @@ class ImgSlot():
     def PlotSignal(self, Time, Units=None):
         sig = self.GetSignal(Time, Units)
     
-        self.Img.set_array(np.array(sig[0, :, :]))
-        self.Ax.figure.canvas.draw()
+        self.Img.set_array(np.array(sig[0, :, :]))        
         self.Ax.set_title(str(sig.t_start))
         self.current_time = (sig.t_start.rescale('s'),
                              sig.t_stop.rescale('s'))
+        self.Ax.figure.canvas.draw()
 
     def UpdateAxKwargs(self, AxKwargs):
         pass
