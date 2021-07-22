@@ -791,7 +791,7 @@ class ControlFigure():
         for sl in self.pltSL.Slots:
             if 'LiveZero' in sl.Signal.annotations:
                 if sl.Signal.annotations['LiveZero']:
-                    # print('s', sl.Signal)
+                    # print(sl.Signal.name)
                     sl.Signal = Spro.SetZero(sl.Signal, TWind=Twind)
         self.Update(None)
 

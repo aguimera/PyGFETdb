@@ -189,7 +189,7 @@ def SetZero(sig, TWind=None):
         TWind=(sig.t_start, sig.t_start+30*pq.s)
     st = np.array(sig)
     # offset = np.mean(sig.GetSignal(TWind))
-    offset = np.mean(sig.time_slice(TWind[0], TWind[1]))
+    offset = np.mean(sig.time_slice(TWind[0], TWind[1]), axis=0)
     print(sig.name, offset)
     st_corrected = st-offset.magnitude
     return sig.duplicate_with_new_data(signal=st_corrected*sig.units)
