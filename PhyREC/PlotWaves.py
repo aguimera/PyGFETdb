@@ -42,7 +42,7 @@ class ImageSequence(pq.Quantity):
         self.sampling_rate = getattr(obj, 'sampling_rate', None)
         self.t_start = getattr(obj, 't_start', None)
         self.name = getattr(obj, 'name', None)
-        self.annotations = getattr(obj, 'name', {})
+        self.annotations = getattr(obj, 'annotations', {})
 
     
     def __repr__(self):
