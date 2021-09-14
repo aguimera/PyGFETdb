@@ -43,13 +43,19 @@ def LoadMatFile(FileName, FBChannels=None, InChannels=None, DownFact=None, Glitc
     out = spio.loadmat(FileName)
     Fs = out['SR\x00'][0, 0]*pq.Hz
 
-    Time = out['y'][0, :].transpose()[:, 0]
+
+    if len(out['y'].shape) == 2:
+        Data = out['y'][1:, :].transpose()
+        Time = out['y'][0, :].transpose()
+    else:
+        Data = out['y'][1:, 0, :].transpose()
+        Time = out['y'][0, :].transpose()[:, 0]
 
     if Fs != int(1/(Time[1]-Time[0])):
         print('Warning FS', Fs, 1/(Time[1]-Time[0]))
     print('Detected sampling rate ', Fs)
+    
 
-    Data = out['y'][1:, 0, :].transpose()
     (Samps, nChs) = Data.shape
 
     if FBChannels is None:
@@ -123,10 +129,15 @@ def CheckFilesTime(FilesIn, TimeWind):
     FileTimes = []
     for FileName in FilesIn:
         out = spio.loadmat(FileName)
-        Data = out['y']
+        if len(out['y'].shape) == 2:
+            Data = out['y']
+        else:
+            Data = out['y'][:, 0, :]
+            
         Fs = out['SR\x00'][0, 0]*pq.Hz
 
-        Tstop = Tstart + Data[0, 0, -1] * pq.s
+
+        Tstop = Tstart + Data[0, -1] * pq.s
         FileTimes.append((Tstart.copy(), Tstop.copy()))
         Tstart = Tstop + 1/Fs
 
