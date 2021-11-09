@@ -51,7 +51,15 @@ class DataCharDC(object):
                     'FEMn': pq.cm**-2,
                     'FEMmuGm': pq.cm**2/(pq.s*pq.V),
                     }
+    
+    def _CalcIsOK(self, RdsRange=(400,10e3)):
 
+        Rds = self.GetRds()        
+        if np.any([Rds<RdsRange[0],Rds>RdsRange[1]]):
+            self.IsOK = False
+        else:
+            self.IsOK = True
+        
     def __init__(self, Data):
         """
         Create a class to manage the GFET characteristics.
@@ -61,11 +69,6 @@ class DataCharDC(object):
         Data: Dictionary from DB
 
         """
-        if 'Ud0' not in Data:
-            self.__setattr__('Vgs', Data['Vgs'])
-            self.__setattr__('Vds', Data['Vds'])
-            self.__setattr__('Ids', Data['Ids'])
-            self.CalcUd0()
 
         for k, v in Data.items():
             if k == 'Gate':
@@ -91,6 +94,12 @@ class DataCharDC(object):
                     if type(v) == np.bytes_:
                         v = v.decode()
                 self.__setattr__(k, v)
+        
+        if 'Ud0' not in Data:
+            self.CalcUd0()            
+        
+        if 'IsOK' not in Data:
+            self._CalcIsOK()
 
     def __getitem__(self, key):
         print ("Inside `__getitem__` method!")
@@ -126,8 +135,9 @@ class DataCharDC(object):
         self.Ud0 = np.ones(len(self.Vds))*np.NaN
         for ivd, Vds in enumerate(self.Vds):
             self.Ud0[ivd] = vgs[np.argmin(np.polyval(self.IdsPoly[:, ivd],
-                                                     vgs))]
-
+                                                     vgs.magnitude))]
+        self.Ud0 = self.Ud0 * pq.V
+        
     def CalcIdsPoly(self, PolyOrder=None):
         if PolyOrder:
             self.PolyOrder = PolyOrder
@@ -856,8 +866,8 @@ class DataCharAC(DataCharDC):
                 print ('Calc IRMS')
                 self.NFmin = NFmin
                 self.NFmax = NFmax
-                if self.IsOK:
-                    self.CalcIRMS(Fmin=NFmin, Fmax=NFmax)
+                # if self.IsOK:
+                self.CalcIRMS(Fmin=NFmin, Fmax=NFmax)
 
     def GetIrms(self, Vgs=None, Vds=None, Ud0Norm=False,
                 NFmin=None, NFmax=None, **kwargs):
