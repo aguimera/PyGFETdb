@@ -526,8 +526,8 @@ class PyFETPlot(PyFETPlotBase):
             self.NextLine()
 
             for axn, ax in self.Axs.items():
-                if label == 'Gate' and axn is not 'Ig': continue
-                if label is not 'Gate' and axn is 'Ig': continue
+                if label == 'Gate' and axn != 'Ig': continue
+                if label != 'Gate' and axn == 'Ig': continue
 
                 # Calc X value
                 if PltUd0:
