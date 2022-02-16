@@ -8,7 +8,7 @@ Created on Tue Feb 20 13:42:01 2018
 
 import base64
 
-DBhost = base64.decodestring(b'b3B0ZXI2LmNubS5lcw==')
-DBuser = base64.decodestring(b'cHlmZXQ=')
-DBpasswd = base64.decodestring(b'cDEtZjN0MTc=')
-DBdb = base64.decodestring(b'cHlGRVQ=')
+DBhost = base64.decodebytes(b'b3B0ZXI2LmNubS5lcw==')
+DBuser = base64.decodebytes(b'cHlmZXQ=')
+DBpasswd = base64.decodebytes(b'cDEtZjN0MTc=')
+DBdb = base64.decodebytes(b'cHlGRVQ=')
