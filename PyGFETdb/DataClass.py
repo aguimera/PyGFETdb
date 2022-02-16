@@ -51,15 +51,14 @@ class DataCharDC(object):
                     'FEMn': pq.cm**-2,
                     'FEMmuGm': pq.cm**2/(pq.s*pq.V),
                     }
-    
-    def _CalcIsOK(self, RdsRange=(400,10e3)):
 
-        Rds = self.GetRds()        
-        if np.any([Rds<RdsRange[0],Rds>RdsRange[1]]):
+    def _CalcIsOK(self, RdsRange=(400, 10e3)):
+        Rds = self.GetRds()
+        if np.any([Rds < RdsRange[0], Rds > RdsRange[1]]):
             self.IsOK = False
         else:
             self.IsOK = True
-        
+
     def __init__(self, Data):
         """
         Create a class to manage the GFET characteristics.
@@ -94,20 +93,20 @@ class DataCharDC(object):
                     if type(v) == np.bytes_:
                         v = v.decode()
                 self.__setattr__(k, v)
-        
+
         if 'Ud0' not in Data:
-            self.CalcUd0()            
-        
+            self.CalcUd0()
+
         if 'IsOK' not in Data:
             self._CalcIsOK()
 
     def __getitem__(self, key):
-        print ("Inside `__getitem__` method!")
+        # print ("Inside `__getitem__` method!")
         return self.__dict__[key]
-    
+
     def __iter__(self):
-         for attr, value in self.__dict__.iteritems():
-             yield attr, value
+        for attr, value in self.__dict__.iteritems():
+            yield attr, value
 
     def _FormatOutput(self, Par, **kwargs):
         if 'Units' in kwargs:
@@ -738,6 +737,21 @@ class DataCharAC(DataCharDC):
     NFmin = None
     NFmax = None
 
+    def __init__(self, Data):
+        super(DataCharAC, self).__init__(Data)
+
+        if 'VgsAC' in Data:
+            self.__setattr__('VgsAC', Data['VgsAC']*pq.V)
+        else:
+            self.__setattr__('VgsAC', self.Vgs)
+
+        if 'VdsAC' in Data:
+            self.__setattr__('VdsAC', Data['VdsAC']*pq.V)
+        else:
+            self.__setattr__('VdsAC', self.Vds)
+
+        self.FitNoise(Fmin=5, Fmax=7e3)
+
     def _GetFreqVgsInd(self, Vgs=None, Vds=None, Ud0Norm=False):
         iVds = self.GetVdsIndexes(Vds)
         if len(iVds) == 0:
@@ -768,8 +782,8 @@ class DataCharAC(DataCharDC):
         return range(len(Freq))[1:]
 
     def FitNoise(self, Fmin, Fmax):
-        nVgs = len(self.Vgs)
-        nVds = len(self.Vds)
+        nVgs = len(self.VgsAC)
+        nVds = len(self.VdsAC)
 
         self.__setattr__('NoC', [])
 
@@ -813,8 +827,8 @@ class DataCharAC(DataCharDC):
                     print ("Fitting error:", sys.exc_info()[0])
 
     def CalcIRMS(self, Fmin, Fmax):
-        nVgs = len(self.Vgs)
-        nVds = len(self.Vds)
+        nVgs = len(self.VgsAC)
+        nVds = len(self.VdsAC)
 
         Irms = np.ones((nVgs, nVds))*np.NaN
         for ivd in range(nVds):
@@ -914,7 +928,6 @@ class DataCharAC(DataCharDC):
         self._CheckFitting(FFmin, FFmax)
         return self._GetParam('NoC', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
-
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
@@ -938,7 +951,6 @@ class DataCharAC(DataCharDC):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         return Irms/Ids
-
 
 
 class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
