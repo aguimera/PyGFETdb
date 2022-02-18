@@ -2,3 +2,5 @@
 *.pyc
 *.pkl
 /dist/
+/Examples/DownloadScripts/BodeGraph.pdf
+/Examples/DownloadScripts/PSD.pdf

@@ -174,16 +174,58 @@ As it will generate a lot of figure is better to generate a PDF output
 """
 
 PDF = PdfPages('BodeGraph.pdf')
-
-for index, row in dfDat.iterrows():
-    fig, (axM, axP) = plt.subplots(2,1)
-    char = row['CharCl']    
-    axM.loglog(char.GetFgm(), char.GetGmMag()/2)
-    axM.plot(char.GetFgm()[0], np.abs(char.GetGM()), 'k*')
-    axP.semilogx(char.GetFgm(), char.GetGmPh())
+plt.ioff()
+for index, row in dSel.iterrows():
+    char = row['CharCl']
+    fgm = char.GetFgm()
+    if fgm.size:
+        fig, (axM, axP) = plt.subplots(2,1)
+        vgs = char.GetVgs()
+        Norm = mpl.colors.Normalize(vmin=vgs.min(),vmax=vgs.max())
+        cmap = mpl.cm.ScalarMappable(norm=Norm, cmap='jet')
+        for vg in vgs:
+            gm = char.GetGmMag(Vgs=[vg,])
+            axM.loglog(fgm, gm, color=cmap.to_rgba(vg), label=vg)
+            axM.plot(fgm[0], np.abs(char.GetGM(vg)), '+', color=cmap.to_rgba(vg))
+            ph = char.GetGmPh(Vgs=[vg,])
+            axP.semilogx(fgm, ph, color=cmap.to_rgba(vg), label=vg)
+        axM.legend()
+        axM.set_title(row.Name)        
+        axM.set_ylabel('Magnitude [S]')
+        axP.set_ylabel('Phase [º]')
+        axP.set_xlabel('Frequency [Hz]')
+        
     PDF.savefig(fig)
-    plt.close('all')
-    
+    plt.close(fig)
+plt.ion()
+PDF.close()
+
+#%%
+
+PDF = PdfPages('PSD.pdf')
+plt.ioff()
+for index, row in dSel.iterrows():
+    char = row['CharCl']
+    fpsd = char.GetFgm()
+    if fpsd.size:
+        fig, ax = plt.subplots()
+        vgs = char.GetVgs()
+        Norm = mpl.colors.Normalize(vmin=vgs.min(),vmax=vgs.max())
+        cmap = mpl.cm.ScalarMappable(norm=Norm, cmap='jet')
+        for vg in vgs:
+            psd = char.GetPSD(Vgs=[vg,])
+            ax.loglog(fpsd, psd, color=cmap.to_rgba(vg), label=vg)
+            psdf = char.GetFitPSD(Vgs=[vg,])
+            ax.loglog(fpsd, psd, '--', color=cmap.to_rgba(vg))
+
+        ax.legend()
+        ax.set_title(row.Name)        
+        ax.set_ylabel('PSD [A**2/Hz]')
+        ax.set_xlabel('Frequency [Hz]')
+        
+    PDF.savefig(fig)
+    plt.close(fig)
+plt.ion()
 PDF.close()
 
 
