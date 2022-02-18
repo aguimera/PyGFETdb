@@ -34,6 +34,7 @@ class DataCharDC(object):
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
                     'PSD': pq.A ** 2 / pq.Hz,
+                    'gm': pq.S,
                     'Fgm': pq.Hz,
                     'GM': pq.S,
                     'GMV': pq.S / pq.V,
@@ -51,6 +52,23 @@ class DataCharDC(object):
                     'FEMn': pq.cm**-2,
                     'FEMmuGm': pq.cm**2/(pq.s*pq.V),
                     }
+
+    def RawData(self):
+        Data = {}
+        for k, d in self.__dict__.items():
+            if type(d) == pq.Quantity:
+                Data[k] = d.magnitude
+            elif type(d) == dict:
+                dic = {}
+                for kk, dd in d.items():
+                    if type(dd) == pq.Quantity:
+                        dic[kk] = dd.magnitude
+                    else:
+                        dic[kk] = dd
+                Data[k] = dic
+            else:
+                Data[k] = d
+        return Data
 
     def _CalcIsOK(self, RdsRange=(400, 10e3)):
         Rds = self.GetRds()
@@ -80,7 +98,7 @@ class DataCharDC(object):
                 else:
                     self.__setattr__('Ig', v['Ig'])
             if k in self.DefaultUnits:
-                if k == 'PSD':
+                if k == 'PSD' or k == 'gm':
                     d = {}
                     for kk, vv in v.items():
                         d[kk] = vv * self.DefaultUnits[k]
@@ -101,12 +119,9 @@ class DataCharDC(object):
             self._CalcIsOK()
 
     def __getitem__(self, key):
-        # print ("Inside `__getitem__` method!")
+        if key not in self.__dict__:
+            return {}
         return self.__dict__[key]
-
-    def __iter__(self):
-        for attr, value in self.__dict__.iteritems():
-            yield attr, value
 
     def _FormatOutput(self, Par, **kwargs):
         if 'Units' in kwargs:
@@ -135,8 +150,8 @@ class DataCharDC(object):
         for ivd, Vds in enumerate(self.Vds):
             self.Ud0[ivd] = vgs[np.argmin(np.polyval(self.IdsPoly[:, ivd],
                                                      vgs.magnitude))]
-        self.Ud0 = self.Ud0 * pq.V
-        
+        # self.Ud0 = self.Ud0 * pq.V
+
     def CalcIdsPoly(self, PolyOrder=None):
         if PolyOrder:
             self.PolyOrder = PolyOrder
@@ -174,16 +189,15 @@ class DataCharDC(object):
         self.FEMmuGm = np.ones((len(self.Vgs), len(self.Vds)))*np.NaN
 
         if FEMRcVgs is not None:
-            FEMRc = np.ones(len(self.Vgs))*np.NaN 
+            FEMRc = np.ones(len(self.Vgs))*np.NaN
             RcVgs = FEMRcVgs[0, :]
             RcVgsRc = FEMRcVgs[1, :]
             rcint = interp1d(RcVgs, RcVgsRc)
             Vgmeas = self.GetVgs(Ud0Norm=True)
             VgInds =  np.where((Vgmeas>np.min(RcVgs)) & (Vgmeas<np.max(RcVgs)))[0]
-            FEMRc[VgInds] = rcint(Vgmeas[VgInds,0])
+            FEMRc[VgInds] = rcint(Vgmeas[VgInds, 0])
 
         # print(FEMRc, FEMCdl)
-
 
         L = self.TrtTypes['Length']
         W = self.TrtTypes['Width']
@@ -200,9 +214,9 @@ class DataCharDC(object):
             self.FEMmu[:, ivd] = mu
 
             Vdseff = Vds - Ids[:, ivd]*FEMRc
-            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W) 
+            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W)
             self.FEMmuGm[:, ivd] = muGM
-        
+
         self.FEMn *= self.DefaultUnits['FEMn']
         self.FEMmu *= self.DefaultUnits['FEMn']
         self.FEMmuGm *= self.DefaultUnits['FEMn']
@@ -222,7 +236,7 @@ class DataCharDC(object):
             if Normalize:
                 ud0 = ud0-(self.Vds[ivd]/2)
             Ud0 = np.vstack((Ud0, ud0)) * pq.V if Ud0.size else ud0
-        
+
         return self._FormatOutput(Ud0, **kwargs)
 
     def GetDateTime(self, **kwargs):
@@ -732,25 +746,36 @@ def FitLogFnoiseTh(Freq, psd):
 
 
 class DataCharAC(DataCharDC):
-    FFmin = None
-    FFmax = None
-    NFmin = None
-    NFmax = None
-
     def __init__(self, Data):
+        self.__setattr__('FFmin', None)
+        self.__setattr__('FFmax', None)
+        self.__setattr__('NFmin', None)
+        self.__setattr__('NFmax', None)
+
         super(DataCharAC, self).__init__(Data)
 
-        if 'VgsAC' in Data:
-            self.__setattr__('VgsAC', Data['VgsAC']*pq.V)
-        else:
-            self.__setattr__('VgsAC', self.Vgs)
+        if 'Fpsd' in self.__dict__:
+            if self.Fpsd.size > 100:
+                self.InterpolatePSD()
+            if self.FFmin is None:
+                self._CheckFitting(FFmin=5, FFmax=7e3)
+            if self.NFmin is None:
+                self._CheckRMS(NFmin=5, NFmax=5e3)
 
-        if 'VdsAC' in Data:
-            self.__setattr__('VdsAC', Data['VdsAC']*pq.V)
-        else:
-            self.__setattr__('VdsAC', self.Vds)
+    def InterpolatePSD(self, Points=100):
+        Flin = np.array(self.Fpsd[1:])
+        Flog = np.logspace(np.log10(Flin[0]),
+                           np.log10(Flin[-1]),
+                           Points)
 
-        self.FitNoise(Fmin=5, Fmax=7e3)
+        Flog = np.round(Flog, 9)
+        Flin = np.round(Flin, 9)
+        self.Fpsd = Flog * self.DefaultUnits['Fpsd']
+
+        for Vds in self.PSD:
+            PSDlin = self.PSD[Vds][:, 1:]
+            psd = interp1d(Flin, PSDlin)
+            self.PSD[Vds] = psd(Flog) * self.DefaultUnits['PSD']
 
     def _GetFreqVgsInd(self, Vgs=None, Vds=None, Ud0Norm=False):
         iVds = self.GetVdsIndexes(Vds)
@@ -782,8 +807,8 @@ class DataCharAC(DataCharDC):
         return range(len(Freq))[1:]
 
     def FitNoise(self, Fmin, Fmax):
-        nVgs = len(self.VgsAC)
-        nVds = len(self.VdsAC)
+        nVgs = len(self.Vgs)
+        nVds = len(self.Vds)
 
         self.__setattr__('NoC', [])
 
@@ -827,8 +852,8 @@ class DataCharAC(DataCharDC):
                     print ("Fitting error:", sys.exc_info()[0])
 
     def CalcIRMS(self, Fmin, Fmax):
-        nVgs = len(self.VgsAC)
-        nVds = len(self.VdsAC)
+        nVgs = len(self.Vgs)
+        nVds = len(self.Vds)
 
         Irms = np.ones((nVgs, nVds))*np.NaN
         for ivd in range(nVds):
