@@ -11,7 +11,6 @@ import pickle
 from PyGFETdb.DB import *
 import sys
 
-
 class PyFETdb():
     PrintQuery = False
 
@@ -159,31 +158,6 @@ class PyFETdb():
         Device = Fields['Device']
         TrtType = Fields['TrtType']
         Trt = Fields['Trt']
-
-        if not Wafer.replace('-', '').isalnum():
-            print('ABORTED')
-            print('Wafer name not valid characters')
-            return
-        if not Device.replace('-', '').isalnum():
-            print('ABORTED')
-            print('Device name not valid characters')
-            return
-        if not Trt.replace('-', '').isalnum():
-            print('ABORTED')
-            print('Trt name not valid characters')
-            return
-        if len(Wafer) > 12:
-            print('ABORTED')
-            print('Wafer name too long, 12 allowed')
-            return
-        if len(Device) > 20:
-            print('ABORTED')
-            print('Device name too long, 20 allowed')
-            return
-        if len(Trt) > 25:
-            print('ABORTED')
-            print('Trt name too long, 25 allowed')
-            return
 
         # Set Get information in other tables
         Author_id = self.GetId(Table='Users',
