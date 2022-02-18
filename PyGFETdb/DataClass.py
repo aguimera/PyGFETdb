@@ -118,6 +118,9 @@ class DataCharDC(object):
         if 'IsOK' not in Data:
             self._CalcIsOK()
 
+        if 'GMPoly' not in Data:
+            self.CalcGMPoly()
+
     def __getitem__(self, key):
         if key not in self.__dict__:
             return {}
