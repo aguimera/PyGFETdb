@@ -206,7 +206,7 @@ PDF = PdfPages('PSD.pdf')
 plt.ioff()
 for index, row in dSel.iterrows():
     char = row['CharCl']
-    fpsd = char.GetFgm()
+    fpsd = char.GetFpsd()
     if fpsd.size:
         fig, ax = plt.subplots()
         vgs = char.GetVgs()
@@ -216,9 +216,9 @@ for index, row in dSel.iterrows():
             psd = char.GetPSD(Vgs=[vg,])
             ax.loglog(fpsd, psd, color=cmap.to_rgba(vg), label=vg)
             psdf = char.GetFitPSD(Vgs=[vg,])
-            ax.loglog(fpsd, psd, '--', color=cmap.to_rgba(vg))
+            ax.loglog(fpsd, psdf, '--', color=cmap.to_rgba(vg))
 
-        ax.legend()
+        # ax.legend()
         ax.set_title(row.Name)        
         ax.set_ylabel('PSD [A**2/Hz]')
         ax.set_xlabel('Frequency [Hz]')
