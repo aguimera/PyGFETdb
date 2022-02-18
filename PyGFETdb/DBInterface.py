@@ -46,8 +46,8 @@ for par in ScalarParams:
         d['Units'] = OutUnits[par]
     ScalarQueries[par+'01'] = d
 
-Vgs = np.linspace(-0.1, 0.5, 100) * pq.V
-VgsNorm = np.linspace(-0.4, 0.3, 100) * pq.V
+Vgs = np.linspace(-0.1, 0.6, 100) * pq.V
+VgsNorm = np.linspace(-0.4, 0.4, 100) * pq.V
 ArrayParams = ['Ids', 'GM', 'GMV', 'Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 ArrayQueries = {}
 for par in ArrayParams:
@@ -74,6 +74,52 @@ pdAttr = {'Vgs': Vgs,
           'ArrayCols': list(ArrayQueries.keys()),
           }
 
+
+def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):   
+    PdSeries = []
+    for index, row in dbRaw.iterrows():
+        char = row['CharCl']
+        Vds = char.GetVds()
+        for vds in Vds:
+            vals = {}
+            vals['Vds'] = vds.flatten()
+            for parn, park in ClsQueries.items():
+                park['Vds'] = vds
+                try:
+                    val = char.Get(**park)
+                except:
+                    print('Error', parn, char.Name)
+                    continue
+                if val is None:
+                    continue
+                if val.size > 1:
+                    vals[parn] = val
+                else:
+                    vals[parn] = val.flatten()
+            PdSeries.append(row.append(pd.Series(vals)))
+    
+    dfDat = pd.concat(PdSeries, axis=1).transpose()       
+    
+    DataTypes = dbRaw.dtypes
+    DataTypes['Vds'] = np.float
+    for col in dfAttr['ScalarCols']:
+        DataTypes[col] = np.float
+    for col in dfAttr['ArrayCols']:
+        DataTypes[col] = object
+    dfDat = dfDat.astype(DataTypes)
+    
+    ColUnits = {}
+    for col, p in ClsQueries.items():
+        if 'Units' in p:
+            ColUnits[col] = p['Units']
+        else:
+            ColUnits[col] = ''
+    
+    dfAttr['ColUnits'] = ColUnits
+    
+    dfDat.attrs.update(dfAttr)
+
+    return dfDat
 
 def LoadPickleData(FileIn):
     DataIn = pickle.load(open(FileIn, 'rb'), encoding='latin')
@@ -227,4 +273,4 @@ def Data2Pandas(DictData):
     DataTypes['IsOk'] = bool
     DataTypes['Date'] = 'datetime64[ns]'
     
-    return dfRaw
+    return dfRaw.astype(DataTypes)
