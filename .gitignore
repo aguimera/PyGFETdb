@@ -1,3 +1,4 @@
 /PyGFETdb.egg-info/
 *.pyc
+*.pkl
 /dist/
