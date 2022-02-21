@@ -96,7 +96,7 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):
                     vals[parn] = val
                 else:
                     vals[parn] = val.flatten()
-            PdSeries.append(row.append(pd.Series(vals)))
+            PdSeries.append(pd.concat((row, pd.Series(vals))))
     
     dfDat = pd.concat(PdSeries, axis=1).transpose()       
     
