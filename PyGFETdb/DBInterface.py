@@ -27,6 +27,11 @@ ScalarParams = ['Ids', 'GM', 'GMV', 'Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 VgsScalar = -0.1*pq.V
 ScalarQueries = {'CNP': {'Param': 'Ud0',
                          'Units': 'mV'},
+                 'IdsV01': {'Param': 'Ids',
+                            'Vgs': 0.1*pq.V,
+                            'Ud0Norm': False,
+                            'Units': 'uA'
+                            },
                  'RdsCNP': {'Param': 'Rds',
                             'Vgs': 0*pq.V,
                             'Ud0Norm': True,
