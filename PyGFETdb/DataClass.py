@@ -883,6 +883,9 @@ class DataCharAC(DataCharDC):
         return self.PSD[SiVds[0]][VgsInd, :].transpose()
 
     def GetGmMag(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'gm' not in self.__dict__:
+            return None
+
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
         if VgsInd is None:
             return None
@@ -890,6 +893,9 @@ class DataCharAC(DataCharDC):
         return np.abs(self.gm[SiVds[0]][VgsInd, :].transpose())
 
     def GetGmPh(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'gm' not in self.__dict__:
+            return None
+
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
         if VgsInd is None:
             return None
@@ -897,9 +903,15 @@ class DataCharAC(DataCharDC):
         return np.angle(self.gm[SiVds[0]][VgsInd, :].transpose(), deg=True)
 
     def GetFpsd(self, **kwargs):
+        if 'Fpsd' not in self.__dict__:
+            return None
+
         return self.Fpsd
 
     def GetFgm(self, **kwargs):
+        if 'Fgm' not in self.__dict__:
+            return None
+
         return self.Fgm
 
     def _CheckRMS(self, NFmin, NFmax):
