@@ -16,7 +16,7 @@ import numpy as np
 import traceback
 import base64
 from cryptography.fernet import Fernet
-
+import importlib
 
 def WS_Types(name):
     if name.endswith('id'):
@@ -31,9 +31,10 @@ class PyFETdb():
     
     def __init__(self, connection):
         f = Fernet(connection)
-        da = f.decrypt(open('Connection', 'rb').read())
+        # da = f.decrypt(open('./Connection', 'rb').read())
+        da = f.decrypt(importlib.resources.read_binary('PyGFETdb', 'Connection'))
         self.connection = pickle.loads(da)
-        self._DEBUG = False
+        self._DEBUG = True
 
     def CreateQueryConditions(self, Conditions):
         Cond = []
@@ -132,6 +133,28 @@ class PyFETdb():
                                   'type': WS_Types(k)}
         Res = self._execute(data, oper='update')
         return int(Res[0]['id'].decode())
+
+    def GetTrtsInfo(self, Conditions, Output=None):
+        if Output is None:
+            Output = ('Trts.idTrts',
+                      'Trts.Name',
+                      'TrtTypes.idTrtTypes',
+                      'TrtTypes.Name',
+                      'TrtTypes.Contact',
+                      'TrtTypes.Width',
+                      'TrtTypes.Length')
+
+        Out = ','.join(Output)
+        Cond, Values = self.CreateQueryConditions(Conditions)
+        query = """ SELECT {}
+                    FROM VTrts, Trts
+                    INNER JOIN Devices ON Devices.idDevices = Trts.Device_id
+                    INNER JOIN Wafers ON Wafers.idWafers = Devices.Wafer_id
+                    INNER JOIN TrtTypes ON TrtTypes.idTrtTypes = Trts.Type_id
+                    WHERE VTrts.idTrts = Trts.idTrts and  {} """.format(Out,
+                                                                        Cond)
+
+        return self._execute(query, Values)
 
     def GetCharactInfo(self, Table, Conditions, Output):
         Out = ','.join(Output)
