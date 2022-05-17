@@ -69,6 +69,12 @@ class PyFETdb():
 
         return query % tuple(pVals)
 
+    def _decode(self, Res):
+        for r in Res:
+            for k, v in r.items():
+                r[k] = v.decode()
+        return Res
+
     def _execute(self, query, values=None, oper='query'):
         if oper == 'query':
             q = self.ParseQuery(query, values)
@@ -82,7 +88,8 @@ class PyFETdb():
             # print(q)
             print('Error in call ', Res['errorCode'])
             return None
-        return Res['result']
+        
+        return self._decode(Res['result'])
 
     def MultiSelect(self, Table, Conditions, FieldsOut, Order=None):
         Fields = ' , '.join(FieldsOut)
@@ -284,8 +291,6 @@ class PyFETdb():
 
         pdSers = []
         for r in Res:
-            for k, v in r.items():
-                r[k] = v.decode()
             pdSers.append(pd.Series(r))
 
         DTypes = {'id{}'.format(Table): int,
@@ -408,7 +413,7 @@ class PyFETdb():
         else:
             print('WARNING EXISTS', Rows)
             if OverWrite:  # OverWrite
-                DCchatact_id = Rows[0]['idDCcharacts'].decode()
+                DCchatact_id = Rows[0]['idDCcharacts']
                 print('Overwrite Record id ', DCchatact_id)
                 scond = 'idDCcharacts={}'.format(DCchatact_id)
                 self.UpdateRow(Table='DCcharacts',
@@ -443,7 +448,7 @@ class PyFETdb():
             else:
                 print('WARNING EXISTS', Rows)
                 if OverWrite:  # OverWrite
-                    ACchatact_id = Rows[0]['idACcharacts'].decode()
+                    ACchatact_id = Rows[0]['idACcharacts']
                     print ('Overwrite Record id ', ACchatact_id)
                     self.UpdateRow(Table='ACcharacts',
                                       Fields=NewData,
