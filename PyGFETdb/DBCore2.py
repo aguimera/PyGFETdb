@@ -27,12 +27,13 @@ def WS_Types(name):
         return 'str'
 
 
-class PyFETdb():
-
+class PyFETdb():    
+    
     def __init__(self, connection):
         f = Fernet(connection)
         da = f.decrypt(open('Connection', 'rb').read())
         self.connection = pickle.loads(da)
+        self._DEBUG = False
 
     def CreateQueryConditions(self, Conditions):
         Cond = []
@@ -70,7 +71,8 @@ class PyFETdb():
     def _execute(self, query, values=None, oper='query'):
         if oper == 'query':
             q = self.ParseQuery(query, values)
-            print(q)
+            if self._DEBUG:
+                print(q)
         else:
             q = query
 
@@ -473,9 +475,9 @@ def Data2Pandas(Data):
 
 if __name__ == '__main__':
     
-    f = Fernet(open('key.key', 'rb').read())
-    da = f.decrypt(open('Connection', 'rb').read())
-    connection = pickle.loads(da)
+    # f = Fernet(open('key.key', 'rb').read())
+    # da = f.decrypt(open('Connection', 'rb').read())
+    # connection = pickle.loads(da)
     MyDb = PyFETdb(open('key.key', 'rb').read())
 
 #%% Test insert bin data
@@ -527,47 +529,47 @@ if __name__ == '__main__':
     
     
     #%% Test Read
-    DevicesList = ('B12744W3-Xip6NS', 'B12744W3-Xip5NS',
-                    )
+    # DevicesList = ('B12744W3-Xip6NS', 'B12744W3-Xip5NS',
+    #                 )
     
-    CharTable = 'DCcharacts'
-    Conditions = {'Devices.name = ': DevicesList,
-                  }
+    # CharTable = 'DCcharacts'
+    # Conditions = {'Devices.name = ': DevicesList,
+    #               }
     
-    GroupBase = {'Conditions': Conditions,
-                  'Table': CharTable,
-                  'Last': True,
-                  'GetGate': True,
-                  }
+    # GroupBase = {'Conditions': Conditions,
+    #               'Table': CharTable,
+    #               'Last': True,
+    #               'GetGate': True,
+    #               }
 
 
-    res = MyDb.GetData2(**GroupBase)  
-    dfRaw = Data2Pandas(res)
+    # res = MyDb.GetData2(**GroupBase)  
+    # dfRaw = Data2Pandas(res)
 
     #%% Test Read
     
-    Fields = {}
-    Fields['User'] = 'SB'
+    # Fields = {}
+    # Fields['User'] = 'SB'
     
-    OptFields = {}
-    OptFields['Solution'] = 'TestWS'
-    OptFields['FuncStep'] = 'TestWS'
-    OptFields['Ph'] = 7.21
-    OptFields['AnalyteCon'] = 'tt'
-    OptFields['IonStrength'] = 10e-3
-    OptFields['Comments'] = 'tt'
+    # OptFields = {}
+    # OptFields['Solution'] = 'TestWS'
+    # OptFields['FuncStep'] = 'TestWS'
+    # OptFields['Ph'] = 7.21
+    # OptFields['AnalyteCon'] = 'tt'
+    # OptFields['IonStrength'] = 10e-3
+    # OptFields['Comments'] = 'tt'
 
-    Fields['Wafer'] = 'TestWS'
-    Fields['Device'] = 'TestWS-Dev'
-    Fields['Trt'] = 'TestWS-Dev'
-    Fields['TrtType'] = 'RW50L50P3p0CS'
-    Fields['Gate_id'] = None
+    # Fields['Wafer'] = 'TestWS'
+    # Fields['Device'] = 'TestWS-Dev'
+    # Fields['Trt'] = 'TestWS-Dev'
+    # Fields['TrtType'] = 'RW50L50P3p0CS'
+    # Fields['Gate_id'] = None
 
-    DCd = res[0]
+    # DCd = res[0]
 
-    MyDb.InsertCharact(DCVals=DCd,
-                          ACVals=None,
-                          Fields=Fields,
-                          OptFields=OptFields,
-                          TrtTypeFields=None)
+    # MyDb.InsertCharact(DCVals=DCd,
+    #                       ACVals=None,
+    #                       Fields=Fields,
+    #                       OptFields=OptFields,
+    #                       TrtTypeFields=None)
 
