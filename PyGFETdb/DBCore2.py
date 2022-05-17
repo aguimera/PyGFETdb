@@ -69,9 +69,19 @@ class PyFETdb():
 
         return query % tuple(pVals)
 
+    def _FormatOutputQuery(self, Output):
+        Output2 = []
+        OutF = []
+        for o in Output:
+            OutF.append(o.replace('.', '_'))
+            Output2.append('{} AS {}'.format(o, o.replace('.', '_')))
+        return OutF, ' , '.join(Output2)
+
     def _decode(self, Res):
         for r in Res:
             for k, v in r.items():
+                if k.endswith('Data'):
+                    continue
                 r[k] = v.decode()
         return Res
 
@@ -88,18 +98,17 @@ class PyFETdb():
             # print(q)
             print('Error in call ', Res['errorCode'])
             return None
-        
+
         return self._decode(Res['result'])
 
-    def MultiSelect(self, Table, Conditions, FieldsOut, Order=None):
-        Fields = ' , '.join(FieldsOut)
-        Cond = ' %s AND '.join(Conditions.keys())
-        sTable = ' JOIN '.join(Table)
-        query = "SELECT {} FROM {} WHERE {} %s".format(Fields, sTable, Cond)
+    def MultiSelect(self, Table, Conditions, Output, Order=None):
+        OutF, Out = self._FormatOutputQuery(Output)
+        Cond, Values = self.CreateQueryConditions(Conditions)        
+        query = "SELECT {} FROM {} WHERE {}".format(Out, Table, Cond)
         if Order:
             query = '{} ORDER BY {}'.format(query, Order)
 
-        return self._execute(query, list(Conditions.values()))
+        return self._execute(query, Values)
 
     def GetId(self, Table, Value, Field='Name', NewVals=None):
         query = "SELECT * FROM {} WHERE {} = %s".format(Table, Field)
@@ -151,7 +160,7 @@ class PyFETdb():
                       'TrtTypes.Width',
                       'TrtTypes.Length')
 
-        Out = ','.join(Output)
+        OutF, Out = self._FormatOutputQuery(Output)
         Cond, Values = self.CreateQueryConditions(Conditions)
         query = """ SELECT {}
                     FROM VTrts, Trts
@@ -164,7 +173,7 @@ class PyFETdb():
         return self._execute(query, Values)
 
     def GetCharactInfo(self, Table, Conditions, Output):
-        Out = ','.join(Output)
+        OutF, Out = self._FormatOutputQuery(Output)
         Cond, Values = self.CreateQueryConditions(Conditions)
 
         query = """ SELECT distinct {}
@@ -207,12 +216,8 @@ class PyFETdb():
                   '{}.FuncStep'.format(Table),
                   '{}.AnalyteCon'.format(Table),
                   '{}.Comments'.format(Table)]
-        Output2 = []
-        OutF = []
-        for o in Output:
-            OutF.append(o.replace('.', '_'))
-            Output2.append('{} AS {}'.format(o, o.replace('.', '_')))
-        Out = ','.join(Output2)
+
+        OutF, Out = self._FormatOutputQuery(Output)
 
         query = """ SELECT {}
                     FROM {}
@@ -243,14 +248,14 @@ class PyFETdb():
             fp = f.split('_')
             if fp[0] == Table:
                 fn = Dat.get('Info', {})
-                fn[fp[1]] = Res[f].decode()
+                fn[fp[1]] = Res[f]
                 Dat['Info'] = fn
             else:
                 fn = Dat.get(fp[0], {})
-                fn[fp[1]] = Res[f].decode()
+                fn[fp[1]] = Res[f]
                 Dat[fp[0]] = fn
 
-        Dat['Name'] = Res['Trts_Name'].decode()
+        Dat['Name'] = Res['Trts_Name']
         return Dat
 
 
@@ -278,13 +283,13 @@ class PyFETdb():
 
 
     def GetData2(self, Conditions, Table, Last=True, GetGate=False):
-        Output = ('{}.id{}'.format(Table, Table,),
-                  '{}.MeasDate'.format(Table),
-                  'Trts.Name AS TrtName')
+        Output = ('id{}'.format(Table, Table,),
+                  'MeasDate'.format(Table),
+                  'Trts.Name')
 
         Res = self.GetCharactInfo(Table=Table,
-                                     Conditions=Conditions,
-                                     Output=Output)
+                                  Conditions=Conditions,
+                                  Output=Output)
 
         if len(Res) == 0:
             return []
@@ -295,11 +300,11 @@ class PyFETdb():
 
         DTypes = {'id{}'.format(Table): int,
                   'MeasDate': 'datetime64[ns]',
-                  'TrtName': str}
+                  'Trts_Name': str}
         dfr = pd.concat(pdSers, axis=1).transpose().astype(DTypes)
 
         if Last:
-            gn = dfr.groupby('TrtName')
+            gn = dfr.groupby('Trts_Name')
             ids = []
             for TrtName, dt in gn:
                 dt.sort_values(by='MeasDate', ascending=False, inplace=True)
