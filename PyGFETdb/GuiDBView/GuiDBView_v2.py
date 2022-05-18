@@ -147,6 +147,8 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.ConnectLst()
 
         self.ButSetData.clicked.connect(self.ButSetDataClick)
+        self.ButViewDC.clicked.connect(self.ButViewDCClick)
+        self.ButViewAC.clicked.connect(self.ButViewACClick)
 
     def ConnectLst(self):
         self.LstWafers.itemSelectionChanged.connect(self.LstWafersChange)
@@ -218,6 +220,26 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.proxyACChars.setSourceModel(self.modelACchars)
         self.TblAC.setModel(self.proxyACChars)
         self.TblAC.show()
+
+    def ButViewDCClick(self):
+        Sel = self.TblDC.selectedIndexes()
+        rows = set([self.proxyDCChars.mapToSource(s).row() for s in Sel])
+        idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
+        print(rows, idchars)
+
+    def ButViewACClick(self):
+        Sel = self.TblAC.selectedIndexes()
+        rows = set([self.proxyACChars.mapToSource(s).row() for s in Sel])
+        idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
+        print(rows, idchars)
+
+class DataExplorer(QtWidgets.QMainWindow):
+
+    def __init__(self, ACData, CalcIrmsNok=False, IsDC=False):
+        QtWidgets.QMainWindow.__init__(self)
+        uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
+        uic.loadUi(uipath, self)
+
 
 def main():
     # Add version option
