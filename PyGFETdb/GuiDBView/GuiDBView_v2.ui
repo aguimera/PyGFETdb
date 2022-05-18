@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1037</width>
+    <width>1086</width>
     <height>717</height>
    </rect>
   </property>
@@ -79,14 +79,34 @@
                 <number>0</number>
                </property>
                <item>
-                <widget class="QLabel" name="label_10">
+                <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>Runs</string>
+                  <string>Substrates</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QListWidget" name="LstRuns">
+                <widget class="QListWidget" name="LstSubstrates">
+                 <property name="selectionMode">
+                  <enum>QAbstractItemView::ExtendedSelection</enum>
+                 </property>
+                 <property name="layoutMode">
+                  <enum>QListView::SinglePass</enum>
+                 </property>
+                 <property name="viewMode">
+                  <enum>QListView::ListMode</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Masks</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="LstMasks">
                  <property name="selectionMode">
                   <enum>QAbstractItemView::ExtendedSelection</enum>
                  </property>
@@ -204,9 +224,378 @@
               </layout>
              </widget>
             </item>
+            <item>
+             <widget class="QFrame" name="frame_3">
+              <property name="maximumSize">
+               <size>
+                <width>400</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QFrame" name="frame_8">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QFrame" name="frame_10">
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_2">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_3">
+                       <property name="text">
+                        <string>TrtTypes</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstTypes">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="frame_11">
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_5">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string>Contact</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstContact">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame_9">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QFrame" name="frame_12">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_6">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_5">
+                       <property name="text">
+                        <string>L</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstL">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="frame_13">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_7">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_7">
+                       <property name="text">
+                        <string>W</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstW">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="frame_14">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_8">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_8">
+                       <property name="text">
+                        <string>Pass</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstPass">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="frame_15">
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_9">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_6">
+                       <property name="text">
+                        <string>Area</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="LstArea">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
            </layout>
           </widget>
-          <widget class="QTableWidget" name="TblTrts">
+          <widget class="QTableView" name="TblTrts">
            <property name="font">
             <font>
              <pointsize>6</pointsize>
@@ -215,24 +604,6 @@
            <property name="sortingEnabled">
             <bool>true</bool>
            </property>
-           <property name="rowCount">
-            <number>12</number>
-           </property>
-           <property name="columnCount">
-            <number>0</number>
-           </property>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
-           <row/>
           </widget>
          </widget>
         </item>
@@ -320,18 +691,6 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="0" colspan="7">
-             <widget class="QTableWidget" name="TblDC">
-              <property name="font">
-               <font>
-                <pointsize>6</pointsize>
-               </font>
-              </property>
-              <property name="sortingEnabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QPushButton" name="ButDeleteDC">
               <property name="minimumSize">
@@ -366,6 +725,18 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="0" colspan="7">
+             <widget class="QTableView" name="TblDC">
+              <property name="font">
+               <font>
+                <pointsize>6</pointsize>
+               </font>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
            <zorder>TblDC</zorder>
            <zorder>ButViewDC</zorder>
@@ -392,48 +763,6 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="1" column="0" colspan="9">
-             <widget class="QTableWidget" name="TblAC">
-              <property name="font">
-               <font>
-                <pointsize>6</pointsize>
-               </font>
-              </property>
-              <property name="sortingEnabled">
-               <bool>true</bool>
-              </property>
-              <column>
-               <property name="text">
-                <string>IdAC</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Trt Name</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Date</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>IdDC</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>IsOK</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Comments</string>
-               </property>
-              </column>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QPushButton" name="ButDeleteAC">
               <property name="minimumSize">
@@ -555,6 +884,18 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="0" colspan="9">
+             <widget class="QTableView" name="TblAC">
+              <property name="font">
+               <font>
+                <pointsize>6</pointsize>
+               </font>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -570,7 +911,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1037</width>
+     <width>1086</width>
      <height>19</height>
     </rect>
    </property>
