@@ -18,6 +18,7 @@ import base64
 from cryptography.fernet import Fernet
 import importlib
 
+
 def WS_Types(name):
     if name.endswith('id'):
         return 'int'
@@ -496,6 +497,7 @@ def Data2Pandas(Data):
     DataTypes = {}
     for col in dfRaw.keys():    
         if col in ('Width', 'Length', 'Pass', 'Area', 'Ph', 'IonStrength', 'AnalyteCon'):
+            dfRaw[col] = pd.to_numeric(dfRaw[col], errors='coerce')
             DataTypes[col] = float
         else:
             DataTypes[col] = 'category'
@@ -504,7 +506,8 @@ def Data2Pandas(Data):
     DataTypes['IsOk'] = bool
     DataTypes['Date'] = 'datetime64[ns]'
     
-    return dfRaw.astype(DataTypes)
+    return dfRaw.astype(DataTypes, errors='ignore')
+    
 
 if __name__ == '__main__':
     
