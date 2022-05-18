@@ -3,6 +3,8 @@ import argparse
 import sys
 import os
 
+import numpy as np
+from matplotlib import pyplot as plt
 from qtpy.QtWidgets import QHeaderView, QMessageBox
 from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
 from qtpy import QtWidgets, uic
@@ -12,6 +14,8 @@ from PyGFETdb import DBInterface
 from qtpy.QtCore import QAbstractTableModel, QModelIndex
 import pandas as pd
 import seaborn as sns
+import math
+import matplotlib as mpl
 
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
@@ -52,7 +56,7 @@ class PandasModel(QAbstractTableModel):
             if type(data) == str:
                 return data
             st = str(data)
-            return st.split(' ')[-1].split('.')[0]
+            return st
 
         return None
 
@@ -233,7 +237,7 @@ class DBViewApp(QtWidgets.QMainWindow):
             Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id))
         dfRaw = Data2Pandas(Data)
 
-        self.DataExp = DataExplorer(dfRaw)
+        self.DataExp = DataExplorer(dfRaw, Paramters='DC')
         self.DataExp.show()
 
     def ButViewACClick(self):
@@ -246,19 +250,55 @@ class DBViewApp(QtWidgets.QMainWindow):
             Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id))
         dfRaw = Data2Pandas(Data)
 
-        self.DataExp = DataExplorer(dfRaw)
+        self.DataExp = DataExplorer(dfRaw, Paramters='AC')
         self.DataExp.show()
 
 
+def FormatAxis(PlotPars, dfAttrs):
+    # figure generation
+    nRows = math.ceil(np.sqrt(len(PlotPars)))
+    nCols = math.ceil(len(PlotPars) / nRows)
+    fig, Axs = plt.subplots(nrows=nRows, ncols=nCols)
+    Axs = Axs.flatten()
+
+    # Format axis
+    AxsDict = {}
+    for ip, par in enumerate(PlotPars):
+        ax = Axs[ip]
+        AxsDict[par] = ax
+
+
+        slabel = '{}[{}]'.format(par, dfAttrs['ColUnits'][par])
+        ax.set_ylabel(slabel)
+
+        # if dic['Ylog']:
+        #     ax.set_yscale('log')
+        #
+        # # select Vgs vector
+        # if par.endswith('Norm'):
+        #     dic['xVar'] = dfAttrs['VgsNorm']
+        #     ax.set_xlabel('Vgs - CNP [V]')
+        # else:
+        #     ax.set_xlabel('Vgs [V]')
+        #     dic['xVar'] = dfAttrs['Vgs']
+
+    return fig, AxsDict
+
+
 class DataExplorer(QtWidgets.QMainWindow):
-    def __init__(self, dfRaw):
+    def __init__(self, dfRaw, Paramters='DC'):
         QtWidgets.QMainWindow.__init__(self)
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
-                                                     DBInterface.ClassQueries,
-                                                     DBInterface.pdAttr)
+        if Paramters == 'DC':
+            self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
+                                                          DBInterface.ClassQueriesDC,
+                                                          DBInterface.pdAttrDC)
+        elif Paramters == 'AC':
+            self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
+                                                          DBInterface.ClassQueries,
+                                                          DBInterface.pdAttr)
 
         self.modelData = PandasModel(self.dfDat.copy())
         self.proxyData = QSortFilterProxyModel()
@@ -266,23 +306,93 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.TblData.setModel(self.proxyData)
         self.TblData.show()
 
-        self.dfDat.attrs
-
-        catCols = list(dfRaw.select_dtypes(include=('category', 'bool',)).columns)
+        catCols = list(dfRaw.select_dtypes(include=('category', 'bool', 'datetime64[ns]')).columns)
         self.CmbBoxX.addItems(catCols)
-        self.CmbBoxY.addItems(self.dfDat.attrs['ScalarCols'])
+        self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
         self.CmbBoxHue.addItems(catCols)
-
         self.CmbBoxType.addItems(['boxplot', 'swarmplot'])
 
+        self.LstLinesPars.addItems(self.dfDat.attrs['ArrayCols'])
+        self.CmbLinesGroup.addItems(catCols)
+
         self.ButBoxPlot.clicked.connect(self.ButBoxPlotClick)
+        self.ButPlotVect.clicked.connect(self.ButPlotVectClick)
 
     def ButBoxPlotClick(self):
+        PlotPars = self.LstBoxYPars.selectedItems()
+        if len(PlotPars) == 0:
+            print('Select Y var')
+            return
 
-        sns.boxplot(x=self.CmbBoxX.currentText(),
-                    y=self.CmbBoxY.currentText(),
-                    hue=self.CmbBoxHue.currentText(),
-                    data=self.dfDat)
+        Sel = self.TblData.selectedIndexes()
+        rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
+        dSel = self.dfDat.loc[list(rows)]
+
+        nRows = math.ceil(np.sqrt(len(PlotPars)))
+        nCols = math.ceil(len(PlotPars) / nRows)
+        fig, Axs = plt.subplots(nrows=nRows, ncols=nCols)
+        Axs = Axs.flatten()
+
+        for ic, p in enumerate(PlotPars):
+            sns.boxplot(x=self.CmbBoxX.currentText(),
+                        y=p.text(),
+                        hue=self.CmbBoxHue.currentText(),
+                        data=dSel,
+                        ax=Axs[ic])
+
+    def ButPlotVectClick(self):
+        Sel = self.LstLinesPars.selectedItems()
+        if len(Sel) == 0:
+            print('Select Y var')
+            return
+        PlotPars = [s.text() for s in Sel]
+
+        Sel = self.TblData.selectedIndexes()
+        rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
+        dSel = self.dfDat.loc[list(rows)]
+
+        GroupBy = self.CmbLinesGroup.currentText()
+        dgroups = dSel.groupby(GroupBy)
+
+        # Colors iteration
+        Norm = mpl.colors.Normalize(vmin=0, vmax=len(dgroups))
+        cmap = mpl.cm.ScalarMappable(norm=Norm, cmap='jet')
+
+        fig, AxsDict = FormatAxis(PlotPars, self.dfDat.attrs)
+
+        for ic, gn in enumerate(dgroups.groups):
+            gg = dgroups.get_group(gn)
+            Col = cmap.to_rgba(ic)
+            for parn in PlotPars:
+                if parn.endswith('Norm'):
+                    xVar = self.dfDat.attrs['VgsNorm']
+                else:
+                    xVar = self.dfDat.attrs['Vgs']
+
+                Vals = np.array([])
+                ax = AxsDict[parn]
+                for index, row in gg.iterrows():
+                    v = row[parn]
+                    if type(v) == float:
+                        continue
+                    try:
+                        ax.plot(xVar, v.transpose(), color=Col, alpha=0.8)
+                        Vals = np.vstack((Vals, v)) if Vals.size else v
+                    except:
+                        pass
+
+                # Vals = Vals.magnitude.transpose()
+                # mean = np.nanmedian(Vals, axis=1)
+                # std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
+                #
+                # ax.plot(xVar, mean, color='k', lw=1.5, label=gn)
+                # if not dic['Ylog']:
+                #     ax.fill_between(xVar, mean + std, mean - std, color='k', alpha=0.2)
+
+            # AxsDict['GM'].legend(fontsize='xx-small')
+            # fig.tight_layout()
+            # PDF.savefig(fig)
+            # plt.close(fig)
 
 
 def main():

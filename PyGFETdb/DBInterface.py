@@ -23,27 +23,41 @@ OutUnits = {'Ids': 'uA',
             'NoC': 'A**2',
             }
 
-ScalarParams = ['Ids', 'GM', 'GMV', 'Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
+########################################################################################################################
+## Define default scalar parameters
+########################################################################################################################
+ScalarParamsDC = ['Ids', 'GM', 'GMV']
+ScalarParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 VgsScalar = -0.1*pq.V
-ScalarQueries = {'CNP': {'Param': 'Ud0',
-                         'Units': 'mV'},
-                 'IdsV01': {'Param': 'Ids',
-                            'Vgs': 0.1*pq.V,
-                            'Ud0Norm': False,
-                            'Units': 'uA'
-                            },
-                 'RdsCNP': {'Param': 'Rds',
-                            'Vgs': 0*pq.V,
-                            'Ud0Norm': True,
-                            'Units': 'kOhm'
-                            },
-                 'IdsCNP': {'Param': 'Ids',
-                            'Vgs': 0*pq.V,
-                            'Ud0Norm': True,
-                            'Units': 'uA'
-                            },
-                 }
-for par in ScalarParams:
+ScalarQueriesDC = {'CNP': {'Param': 'Ud0',
+                            'Units': 'mV'},
+                   'IdsV01': {'Param': 'Ids',
+                              'Vgs': 0.1*pq.V,
+                              'Ud0Norm': False,
+                              'Units': 'uA'
+                              },
+                   'RdsCNP': {'Param': 'Rds',
+                              'Vgs': 0*pq.V,
+                              'Ud0Norm': True,
+                              'Units': 'kOhm'
+                              },
+                   'IdsCNP': {'Param': 'Ids',
+                              'Vgs': 0*pq.V,
+                              'Ud0Norm': True,
+                              'Units': 'uA'
+                              } ,
+                   }
+
+for par in ScalarParamsDC:
+    d = {'Param': par,
+         'Vgs': VgsScalar,
+         'Ud0Norm': True}
+    if par in OutUnits:
+        d['Units'] = OutUnits[par]
+    ScalarQueriesDC[par+'01'] = d
+
+ScalarQueries = ScalarQueriesDC.copy()
+for par in ScalarParamsAC:
     d = {'Param': par,
          'Vgs': VgsScalar,
          'Ud0Norm': True}
@@ -51,11 +65,31 @@ for par in ScalarParams:
         d['Units'] = OutUnits[par]
     ScalarQueries[par+'01'] = d
 
+########################################################################################################################
+## Define default Array parameters
+########################################################################################################################
 Vgs = np.linspace(-0.1, 0.6, 100) * pq.V
 VgsNorm = np.linspace(-0.4, 0.4, 100) * pq.V
-ArrayParams = ['Ids', 'GM', 'GMV', 'Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
-ArrayQueries = {}
-for par in ArrayParams:
+ArrayParamsDC = ['Ids', 'GM', 'GMV']
+ArrayParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
+ArrayQueriesDC = {}
+for par in ArrayParamsDC:
+    d = {'Param': par,
+         'Vgs': Vgs,
+         'Ud0Norm': False}
+    if par in OutUnits:
+        d['Units'] = OutUnits[par]
+    ArrayQueriesDC[par] = d
+
+    d = {'Param': par,
+         'Vgs': VgsNorm,
+         'Ud0Norm': True}
+    if par in OutUnits:
+        d['Units'] = OutUnits[par]
+    ArrayQueriesDC[par+'Norm']=d
+
+ArrayQueries = ArrayQueriesDC.copy()
+for par in ArrayParamsAC:
     d = {'Param': par,
          'Vgs': Vgs,
          'Ud0Norm': False}
@@ -70,17 +104,28 @@ for par in ArrayParams:
         d['Units'] = OutUnits[par]
     ArrayQueries[par+'Norm']=d
 
+########################################################################################################################
+## Define default Array parameters
+########################################################################################################################
+
 ClassQueries = ScalarQueries.copy()
 ClassQueries.update(ArrayQueries)
-
 pdAttr = {'Vgs': Vgs,
           'VgsNorm': VgsNorm,
           'ScalarCols': list(ScalarQueries.keys()),
           'ArrayCols': list(ArrayQueries.keys()),
           }
 
+ClassQueriesDC = ScalarQueriesDC.copy()
+ClassQueriesDC.update(ArrayQueriesDC)
+pdAttrDC = {'Vgs': Vgs,
+            'VgsNorm': VgsNorm,
+            'ScalarCols': list(ScalarQueriesDC.keys()),
+            'ArrayCols': list(ArrayQueriesDC.keys()),
+            }
 
-def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):   
+
+def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):
     PdSeries = []
     for index, row in dbRaw.iterrows():
         char = row['CharCl']
