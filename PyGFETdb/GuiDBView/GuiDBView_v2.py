@@ -7,9 +7,11 @@ from qtpy.QtWidgets import QHeaderView, QMessageBox
 from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
-from PyGFETdb.DBCore2 import PyFETdb
+from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
+from PyGFETdb import DBInterface
 from qtpy.QtCore import QAbstractTableModel, QModelIndex
 import pandas as pd
+import seaborn as sns
 
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
@@ -225,20 +227,62 @@ class DBViewApp(QtWidgets.QMainWindow):
         Sel = self.TblDC.selectedIndexes()
         rows = set([self.proxyDCChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
-        print(rows, idchars)
+
+        Data = []
+        for Id in idchars:
+            Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id))
+        dfRaw = Data2Pandas(Data)
+
+        self.DataExp = DataExplorer(dfRaw)
+        self.DataExp.show()
 
     def ButViewACClick(self):
         Sel = self.TblAC.selectedIndexes()
         rows = set([self.proxyACChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
-        print(rows, idchars)
+
+        Data = []
+        for Id in idchars:
+            Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id))
+        dfRaw = Data2Pandas(Data)
+
+        self.DataExp = DataExplorer(dfRaw)
+        self.DataExp.show()
+
 
 class DataExplorer(QtWidgets.QMainWindow):
-
-    def __init__(self, ACData, CalcIrmsNok=False, IsDC=False):
+    def __init__(self, dfRaw):
         QtWidgets.QMainWindow.__init__(self)
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
+
+        self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
+                                                     DBInterface.ClassQueries,
+                                                     DBInterface.pdAttr)
+
+        self.modelData = PandasModel(self.dfDat.copy())
+        self.proxyData = QSortFilterProxyModel()
+        self.proxyData.setSourceModel(self.modelData)
+        self.TblData.setModel(self.proxyData)
+        self.TblData.show()
+
+        self.dfDat.attrs
+
+        catCols = list(dfRaw.select_dtypes(include=('category', 'bool',)).columns)
+        self.CmbBoxX.addItems(catCols)
+        self.CmbBoxY.addItems(self.dfDat.attrs['ScalarCols'])
+        self.CmbBoxHue.addItems(catCols)
+
+        self.CmbBoxType.addItems(['boxplot', 'swarmplot'])
+
+        self.ButBoxPlot.clicked.connect(self.ButBoxPlotClick)
+
+    def ButBoxPlotClick(self):
+
+        sns.boxplot(x=self.CmbBoxX.currentText(),
+                    y=self.CmbBoxY.currentText(),
+                    hue=self.CmbBoxHue.currentText(),
+                    data=self.dfDat)
 
 
 def main():

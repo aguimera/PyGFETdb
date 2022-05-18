@@ -463,7 +463,6 @@ class PyFETdb():
 
 def Data2Pandas(Data):
     pdSeries = []
-    
     for dd in Data:
         pdser = {}
         d = DataCharAC(dd)
