@@ -1,4 +1,3 @@
-
 import argparse
 import sys
 import os
@@ -16,6 +15,8 @@ import pandas as pd
 import seaborn as sns
 import math
 import matplotlib as mpl
+from PyGFETdb.GuiDBView import UpdateDialogs
+
 
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
@@ -85,7 +86,15 @@ class PandasModel(QAbstractTableModel):
     #     except Exception as e:
     #         print(e)
 
+
 class DBViewApp(QtWidgets.QMainWindow):
+    WafersColumns = ('Name',
+                     'idWafers',
+                     'Substrate',
+                     'Run',
+                     'Masks',
+                     'Comments')
+
     TrtsTableCols = ('Trts.idTrts',
                      'Trts.Name',
                      'VTrts.DCMeas',
@@ -97,13 +106,16 @@ class DBViewApp(QtWidgets.QMainWindow):
                      'TrtTypes.Contact',
                      'TrtTypes.Pass',
                      'TrtTypes.Area',
-                     'Trts.Comments',
+                     'Wafers.Comments',
                      'Devices.Comments',
                      'Wafers.Comments',
-                     'Devices.State',
-                     'Devices.ExpOK',
+                     'Wafers.Run',
                      'Devices.idDevices',
                      'Wafers.idWafers',
+                     'TrtTypes.idTrtTypes',
+                     'Trts.Comments',
+                     'Devices.State',
+                     'Devices.ExpOK',
                      )
 
     DCCharTableCols = ('DCcharacts.idDCcharacts',
@@ -117,7 +129,8 @@ class DBViewApp(QtWidgets.QMainWindow):
                        'DCcharacts.AnalyteCon',
                        'DCcharacts.Comments',
                        'DCcharacts.UpdateDate',
-                       'DCcharacts.FileName')
+                       'DCcharacts.FileName',
+                       )
 
     ACCharTableCols = ('ACcharacts.idACcharacts',
                        'Trts.Name',
@@ -133,7 +146,6 @@ class DBViewApp(QtWidgets.QMainWindow):
                        'ACcharacts.DC_id',
                        'ACcharacts.FileName')
 
-
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
 
@@ -144,30 +156,55 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.DB = PyFETdb(open('key.key', 'rb').read())
         self.DB._DEBUG = False
 
-        self.FillList(Lst=self.LstWafers,
-                      Field='Name',
-                      Data=self.DB.MultiSelect(Table='Wafers',
-                                               Conditions={'Wafers.idWafers >': (0,)},
-                                               Output=('Name',)))
+        data = self.DB.MultiSelect(Table='Wafers',
+                                   Conditions={'Wafers.idWafers >': (0,), },
+                                   Output=self.WafersColumns)
 
-        self.ConnectLst()
+        self.WafersDF = pd.DataFrame(data)
+
+        self.LstSubstrates.addItem('None')
+        self.LstSubstrates.addItems(sorted(list(self.WafersDF.Substrate.unique())))
+        self.LstMasks.addItem('None')
+        self.LstMasks.addItems(sorted(list(self.WafersDF.Masks.unique())))
+        self.LstRuns.addItem('None')
+        self.LstRuns.addItems(sorted(list(self.WafersDF.Run.unique())))
+        self.LstWafers.addItems(sorted(list(self.WafersDF.Name.unique())))
 
         self.ButSetData.clicked.connect(self.ButSetDataClick)
         self.ButViewDC.clicked.connect(self.ButViewDCClick)
         self.ButViewAC.clicked.connect(self.ButViewACClick)
+        self.ButEditWafer.clicked.connect(self.ButEditWaferlick)
 
-    def ConnectLst(self):
         self.LstWafers.itemSelectionChanged.connect(self.LstWafersChange)
         self.LstDevices.itemSelectionChanged.connect(self.LstDevicesChange)
+        self.LstSubstrates.itemSelectionChanged.connect(self.LstChange)
+        self.LstMasks.itemSelectionChanged.connect(self.LstChange)
+        self.LstRuns.itemSelectionChanged.connect(self.LstChange)
 
-    def FillList(self, Lst, Field, Data):
-        Vals = []
-        for r in Data:
-            Vals.append(r[Field])
-        Lst.clear()
+    def LstChange(self):
+        df = self.WafersDF.copy()
 
-        for d in sorted(set(Vals)):
-            Lst.addItem(str(d))
+        sel = self.LstSubstrates.selectedItems()
+        for s in sel:
+            if s.text() == 'None':
+                break
+            df.query("Substrate == '{}'".format(s.text()), inplace=True)
+
+        sel = self.LstMasks.selectedItems()
+        MasksNone = False
+        for s in sel:
+            if s.text() == 'None':
+                break
+            df.query("Masks == '{}'".format(s.text()), inplace=True)
+
+        sel = self.LstRuns.selectedItems()
+        for s in sel:
+            if s.text() == 'None':
+                break
+            df.query("Run == '{}'".format(s.text()), inplace=True)
+
+        self.LstWafers.clear()
+        self.LstWafers.addItems(df.Name.unique())
 
     def LstWafersChange(self):
         sel = self.LstWafers.selectedItems()
@@ -177,11 +214,11 @@ class DBViewApp(QtWidgets.QMainWindow):
         Conditions = {'Wafers.Name=': []}
         for s in sel:
             Conditions['Wafers.Name='].append(s.text())
-
-        self.FillList(Lst=self.LstDevices,
-                      Field='Devices_Name',
-                      Data=self.DB.GetTrtsInfo(Conditions=Conditions,
-                                               Output=('Devices.Name',)))
+        data = self.DB.GetTrtsInfo(Conditions=Conditions,
+                                   Output=('Devices.Name',))
+        data = pd.DataFrame(data)
+        self.LstDevices.clear()
+        self.LstDevices.addItems(data['Devices_Name'].unique())
 
     def LstDevicesChange(self):
         sel = self.LstDevices.selectedItems()
@@ -200,16 +237,15 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.TblTrts.setModel(self.proxyTrts)
         self.TblTrts.show()
 
-
     def ButSetDataClick(self):
         Sel = self.TblTrts.selectedIndexes()
         rows = set([self.proxyTrts.mapToSource(s).row() for s in Sel])
         idtrts = list(self.dfTrts.loc[list(rows)]['Trts_idTrts'])
 
-        self.dfDCchars = pd.DataFrame(self.DB.GetCharactInfo(Table='DCcharacts',
-                                                             Conditions={'Trts.idTrts =': idtrts},
-                                                             Output=self.DCCharTableCols))
-
+        data = self.DB.GetCharactInfo(Table='DCcharacts',
+                                      Conditions={'Trts.idTrts =': idtrts},
+                                      Output=self.DCCharTableCols)
+        self.dfDCchars = pd.DataFrame(data)
 
         self.modelDCchars = PandasModel(self.dfDCchars.copy())
         self.proxyDCChars = QSortFilterProxyModel()
@@ -253,6 +289,27 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.DataExp = DataExplorer(dfRaw, Paramters='AC')
         self.DataExp.show()
 
+    def ButEditWaferlick(self):
+        sel = self.LstWafers.selectedItems()
+        if len(sel) == 0:
+            return
+
+        Columns = UpdateDialogs.EditWaferColumns.copy()
+
+        WafName = sel[0].text()
+        res = self.DB.MultiSelect(Table='Wafers',
+                                  Conditions={'Wafers.Name =': (WafName,), },
+                                  Output=Columns.keys())
+
+        for n, par in Columns.items():
+            par['value'] = res[0][n]
+
+        self.UpdateWind = UpdateDialogs.TableEditorWindow('Wafers', Columns, self.DB)
+        self.UpdateWind.show()
+
+
+LogPars = ('Irms', 'Vrms', 'NoA', 'NoC')
+
 
 def FormatAxis(PlotPars, dfAttrs):
     # figure generation
@@ -267,20 +324,17 @@ def FormatAxis(PlotPars, dfAttrs):
         ax = Axs[ip]
         AxsDict[par] = ax
 
-
         slabel = '{}[{}]'.format(par, dfAttrs['ColUnits'][par])
         ax.set_ylabel(slabel)
 
-        # if dic['Ylog']:
-        #     ax.set_yscale('log')
-        #
+        if par in LogPars:
+            ax.set_yscale('log')
+
         # # select Vgs vector
-        # if par.endswith('Norm'):
-        #     dic['xVar'] = dfAttrs['VgsNorm']
-        #     ax.set_xlabel('Vgs - CNP [V]')
-        # else:
-        #     ax.set_xlabel('Vgs [V]')
-        #     dic['xVar'] = dfAttrs['Vgs']
+        if par.endswith('Norm'):
+            ax.set_xlabel('Vgs - CNP [V]')
+        else:
+            ax.set_xlabel('Vgs [V]')
 
     return fig, AxsDict
 
@@ -352,7 +406,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         dSel = self.dfDat.loc[list(rows)]
 
         GroupBy = self.CmbLinesGroup.currentText()
-        dgroups = dSel.groupby(GroupBy)
+        dgroups = dSel.groupby(GroupBy, observed=True)
 
         # Colors iteration
         Norm = mpl.colors.Normalize(vmin=0, vmax=len(dgroups))

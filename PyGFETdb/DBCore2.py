@@ -149,7 +149,7 @@ class PyFETdb():
                                   'value': v,
                                   'type': WS_Types(k)}
         Res = self._execute(data, oper='update')
-        return int(Res[0]['id'].decode())
+        return int(Res[0]['id'])
 
     def GetTrtsInfo(self, Conditions, Output=None):
         if Output is None:
@@ -199,6 +199,7 @@ class PyFETdb():
                   'Devices.Name',
                   'Devices.Comments',
                   'Wafers.Name',
+                  'Wafers.Run',
                   'Wafers.Substrate',
                   'Wafers.Masks',
                   'Wafers.Graphene',
