@@ -29,11 +29,12 @@ EditWaferColumns = {'idWafers': {'name': 'idWafers',
 
 
 class TableEditor(pTypes.GroupParameter):
-    def __init__(self, TableColumns, DB, **kwargs):
+    def __init__(self, TableColumns, DB, Table, **kwargs):
         super(TableEditor, self).__init__(**kwargs)
         self.DB = DB
+        self.Table = Table
         self.addChild({'name': 'Update',
-                       'title': 'UpdateValues',
+                       'title': 'Update Record',
                        'type': 'action'}, )
         for n, col in TableColumns.items():
             self.addChild(col)
@@ -52,7 +53,7 @@ class TableEditor(pTypes.GroupParameter):
 
         print('Overwrite Record id ', scond)
 
-        res = self.DB.UpdateRow(Table=self.opts['name'],
+        res = self.DB.UpdateRow(Table=self.Table,
                                 Fields=Values,
                                 Condition=scond)
 
@@ -62,16 +63,43 @@ class TableEditor(pTypes.GroupParameter):
 class TableEditorWindow(Qt.QWidget):
     ''' Main Window '''
 
-    def __init__(self, Table, TableColumns, DB):
+    def __init__(self, Table, Records, DB):
         super(TableEditorWindow, self).__init__()
         layout = Qt.QVBoxLayout(self)
 
         self.setGeometry(650, 20, 400, 800)
         self.setWindowTitle('Edit {}'.format(Table, ))
 
-        self.ViewConfig = TableEditor(TableColumns, DB,
-                                      name=Table)
+        self.Records = []
+        for ic, rec in enumerate(Records):
+            self.Records.append(TableEditor(TableColumns=rec,
+                                            DB=DB,
+                                            Table=Table,
+                                            name='Rec{}'.format(ic)))
 
+        if len(Records) > 1:
+            self.Common = Parameter.create(name='CommonRecord',
+                                           title='Common Values',
+                                           type='group')
+            self.Common.addChild({'name': 'Update',
+                                   'title': 'Update ALL Records',
+                                   'type': 'action'})
+
+            for k, v in Records[0].items():
+                if k.startswith('id'):
+                    v['value'] = 0
+                if k == 'Name':
+                    v['value'] = ''
+                self.Common.addChild(v)
+            self.Records.insert(0, self.Common)
+            self.Common.param('Update').sigActivated.connect(self.on_update)
+
+        self.Parameters = Parameter.create(name='App Parameters',
+                                           type='group',
+                                           children=self.Records)
         self.treepar = ParameterTree()
-        self.treepar.setParameters(self.ViewConfig, showTop=False)
+        self.treepar.setParameters(self.Parameters, showTop=False)
         layout.addWidget(self.treepar)
+
+    def on_update(self):
+        print('allupdate')

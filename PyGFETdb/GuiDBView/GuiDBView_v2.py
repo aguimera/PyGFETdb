@@ -16,6 +16,7 @@ import seaborn as sns
 import math
 import matplotlib as mpl
 from PyGFETdb.GuiDBView import UpdateDialogs
+import copy
 
 
 class PandasModel(QAbstractTableModel):
@@ -32,7 +33,6 @@ class PandasModel(QAbstractTableModel):
         """
         if parent == QModelIndex():
             return len(self._dataframe)
-
         return 0
 
     def columnCount(self, parent=QModelIndex()) -> int:
@@ -58,7 +58,6 @@ class PandasModel(QAbstractTableModel):
                 return data
             st = str(data)
             return st
-
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: Qt.ItemDataRole):
@@ -69,22 +68,9 @@ class PandasModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 return str(self._dataframe.columns[section])
-
             if orientation == Qt.Vertical:
                 return str(self._dataframe.index[section])
-
         return None
-
-    # def sort(self, Ncol, order):
-    #     """Sort table by given column number.
-    #     """
-    #     try:
-    #         self.layoutAboutToBeChanged.emit()
-    #         self._dataframe = self._dataframe.sort_values(self._dataframe.columns[Ncol],
-    #                                                       ascending=not order)
-    #         self.layoutChanged.emit()
-    #     except Exception as e:
-    #         print(e)
 
 
 class DBViewApp(QtWidgets.QMainWindow):
@@ -295,16 +281,23 @@ class DBViewApp(QtWidgets.QMainWindow):
             return
 
         Columns = UpdateDialogs.EditWaferColumns.copy()
-
-        WafName = sel[0].text()
+        cond = {'Wafers.Name = ': []}
+        for s in sel:
+            cond['Wafers.Name = '].append(s.text())
         res = self.DB.MultiSelect(Table='Wafers',
-                                  Conditions={'Wafers.Name =': (WafName,), },
+                                  Conditions=cond,
                                   Output=Columns.keys())
 
-        for n, par in Columns.items():
-            par['value'] = res[0][n]
+        records = []
+        for r in res:
+            c = copy.deepcopy(Columns)
+            for n, par in c.items():
+                par['value'] = r[n]
+            records.append(c)
 
-        self.UpdateWind = UpdateDialogs.TableEditorWindow('Wafers', Columns, self.DB)
+        self.UpdateWind = UpdateDialogs.TableEditorWindow(Table='Wafers',
+                                                          Records=records,
+                                                          DB=self.DB)
         self.UpdateWind.show()
 
 
