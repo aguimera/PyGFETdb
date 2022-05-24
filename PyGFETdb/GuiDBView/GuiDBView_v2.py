@@ -156,10 +156,15 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.LstRuns.addItems(sorted(list(self.WafersDF.Run.unique())))
         self.LstWafers.addItems(sorted(list(self.WafersDF.Name.unique())))
 
-        self.ButSetData.clicked.connect(self.ButSetDataClick)
-        self.ButViewDC.clicked.connect(self.ButViewDCClick)
-        self.ButViewAC.clicked.connect(self.ButViewACClick)
-        self.ButEditWafer.clicked.connect(self.ButEditWaferlick)
+        self.ButSetData.clicked.connect(self.ButSetData_Click)
+        self.ButViewDC.clicked.connect(self.ButViewDC_Click)
+        self.ButViewAC.clicked.connect(self.ButViewAC_Click)
+        self.ButEditWafer.clicked.connect(self.ButEditWafer_Click)
+        self.ButEditDevice.clicked.connect(self.ButEditDevice_Click)
+        self.ButEditTrts.clicked.connect(self.ButEditTrts_Click)
+        self.ButEditTrtsType.clicked.connect(self.ButEditTrtsType_Click)
+        self.ButEditDC.clicked.connect(self.ButEditDC_Click)
+        self.ButEditAC.clicked.connect(self.ButEditAC_Click)
 
         self.LstWafers.itemSelectionChanged.connect(self.LstWafersChange)
         self.LstDevices.itemSelectionChanged.connect(self.LstDevicesChange)
@@ -223,7 +228,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.TblTrts.setModel(self.proxyTrts)
         self.TblTrts.show()
 
-    def ButSetDataClick(self):
+    def ButSetData_Click(self):
         Sel = self.TblTrts.selectedIndexes()
         rows = set([self.proxyTrts.mapToSource(s).row() for s in Sel])
         idtrts = list(self.dfTrts.loc[list(rows)]['Trts_idTrts'])
@@ -249,7 +254,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.TblAC.setModel(self.proxyACChars)
         self.TblAC.show()
 
-    def ButViewDCClick(self):
+    def ButViewDC_Click(self):
         Sel = self.TblDC.selectedIndexes()
         rows = set([self.proxyDCChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
@@ -262,7 +267,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.DataExp = DataExplorer(dfRaw, Paramters='DC')
         self.DataExp.show()
 
-    def ButViewACClick(self):
+    def ButViewAC_Click(self):
         Sel = self.TblAC.selectedIndexes()
         rows = set([self.proxyACChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
@@ -275,7 +280,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.DataExp = DataExplorer(dfRaw, Paramters='AC')
         self.DataExp.show()
 
-    def ButEditWaferlick(self):
+    def ButEditWafer_Click(self):
         sel = self.LstWafers.selectedItems()
         if len(sel) == 0:
             return
@@ -284,24 +289,125 @@ class DBViewApp(QtWidgets.QMainWindow):
         cond = {'Wafers.Name = ': []}
         for s in sel:
             cond['Wafers.Name = '].append(s.text())
-        res = self.DB.MultiSelect(Table='Wafers',
-                                  Conditions=cond,
-                                  Output=Columns.keys())
 
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='Wafers',
+                              Records=self.DB.MultiSelect(Table='Wafers',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+    def ButEditDevice_Click(self):
+        sel = self.LstDevices.selectedItems()
+        if len(sel) == 0:
+            return
+
+        Columns = UpdateDialogs.EditDeviceColumns.copy()
+        cond = {'Devices.Name = ': []}
+        for s in sel:
+            cond['Devices.Name = '].append(s.text())
+
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='Devices',
+                              Records=self.DB.MultiSelect(Table='Devices',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+    def ShowUpdateDialog(self, Table, Columns, Records):
         records = []
-        for r in res:
+        for r in Records:
             c = copy.deepcopy(Columns)
             for n, par in c.items():
-                par['value'] = r[n]
+                try:
+                    if par['type'] == 'int':
+                        par['value'] = int(r[n])
+                    elif par['type'] == 'float':
+                        par['value'] = float(r[n])
+                    else:
+                        par['value'] = r[n]
+                except ValueError:
+                    par['value'] = 0
             records.append(c)
 
-        self.UpdateWind = UpdateDialogs.TableEditorWindow(Table='Wafers',
+        self.UpdateWind = UpdateDialogs.TableEditorWindow(Table=Table,
                                                           Records=records,
                                                           DB=self.DB)
         self.UpdateWind.show()
 
+    def ButEditTrts_Click(self):
+        Sel = self.TblTrts.selectedIndexes()
+        rows = set([self.proxyTrts.mapToSource(s).row() for s in Sel])
+        idtrts = list(self.dfTrts.loc[list(rows)]['Trts_idTrts'])
 
-LogPars = ('Irms', 'Vrms', 'NoA', 'NoC')
+        Columns = UpdateDialogs.EditTrtColumns.copy()
+        cond = {'Trts.idTrts = ': []}
+        for s in idtrts:
+            cond['Trts.idTrts = '].append(s)
+
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='Trts',
+                              Records=self.DB.MultiSelect(Table='Trts',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+    def ButEditTrtsType_Click(self):
+        Msg = "WARNING!!!! This action can affect other Transistors \n\n do you want to continue??"
+        buttonReply = QMessageBox.question(self,
+                                           'WARNING !!!!!!',
+                                           Msg,
+                                           QMessageBox.Yes | QMessageBox.No,
+                                           QMessageBox.No)
+        if buttonReply == QMessageBox.No:
+            return
+
+        Sel = self.TblTrts.selectedIndexes()
+        rows = set([self.proxyTrts.mapToSource(s).row() for s in Sel])
+        types = list(self.dfTrts.loc[list(rows)]['TrtTypes_Name'])
+
+        Columns = UpdateDialogs.EditTrtTypesColumns.copy()
+        cond = {'TrtTypes.Name = ': []}
+        for s in set(types):
+            cond['TrtTypes.Name = '].append(s)
+
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='TrtTypes',
+                              Records=self.DB.MultiSelect(Table='TrtTypes',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+    def ButEditDC_Click(self):
+        Sel = self.TblDC.selectedIndexes()
+        rows = set([self.proxyDCChars.mapToSource(s).row() for s in Sel])
+        idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
+
+        Columns = UpdateDialogs.EditDCCharColumns.copy()
+        cond = {'DCcharacts.idDCcharacts = ': []}
+        for s in set(idchars):
+            cond['DCcharacts.idDCcharacts = '].append(s)
+
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='DCcharacts',
+                              Records=self.DB.MultiSelect(Table='DCcharacts',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+    def ButEditAC_Click(self):
+        Sel = self.TblAC.selectedIndexes()
+        rows = set([self.proxyACChars.mapToSource(s).row() for s in Sel])
+        idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
+
+        Columns = UpdateDialogs.EditACCharColumns.copy()
+        cond = {'ACcharacts.idACcharacts = ': []}
+        for s in set(idchars):
+            cond['ACcharacts.idACcharacts = '].append(s)
+
+        self.ShowUpdateDialog(Columns=Columns,
+                              Table='ACcharacts',
+                              Records=self.DB.MultiSelect(Table='ACcharacts',
+                                                          Conditions=cond,
+                                                          Output=Columns.keys()))
+
+
+LogPars = ('Irms', 'Vrms', 'NoA', 'NoC', 'IrmsNorm', 'VrmsNorm', 'NoANorm', 'NoCNorm')
 
 
 def FormatAxis(PlotPars, dfAttrs):
@@ -309,7 +415,10 @@ def FormatAxis(PlotPars, dfAttrs):
     nRows = math.ceil(np.sqrt(len(PlotPars)))
     nCols = math.ceil(len(PlotPars) / nRows)
     fig, Axs = plt.subplots(nrows=nRows, ncols=nCols)
-    Axs = Axs.flatten()
+    if nRows == 1 and nCols == 1:
+        Axs = [Axs, ]
+    else:
+        Axs = Axs.flatten()
 
     # Format axis
     AxsDict = {}
@@ -353,51 +462,74 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.TblData.setModel(self.proxyData)
         self.TblData.show()
 
+        self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
+
         catCols = list(dfRaw.select_dtypes(include=('category', 'bool', 'datetime64[ns]')).columns)
         self.CmbBoxX.addItems(catCols)
-        self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
+        self.CmbBoxX.setCurrentText('Device')
         self.CmbBoxHue.addItems(catCols)
+        self.CmbBoxHue.setCurrentText('Device')
         self.CmbBoxType.addItems(['boxplot', 'swarmplot'])
 
         self.LstLinesPars.addItems(self.dfDat.attrs['ArrayCols'])
         self.CmbLinesGroup.addItems(catCols)
+        self.CmbLinesGroup.setCurrentText('Device')
 
-        self.ButBoxPlot.clicked.connect(self.ButBoxPlotClick)
-        self.ButPlotVect.clicked.connect(self.ButPlotVectClick)
+        self.ButBoxPlot.clicked.connect(self.ButBoxPlot_Click)
+        self.ButPlotVect.clicked.connect(self.ButPlotVect_Click)
+        self.ButExportPkl.clicked.connect(self.ButExportPkl_Click)
+        self.ButExportCSV.clicked.connect(self.ButExportCSV_Click)
 
-    def ButBoxPlotClick(self):
-        PlotPars = self.LstBoxYPars.selectedItems()
-        if len(PlotPars) == 0:
-            print('Select Y var')
-            return
-
+    def GetSelection(self):
         Sel = self.TblData.selectedIndexes()
         rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
         dSel = self.dfDat.loc[list(rows)]
 
+        if not self.ChckQueries.isChecked():
+            return dSel
+
+        try:
+            for q in self.TxtSelQueries.toPlainText().split('\n'):
+                dSel.query(q, inplace=True)
+        except:
+            print("Error in query execution")
+
+        return dSel
+
+    def ButBoxPlot_Click(self):
+        Sel = self.LstBoxYPars.selectedItems()
+        if len(Sel) == 0:
+            print('Select Y var')
+            return
+        PlotPars = [s.text() for s in Sel]
+
+        dSel = self.GetSelection()
+
         nRows = math.ceil(np.sqrt(len(PlotPars)))
         nCols = math.ceil(len(PlotPars) / nRows)
         fig, Axs = plt.subplots(nrows=nRows, ncols=nCols)
-        Axs = Axs.flatten()
+        if nRows == 1 and nCols == 1:
+            Axs = [Axs, ]
+        else:
+            Axs = Axs.flatten()
 
         for ic, p in enumerate(PlotPars):
             sns.boxplot(x=self.CmbBoxX.currentText(),
-                        y=p.text(),
+                        y=p,
                         hue=self.CmbBoxHue.currentText(),
                         data=dSel,
                         ax=Axs[ic])
+            if p in LogPars:
+                Axs[ic].set_yscale('log')
 
-    def ButPlotVectClick(self):
+    def ButPlotVect_Click(self):
         Sel = self.LstLinesPars.selectedItems()
         if len(Sel) == 0:
             print('Select Y var')
             return
         PlotPars = [s.text() for s in Sel]
 
-        Sel = self.TblData.selectedIndexes()
-        rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
-        dSel = self.dfDat.loc[list(rows)]
-
+        dSel = self.GetSelection()
         GroupBy = self.CmbLinesGroup.currentText()
         dgroups = dSel.groupby(GroupBy, observed=True)
 
@@ -440,6 +572,22 @@ class DataExplorer(QtWidgets.QMainWindow):
             # fig.tight_layout()
             # PDF.savefig(fig)
             # plt.close(fig)
+
+    def ButExportPkl_Click(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save PKl file", "", "All Files (*);; (*.pkl)", options=options)
+        if fileName:
+            dSel = self.GetSelection()
+            dSel.to_pickle(fileName)
+
+    def ButExportCSV_Click(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save CSV file", "", "All Files (*);; (*.csv)", options=options)
+        if fileName:
+            dSel = self.GetSelection()
+            dSel.to_csv(fileName)
 
 
 def main():

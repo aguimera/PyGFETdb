@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1086</width>
+    <width>1007</width>
     <height>717</height>
    </rect>
   </property>
@@ -267,11 +267,31 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QCheckBox" name="ChkUpdateTrts">
+            <widget class="QPushButton" name="ButEditTrts">
              <property name="text">
-              <string>Update</string>
+              <string>Edit Trt</string>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="ButEditTrtsType">
+             <property name="text">
+              <string>Edit TrtType</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <widget class="QPushButton" name="ButSetData">
@@ -287,7 +307,7 @@
       </widget>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="DC">
         <attribute name="title">
@@ -303,31 +323,6 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
-            <item row="1" column="0" colspan="4">
-             <widget class="QTableView" name="TblDC">
-              <property name="font">
-               <font>
-                <pointsize>6</pointsize>
-               </font>
-              </property>
-              <property name="sortingEnabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>16</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
             <item row="0" column="1">
              <widget class="QPushButton" name="ButDeleteDC">
               <property name="minimumSize">
@@ -341,7 +336,32 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="0" colspan="5">
+             <widget class="QTableView" name="TblDC">
+              <property name="font">
+               <font>
+                <pointsize>6</pointsize>
+               </font>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="3">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>16</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="4">
              <widget class="QPushButton" name="ButViewDC">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -366,11 +386,19 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="ButEditDC">
+              <property name="text">
+               <string>Edit</string>
+              </property>
+             </widget>
+            </item>
            </layout>
            <zorder>TblDC</zorder>
            <zorder>ButViewDC</zorder>
            <zorder>horizontalSpacer_2</zorder>
            <zorder>ButDeleteDC</zorder>
+           <zorder>ButEditDC</zorder>
           </widget>
          </item>
         </layout>
@@ -389,7 +417,51 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="0" column="4">
+            <item row="0" column="1">
+             <widget class="QPushButton" name="ButDeleteAC">
+              <property name="minimumSize">
+               <size>
+                <width>50</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>0</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="7">
+             <widget class="QTableView" name="TblAC">
+              <property name="font">
+               <font>
+                <pointsize>6</pointsize>
+               </font>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>28</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="5">
              <widget class="QPushButton" name="ButViewAC">
               <property name="maximumSize">
                <size>
@@ -402,49 +474,12 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="0" colspan="6">
-             <widget class="QTableView" name="TblAC">
-              <property name="font">
-               <font>
-                <pointsize>6</pointsize>
-               </font>
-              </property>
-              <property name="sortingEnabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QPushButton" name="ButDeleteAC">
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>50</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="2">
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QPushButton" name="ButEditAC">
+              <property name="text">
+               <string>Edit</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>28</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -461,7 +496,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1086</width>
+     <width>1007</width>
      <height>19</height>
     </rect>
    </property>
