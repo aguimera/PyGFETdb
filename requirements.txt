@@ -1,0 +1,13 @@
+pandas~=1.4.2
+seaborn~=0.11.2
+matplotlib~=3.5.2
+numpy~=1.22.4
+scipy~=1.8.1
+PyMySQL~=1.0.2
+QtPy~=2.1.0
+pyqtgraph~=0.12.4
+PyQt5~=5.15.6
+cryptography~=37.0.2
+quantities~=0.13.0
+requests~=2.27.1
+setuptools~=60.2.0

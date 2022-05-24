@@ -1,23 +1,25 @@
 import argparse
+import importlib
 import sys
 import os
 
 import numpy as np
+
 from matplotlib import pyplot as plt
+import matplotlib as mpl
+
 from qtpy.QtWidgets import QHeaderView, QMessageBox
 from qtpy.QtWidgets import QFileDialog, QAction, QInputDialog
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
-from PyGFETdb import DBInterface
 from qtpy.QtCore import QAbstractTableModel, QModelIndex
 import pandas as pd
 import seaborn as sns
 import math
-import matplotlib as mpl
 from PyGFETdb.GuiDBView import UpdateDialogs
+from PyGFETdb import DBInterface
 import copy
-
 
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
@@ -139,7 +141,10 @@ class DBViewApp(QtWidgets.QMainWindow):
         uic.loadUi(uipath, self)
 
         self.setWindowTitle('PyFETdb Viewer')
-        self.DB = PyFETdb(open('key.key', 'rb').read())
+
+        keypath = os.path.join(os.path.dirname(__file__), 'key.key')
+
+        self.DB = PyFETdb(open(keypath, 'rb').read())
         self.DB._DEBUG = False
 
         data = self.DB.MultiSelect(Table='Wafers',
@@ -444,6 +449,7 @@ def FormatAxis(PlotPars, dfAttrs):
 class DataExplorer(QtWidgets.QMainWindow):
     def __init__(self, dfRaw, Paramters='DC'):
         QtWidgets.QMainWindow.__init__(self)
+
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
 
@@ -522,6 +528,8 @@ class DataExplorer(QtWidgets.QMainWindow):
             if p in LogPars:
                 Axs[ic].set_yscale('log')
 
+        plt.show()
+
     def ButPlotVect_Click(self):
         Sel = self.LstLinesPars.selectedItems()
         if len(Sel) == 0:
@@ -572,6 +580,7 @@ class DataExplorer(QtWidgets.QMainWindow):
             # fig.tight_layout()
             # PDF.savefig(fig)
             # plt.close(fig)
+        plt.show()
 
     def ButExportPkl_Click(self):
         options = QFileDialog.Options()
