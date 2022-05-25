@@ -163,7 +163,7 @@ class PyFETdb():
 
         OutF, Out = self._FormatOutputQuery(Output)
         Cond, Values = self.CreateQueryConditions(Conditions)
-        query = """ SELECT {}
+        query = """ SELECT distinct {}
                     FROM VTrts, Trts
                     INNER JOIN Devices ON Devices.idDevices = Trts.Device_id
                     INNER JOIN Wafers ON Wafers.idWafers = Devices.Wafer_id

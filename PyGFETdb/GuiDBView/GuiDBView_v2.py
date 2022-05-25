@@ -21,6 +21,7 @@ from PyGFETdb.GuiDBView import UpdateDialogs
 from PyGFETdb import DBInterface
 import copy
 
+
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
 
@@ -82,6 +83,19 @@ class DBViewApp(QtWidgets.QMainWindow):
                      'Run',
                      'Masks',
                      'Comments')
+
+    DevicesTableCols = ('Wafers.Name',
+                        'Wafers.Run',
+                        'Wafers.Masks',
+                        'Wafers.Graphene',
+                        'Wafers.Comments',
+                        'Devices.Name',
+                        'Devices.State',
+                        'Devices.ExpOK',
+                        'Wafers.Comments',
+                        'Devices.idDevices',
+                        'Wafers.idWafers',
+                        )
 
     TrtsTableCols = ('Trts.idTrts',
                      'Trts.Name',
@@ -223,6 +237,15 @@ class DBViewApp(QtWidgets.QMainWindow):
         Conditions = {'Devices.Name=': []}
         for s in sel:
             Conditions['Devices.Name='].append(s.text())
+
+        self.dfDevs = pd.DataFrame(self.DB.GetTrtsInfo(Conditions=Conditions,
+                                                  Output=self.DevicesTableCols))
+
+        self.modelDevs = PandasModel(self.dfDevs.copy())
+        self.proxyDevs = QSortFilterProxyModel()
+        self.proxyDevs.setSourceModel(self.modelDevs)
+        self.TblDevices.setModel(self.proxyDevs)
+        self.TblDevices.show()
 
         self.dfTrts = pd.DataFrame(self.DB.GetTrtsInfo(Conditions=Conditions,
                                                        Output=self.TrtsTableCols))
