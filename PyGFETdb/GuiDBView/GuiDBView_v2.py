@@ -159,21 +159,15 @@ class DBViewApp(QtWidgets.QMainWindow):
         keypath = os.path.join(os.path.dirname(__file__), 'key.key')
 
         self.DB = PyFETdb(open(keypath, 'rb').read())
-        self.DB._DEBUG = False
+        self.DB._DEBUG = True
 
-        data = self.DB.MultiSelect(Table='Wafers',
-                                   Conditions={'Wafers.idWafers >': (0,), },
-                                   Output=self.WafersColumns)
+        self.InitLists()
 
-        self.WafersDF = pd.DataFrame(data)
-
-        self.LstSubstrates.addItem('None')
-        self.LstSubstrates.addItems(sorted(list(self.WafersDF.Substrate.unique())))
-        self.LstMasks.addItem('None')
-        self.LstMasks.addItems(sorted(list(self.WafersDF.Masks.unique())))
-        self.LstRuns.addItem('None')
-        self.LstRuns.addItems(sorted(list(self.WafersDF.Run.unique())))
-        self.LstWafers.addItems(sorted(list(self.WafersDF.Name.unique())))
+        users = self.DB.MultiSelect(Table='Users',
+                                    Conditions={'Users.idUsers >': (0,), },
+                                    Output=('Name',))
+        self.LstUsers.addItem('None')
+        self.LstUsers.addItems(pd.DataFrame(users)['Name'])
 
         self.ButSetData.clicked.connect(self.ButSetData_Click)
         self.ButViewDC.clicked.connect(self.ButViewDC_Click)
@@ -190,28 +184,70 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.LstSubstrates.itemSelectionChanged.connect(self.LstChange)
         self.LstMasks.itemSelectionChanged.connect(self.LstChange)
         self.LstRuns.itemSelectionChanged.connect(self.LstChange)
+        self.LstUsers.itemSelectionChanged.connect(self.InitLists)
+
+    def InitLists(self):
+        self.LstSubstrates.clear()
+        self.LstMasks.clear()
+        self.LstRuns.clear()
+        self.LstWafers.clear()
+
+        sel = self.LstUsers.selectedItems()
+        ucond = {'Users.Name =': []}
+        for s in sel:
+            if s.text() == 'None':
+                break
+            ucond['Users.Name ='].append(s.text())
+        if len(ucond['Users.Name =']):
+            data = self.DB.GetCharactInfo(Table='DCcharacts',
+                                          Conditions=ucond,
+                                          Output=('Wafers.Name', ))
+            wcond = {'Wafers.Name =': list(pd.DataFrame(data)['Wafers_Name'])}
+        else:
+            wcond = {'Wafers.idWafers >': (0,), }
+
+        data = self.DB.MultiSelect(Table='Wafers',
+                                   Conditions=wcond,
+                                   Output=self.WafersColumns)
+        self.WafersDF = pd.DataFrame(data)
+
+        self.LstSubstrates.addItem('None')
+        self.LstSubstrates.addItems(sorted(list(self.WafersDF.Substrate.unique())))
+        self.LstMasks.addItem('None')
+        self.LstMasks.addItems(sorted(list(self.WafersDF.Masks.unique())))
+        self.LstRuns.addItem('None')
+        self.LstRuns.addItems(sorted(list(self.WafersDF.Run.unique())))
+        self.LstWafers.addItems(sorted(list(self.WafersDF.Name.unique())))
 
     def LstChange(self):
         df = self.WafersDF.copy()
 
         sel = self.LstSubstrates.selectedItems()
+        qs = []
         for s in sel:
             if s.text() == 'None':
                 break
-            df.query("Substrate == '{}'".format(s.text()), inplace=True)
+            qs.append("Substrate == '{}'".format(s.text()))
+        if len(qs):
+            df.query(' | '.join(qs), inplace=True)
 
         sel = self.LstMasks.selectedItems()
-        MasksNone = False
+        qs = []
         for s in sel:
             if s.text() == 'None':
                 break
-            df.query("Masks == '{}'".format(s.text()), inplace=True)
+            qs.append("Masks == '{}'".format(s.text()))
+        if len(qs):
+            df.query(' | '.join(qs), inplace=True)
 
         sel = self.LstRuns.selectedItems()
+        qs = []
         for s in sel:
             if s.text() == 'None':
                 break
-            df.query("Run == '{}'".format(s.text()), inplace=True)
+                qs.append("Run == '{}'".format(s.text()))
+        if len(qs):
+            df.query(' | '.join(qs), inplace=True)
 
         self.LstWafers.clear()
         self.LstWafers.addItems(df.Name.unique())
@@ -239,7 +275,7 @@ class DBViewApp(QtWidgets.QMainWindow):
             Conditions['Devices.Name='].append(s.text())
 
         self.dfDevs = pd.DataFrame(self.DB.GetTrtsInfo(Conditions=Conditions,
-                                                  Output=self.DevicesTableCols))
+                                                       Output=self.DevicesTableCols))
 
         self.modelDevs = PandasModel(self.dfDevs.copy())
         self.proxyDevs = QSortFilterProxyModel()

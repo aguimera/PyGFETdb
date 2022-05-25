@@ -28,8 +28,8 @@ def WS_Types(name):
         return 'str'
 
 
-class PyFETdb():    
-    
+class PyFETdb():
+
     def __init__(self, connection):
         f = Fernet(connection)
         # da = f.decrypt(open('./Connection', 'rb').read())
@@ -41,7 +41,7 @@ class PyFETdb():
         Cond = []
         values = []
         for c in Conditions:
-            cc = " %s OR ".join([c]*len(Conditions[c]))
+            cc = " %s OR ".join([c] * len(Conditions[c]))
             Cond.append("({} %s)".format(cc))
             for v in Conditions[c]:
                 values.append(v)
@@ -53,7 +53,7 @@ class PyFETdb():
         sInd = query.find('%s')
         while sInd > 0:
             sInds.append(sInd)
-            sInd = query.find('%s', sInd+1)
+            sInd = query.find('%s', sInd + 1)
 
         if len(sInds) > len(values):
             print("Error parsing query")
@@ -104,7 +104,7 @@ class PyFETdb():
 
     def MultiSelect(self, Table, Conditions, Output, Order=None):
         OutF, Out = self._FormatOutputQuery(Output)
-        Cond, Values = self.CreateQueryConditions(Conditions)        
+        Cond, Values = self.CreateQueryConditions(Conditions)
         query = "SELECT {} FROM {} WHERE {}".format(Out, Table, Cond)
         if Order:
             query = '{} ORDER BY {}'.format(query, Order)
@@ -177,19 +177,19 @@ class PyFETdb():
         OutF, Out = self._FormatOutputQuery(Output)
         Cond, Values = self.CreateQueryConditions(Conditions)
 
-        query = """ SELECT distinct {}
-                    FROM {}
-                    INNER JOIN Trts ON Trts.idTrts = {}.Trt_id
+        query = """ SELECT distinct {Out}
+                    FROM {Table}
+                    INNER JOIN Trts ON Trts.idTrts = {Table}.Trt_id
                     INNER JOIN TrtTypes ON TrtTypes.idTrtTypes = Trts.Type_id
                     INNER JOIN Devices ON Devices.idDevices = Trts.Device_id
                     INNER JOIN Wafers ON Wafers.idWafers = Devices.Wafer_id
                     INNER JOIN VTrts ON VTrts.idTrts = Trts.idTrts
-                    WHERE {}
-                    ORDER BY {}.MeasDate; """.format(Out,
-                                                     Table,
-                                                     Table,
-                                                     Cond,
-                                                     Table)
+                    INNER JOIN Users ON {Table}.User_id = Users.idUsers
+                    WHERE {Cond}
+                    ORDER BY {Table}.MeasDate; """.format(Out=Out,
+                                                          Table=Table,
+                                                          Cond=Cond
+                                                          )
 
         return self._execute(query, Values)
 
@@ -210,6 +210,7 @@ class PyFETdb():
                   'TrtTypes.Pass',
                   'TrtTypes.Area',
                   'TrtTypes.Contact',
+                  'Users.Name',
                   DataF,
                   '{}.Ph'.format(Table),
                   '{}.Solution'.format(Table),
@@ -221,18 +222,17 @@ class PyFETdb():
 
         OutF, Out = self._FormatOutputQuery(Output)
 
-        query = """ SELECT {}
-                    FROM {}
-                    INNER JOIN Trts ON Trts.idTrts = {}.Trt_id
+        query = """ SELECT {Out}
+                    FROM {Table}
+                    INNER JOIN Trts ON Trts.idTrts = {Table}.Trt_id
                     INNER JOIN TrtTypes ON TrtTypes.idTrtTypes = Trts.Type_id
                     INNER JOIN Devices ON Devices.idDevices = Trts.Device_id
                     INNER JOIN Wafers ON Wafers.idWafers = Devices.Wafer_id
                     INNER JOIN VTrts ON VTrts.idTrts = Trts.idTrts
-                    WHERE  {}.id{} = %s""".format(Out,
-                                                  Table,
-                                                  Table,
-                                                  Table,
-                                                  Table)
+                    INNER JOIN Users ON {Table}.User_id = Users.idUsers
+                    WHERE  {Table}.id{Table} = %s """.format(Out=Out,
+                                                   Table=Table,
+                                                   )
         res = self._execute(query, (Id,))
         if len(res) == 0:
             print('Id Not found')
@@ -252,6 +252,10 @@ class PyFETdb():
                 fn = Dat.get('Info', {})
                 fn[fp[1]] = Res[f]
                 Dat['Info'] = fn
+            elif fp[0] == 'Users':
+                fn = Dat.get('Info', {})
+                fn['User'+fp[1]] = Res[f]
+                Dat['Info'] = fn
             else:
                 fn = Dat.get(fp[0], {})
                 fn[fp[1]] = Res[f]
@@ -259,7 +263,6 @@ class PyFETdb():
 
         Dat['Name'] = Res['Trts_Name']
         return Dat
-
 
         # GidF = None
         # if GetGate:
@@ -283,9 +286,8 @@ class PyFETdb():
         #     if idg is not None:
         #         Data[Trt][cy]['Gate'] = self.GetGateFromId(idg)
 
-
     def GetData2(self, Conditions, Table, Last=True, GetGate=False):
-        Output = ('id{}'.format(Table, Table,),
+        Output = ('id{}'.format(Table, Table, ),
                   'MeasDate'.format(Table),
                   'Trts.Name')
 
@@ -329,7 +331,7 @@ class PyFETdb():
         #                                 Ids=ids,
         #                                 Trts=set(Trts),
         #                                 Last=Last,
-            #                             GetGate=GetGate)
+        #                             GetGate=GetGate)
         # return Data, list(set(Trts))
 
     def InsertCharact(self, DCVals, Fields, ACVals=None, OptFields=None,
@@ -376,19 +378,19 @@ class PyFETdb():
                                 NewVals=TrtTypeFields)
 
         Wafer_id = self.GetId(Table='Wafers',
-                                 Value=Wafer,
-                                 NewVals={'Name': Wafer})
+                              Value=Wafer,
+                              NewVals={'Name': Wafer})
 
         Device_id = self.GetId(Table='Devices',
-                                  Value=Device,
-                                  NewVals={'Name': Device,
-                                           'Wafer_id': Wafer_id})
+                               Value=Device,
+                               NewVals={'Name': Device,
+                                        'Wafer_id': Wafer_id})
 
         Trt_id = self.GetId(Table='Trts',
-                               Value=Trt,
-                               NewVals={'Name': Trt,
-                                        'Device_id': Device_id,
-                                        'Type_id': TrtType_id})
+                            Value=Trt,
+                            NewVals={'Name': Trt,
+                                     'Device_id': Device_id,
+                                     'Type_id': TrtType_id})
 
         TimeNow = datetime.datetime.now()
 
@@ -410,10 +412,10 @@ class PyFETdb():
 
         # Check if exists
         sMeasDate = DCVals['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
-        Rows = self.MultiSelect(Table=('DCcharacts', ),
-                                   Conditions={'Trt_id=': Trt_id,
-                                               'MeasDate=': sMeasDate},
-                                   FieldsOut=('Trt_id', 'idDCcharacts'))
+        Rows = self.MultiSelect(Table=('DCcharacts',),
+                                Conditions={'Trt_id=': Trt_id,
+                                            'MeasDate=': sMeasDate},
+                                FieldsOut=('Trt_id', 'idDCcharacts'))
 
         if len(Rows) == 0:  # New Record
             DCchatact_id = self.NewRow(Table='DCcharacts', Fields=NewData)
@@ -446,20 +448,20 @@ class PyFETdb():
 
             # Check if exists
             sMeasDate = ACVals['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
-            Rows = self.MultiSelect(Table=('ACcharacts', ),
-                                       Conditions={'Trt_id=': Trt_id,
-                                                   'MeasDate=': sMeasDate},
-                                       FieldsOut=('Trt_id', 'idACcharacts'))
+            Rows = self.MultiSelect(Table=('ACcharacts',),
+                                    Conditions={'Trt_id=': Trt_id,
+                                                'MeasDate=': sMeasDate},
+                                    FieldsOut=('Trt_id', 'idACcharacts'))
             if len(Rows) == 0:  # New Record
                 self.NewRow(Table='ACcharacts', Fields=NewData)
             else:
                 print('WARNING EXISTS', Rows)
                 if OverWrite:  # OverWrite
                     ACchatact_id = Rows[0]['idACcharacts']
-                    print ('Overwrite Record id ', ACchatact_id)
+                    print('Overwrite Record id ', ACchatact_id)
                     self.UpdateRow(Table='ACcharacts',
-                                      Fields=NewData,
-                                      Condition=('idACcharacts=', ACchatact_id))
+                                   Fields=NewData,
+                                   Condition=('idACcharacts=', ACchatact_id))
 
 
 def Data2Pandas(Data):
@@ -492,120 +494,118 @@ def Data2Pandas(Data):
                 continue
             pdser[k] = v
         pdSeries.append(pd.Series(pdser))
-        
+
     dfRaw = pd.concat(pdSeries, axis=1).transpose()
     DataTypes = {}
-    for col in dfRaw.keys():    
+    for col in dfRaw.keys():
         if col in ('Width', 'Length', 'Pass', 'Area', 'Ph', 'IonStrength', 'AnalyteCon'):
             dfRaw[col] = pd.to_numeric(dfRaw[col], errors='coerce')
             DataTypes[col] = float
         else:
             DataTypes[col] = 'category'
-    
+
     DataTypes['CharCl'] = object
     DataTypes['IsOk'] = bool
     DataTypes['Date'] = 'datetime64[ns]'
-    
+
     return dfRaw.astype(DataTypes, errors='ignore')
-    
+
 
 if __name__ == '__main__':
-    
     # f = Fernet(open('key.key', 'rb').read())
     # da = f.decrypt(open('Connection', 'rb').read())
     # connection = pickle.loads(da)
     MyDb = PyFETdb(open('key.key', 'rb').read())
 
-#%% Test insert bin data
-    # OptFields = {}
-    # OptFields['Solution'] = 'TestWS'
-    # OptFields['FuncStep'] = 'TestWS'
-    # OptFields['Ph'] = 7.21
-    
-    # by = pickle.dumps(OptFields,0)
-    
-    # data = {}
-    # data['table'] = "DCcharacts"
-    # data['fields'] = {}
-    # data['fields'][0] = {}
-    # data['fields'][1] = {}
-    # data['fields'][2] = {}
-    # data['fields'][0]['name'] = "Trt_id"
-    # data['fields'][0]['value'] = 100
-    # data['fields'][0]['type'] = "int"
-    # data['fields'][1]['name'] = "Comments"
-    # data['fields'][1]['value'] = 'TestWS'
-    # data['fields'][1]['type'] = "str"
-    # data['fields'][2]['name'] = "Data"
-    # data['fields'][2]['value'] = by
-    # data['fields'][2]['type'] = "bin"
-        
-    # res = ws_json.call(connection, data,"insert")
-    # '''
-    #  	Per un update, per exemple, 
-    # data['where'] = "idDCcharacts=458586"
-    # res = ws_json_class.ws_json.call("pyfet", data,"update")
-    # '''
-    # try:
-    #  	error = res['error']
-    #  	if (error):
-    #          print("S'ha produït un error ")
-    #          print("\t" + str(res['errorCode']) + " : " + res['message'])
-    #  	else:
-    #          print("El resultat és: ")
-    #          print(res['result'])
-    # except:
-    #  	print("S'ha produït un error inesperat")
-    #  	sys.exit(0)
+# %% Test insert bin data
+# OptFields = {}
+# OptFields['Solution'] = 'TestWS'
+# OptFields['FuncStep'] = 'TestWS'
+# OptFields['Ph'] = 7.21
+
+# by = pickle.dumps(OptFields,0)
+
+# data = {}
+# data['table'] = "DCcharacts"
+# data['fields'] = {}
+# data['fields'][0] = {}
+# data['fields'][1] = {}
+# data['fields'][2] = {}
+# data['fields'][0]['name'] = "Trt_id"
+# data['fields'][0]['value'] = 100
+# data['fields'][0]['type'] = "int"
+# data['fields'][1]['name'] = "Comments"
+# data['fields'][1]['value'] = 'TestWS'
+# data['fields'][1]['type'] = "str"
+# data['fields'][2]['name'] = "Data"
+# data['fields'][2]['value'] = by
+# data['fields'][2]['type'] = "bin"
+
+# res = ws_json.call(connection, data,"insert")
+# '''
+#  	Per un update, per exemple,
+# data['where'] = "idDCcharacts=458586"
+# res = ws_json_class.ws_json.call("pyfet", data,"update")
+# '''
+# try:
+#  	error = res['error']
+#  	if (error):
+#          print("S'ha produït un error ")
+#          print("\t" + str(res['errorCode']) + " : " + res['message'])
+#  	else:
+#          print("El resultat és: ")
+#          print(res['result'])
+# except:
+#  	print("S'ha produït un error inesperat")
+#  	sys.exit(0)
 
 
-    # qt = "SELECT * FROM DCcharacts WHERE Comments='TestWS'"
-    
-    # Res = ws_json.call(connection, qt)
-    
-    
-    #%% Test Read
-    # DevicesList = ('B12744W3-Xip6NS', 'B12744W3-Xip5NS',
-    #                 )
-    
-    # CharTable = 'DCcharacts'
-    # Conditions = {'Devices.name = ': DevicesList,
-    #               }
-    
-    # GroupBase = {'Conditions': Conditions,
-    #               'Table': CharTable,
-    #               'Last': True,
-    #               'GetGate': True,
-    #               }
+# qt = "SELECT * FROM DCcharacts WHERE Comments='TestWS'"
+
+# Res = ws_json.call(connection, qt)
 
 
-    # res = MyDb.GetData2(**GroupBase)  
-    # dfRaw = Data2Pandas(res)
+# %% Test Read
+# DevicesList = ('B12744W3-Xip6NS', 'B12744W3-Xip5NS',
+#                 )
 
-    #%% Test Read
-    
-    # Fields = {}
-    # Fields['User'] = 'SB'
-    
-    # OptFields = {}
-    # OptFields['Solution'] = 'TestWS'
-    # OptFields['FuncStep'] = 'TestWS'
-    # OptFields['Ph'] = 7.21
-    # OptFields['AnalyteCon'] = 'tt'
-    # OptFields['IonStrength'] = 10e-3
-    # OptFields['Comments'] = 'tt'
+# CharTable = 'DCcharacts'
+# Conditions = {'Devices.name = ': DevicesList,
+#               }
 
-    # Fields['Wafer'] = 'TestWS'
-    # Fields['Device'] = 'TestWS-Dev'
-    # Fields['Trt'] = 'TestWS-Dev'
-    # Fields['TrtType'] = 'RW50L50P3p0CS'
-    # Fields['Gate_id'] = None
+# GroupBase = {'Conditions': Conditions,
+#               'Table': CharTable,
+#               'Last': True,
+#               'GetGate': True,
+#               }
 
-    # DCd = res[0]
 
-    # MyDb.InsertCharact(DCVals=DCd,
-    #                       ACVals=None,
-    #                       Fields=Fields,
-    #                       OptFields=OptFields,
-    #                       TrtTypeFields=None)
+# res = MyDb.GetData2(**GroupBase)
+# dfRaw = Data2Pandas(res)
 
+# %% Test Read
+
+# Fields = {}
+# Fields['User'] = 'SB'
+
+# OptFields = {}
+# OptFields['Solution'] = 'TestWS'
+# OptFields['FuncStep'] = 'TestWS'
+# OptFields['Ph'] = 7.21
+# OptFields['AnalyteCon'] = 'tt'
+# OptFields['IonStrength'] = 10e-3
+# OptFields['Comments'] = 'tt'
+
+# Fields['Wafer'] = 'TestWS'
+# Fields['Device'] = 'TestWS-Dev'
+# Fields['Trt'] = 'TestWS-Dev'
+# Fields['TrtType'] = 'RW50L50P3p0CS'
+# Fields['Gate_id'] = None
+
+# DCd = res[0]
+
+# MyDb.InsertCharact(DCVals=DCd,
+#                       ACVals=None,
+#                       Fields=Fields,
+#                       OptFields=OptFields,
+#                       TrtTypeFields=None)
