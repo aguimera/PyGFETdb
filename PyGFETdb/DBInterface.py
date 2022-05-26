@@ -31,6 +31,9 @@ ScalarParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 VgsScalar = -0.1*pq.V
 ScalarQueriesDC = {'CNP': {'Param': 'Ud0',
                             'Units': 'mV'},
+                   'IgMax': {'Param': 'IgMax',
+                              'Units': 'nA'
+                              },
                    'IdsV01': {'Param': 'Ids',
                               'Vgs': 0.1*pq.V,
                               'Ud0Norm': False,
@@ -70,7 +73,7 @@ for par in ScalarParamsAC:
 ########################################################################################################################
 Vgs = np.linspace(-0.1, 0.6, 100) * pq.V
 VgsNorm = np.linspace(-0.4, 0.4, 100) * pq.V
-ArrayParamsDC = ['Ids', 'GM', 'GMV']
+ArrayParamsDC = ['Ids', 'GM', 'GMV', 'Ig']
 ArrayParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 ArrayQueriesDC = {}
 for par in ArrayParamsDC:
@@ -125,9 +128,10 @@ pdAttrDC = {'Vgs': Vgs,
             }
 
 
-def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):
+def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False):
     PdSeries = []
     for index, row in dbRaw.iterrows():
+        print("Calculating {} of {}".format(index, dbRaw.shape[0]))
         char = row['CharCl']
         Vds = char.GetVds()
         for vds in Vds:
@@ -138,7 +142,8 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr):
                 try:
                     val = char.Get(**park)
                 except:
-                    print('Error', parn, char.Name)
+                    if pErrors:
+                        print('Error', parn, char.Name)
                     continue
                 if val is None:
                     continue
@@ -286,7 +291,7 @@ def Data2Pandas(DictData):
         for dd in dats:
             pdser = {}
             pdser['Name'] = tn
-            pdser['CharCl'] = dd
+            pdser['CharCl'] = DataCharAC(dd)
             pdser['IsOk'] = dd.IsOK
             pdser['ChName'] = dd.ChName
             pdser['Date'] = dd.GetDateTime()
@@ -324,3 +329,5 @@ def Data2Pandas(DictData):
     DataTypes['Date'] = 'datetime64[ns]'
     
     return dfRaw.astype(DataTypes)
+
+

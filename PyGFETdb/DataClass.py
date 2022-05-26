@@ -449,11 +449,10 @@ class DataCharDC(object):
 
     def GetIg(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'Ig' not in self.__dict__:
-#            print 'No Gate data'
             return None
         return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
     
-    def GetGIgMax(self, **kwargs):
+    def GetIgMax(self, **kwargs):
         return np.max(np.abs(self.GetIg(**kwargs)))
     
     def CheckVgsInds(self, Vgs, iVds, Ud0Norm):

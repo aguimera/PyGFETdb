@@ -5,9 +5,10 @@ Created on Fri Feb 18 14:41:57 2022
 
 @author: aguimera
 """
-from PyGFETdb.DBInterface import GetFromDB, Data2Pandas, CalcElectricalParams
+from PyGFETdb.DBInterface import GetFromDB, CalcElectricalParams
 from PyGFETdb.DBInterface import ClassQueries, pdAttr
 import pandas as pd
+from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
 
 DevicesList = ('B12744W3-Xip6NS',
                )
@@ -25,7 +26,11 @@ GroupBase = {'Conditions': Conditions,
 
 # %% Get data from DataBase
 
-Data, Trts = GetFromDB(**GroupBase)
+MyDB = PyFETdb(open('key.key', 'rb').read())
+MyDB._DEBUG = False
+
+Data = MyDB.GetData2(**GroupBase)
+
 dfRaw = Data2Pandas(Data)
 
 dfRaw.to_pickle('RawDat.pkl')

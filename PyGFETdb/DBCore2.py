@@ -220,6 +220,15 @@ class PyFETdb():
                   '{}.AnalyteCon'.format(Table),
                   '{}.Comments'.format(Table)]
 
+        if GetGate:
+            if Table == 'DCcharacts':
+                GidF = 'DCcharacts.Gate_id'
+                Output.append(GidF)
+            else:
+                GidF = None
+                DCidF = 'ACcharacts.DC_id'
+                Output.append(DCidF)
+
         OutF, Out = self._FormatOutputQuery(Output)
 
         query = """ SELECT {Out}
@@ -231,8 +240,8 @@ class PyFETdb():
                     INNER JOIN VTrts ON VTrts.idTrts = Trts.idTrts
                     INNER JOIN Users ON {Table}.User_id = Users.idUsers
                     WHERE  {Table}.id{Table} = %s """.format(Out=Out,
-                                                   Table=Table,
-                                                   )
+                                                             Table=Table,
+                                                             )
         res = self._execute(query, (Id,))
         if len(res) == 0:
             print('Id Not found')
@@ -262,29 +271,37 @@ class PyFETdb():
                 Dat[fp[0]] = fn
 
         Dat['Name'] = Res['Trts_Name']
+
+        if GetGate:
+            if Table == 'DCcharacts':                
+                Dat['Gate'] = self.GetGateFromId(Res['DCcharacts_Gate_id'])
+            elif Table == 'ACcharacts':
+                cond = {'idDCcharacts = ': (Res['ACcharacts_DC_id'], )}
+                Res = self.MultiSelect(Table='DCcharacts',
+                                        Conditions=cond,
+                                        Output=('Gate_id', ))
+
+                Dat['Gate'] = self.GetGateFromId(Res[0]['Gate_id'])             
+
         return Dat
 
-        # GidF = None
-        # if GetGate:
-        #     if Table == 'DCcharacts':
-        #         GidF = 'DCcharacts.Gate_id'
-        #         Output.append(GidF)
-        #     else:
-        #         DCidF = 'ACcharacts.DC_id'
-        #         Output.append(DCidF)
-        # if GetGate:
-        #     idg = None
-        #     if GidF is None:
-        #         Rows = self.MultiSelect(Table=('DCcharacts', ),
-        #                                 Conditions={'idDCcharacts=': (re[DCidF], )},
-        #                                 FieldsOut=('Gate_id', ))
-        #         if len(Rows) > 0:
-        #             idg = Rows[0][0]
-        #     else:
-        #         idg = re[GidF]
+    def GetGateFromId(self, idg):
+        Rows = self.MultiSelect(Table='Gcharacts',
+                                Conditions={'idGcharacts=': (idg, )},
+                                Output=('Data', ))
+        if len(Rows):
+            GateData = pickle.loads(Rows[0]['Data'], encoding='latin')
+            Res = self.GetCharactInfo(Table='DCcharacts',
+                                      Conditions={'DCcharacts.Gate_id = ': (idg, )},
+                                      Output=('Trts.Name',))
+            Trts = []
+            for re in Res:
+                Trts.append(re['Trts_Name'])
 
-        #     if idg is not None:
-        #         Data[Trt][cy]['Gate'] = self.GetGateFromId(idg)
+            GateData['GateTrts'] = Trts
+            return GateData
+        else:
+            return None
 
     def GetData2(self, Conditions, Table, Last=True, GetGate=False):
         Output = ('id{}'.format(Table, Table, ),
@@ -317,22 +334,13 @@ class PyFETdb():
             ids = list(dfr['id{}'.format(Table)])
 
         Data = []
-        for Id in ids:
-            Data.append(self.GetCharactFromId(Table=Table, Id=Id))
+        for ic, Id in enumerate(ids):
+            print("Downloading {} of {}".format(ic, len(ids)))
+            Data.append(self.GetCharactFromId(Table=Table,
+                                              Id=Id,
+                                              GetGate=GetGate))
 
         return Data
-        # ids = []
-        # Trts = []
-        # for r in Res:
-        #     ids.append(r['{}.id{}'.format(Table, Table)])
-        #     Trts.append(r['Trts.Name'])
-
-        # Data = self.GetCharactFromId(Table=Table,
-        #                                 Ids=ids,
-        #                                 Trts=set(Trts),
-        #                                 Last=Last,
-        #                             GetGate=GetGate)
-        # return Data, list(set(Trts))
 
     def InsertCharact(self, DCVals, Fields, ACVals=None, OptFields=None,
                       TrtTypeFields=None, OverWrite=True):
@@ -466,7 +474,8 @@ class PyFETdb():
 
 def Data2Pandas(Data):
     pdSeries = []
-    for dd in Data:
+    for ic, dd in enumerate(Data):
+        print("Converting {} of {}".format(ic, len(Data)))
         pdser = {}
         d = DataCharAC(dd)
         pdser['Name'] = d.Name
