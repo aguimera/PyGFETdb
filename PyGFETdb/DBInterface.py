@@ -158,9 +158,11 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False):
     DataTypes = dbRaw.dtypes
     DataTypes['Vds'] = np.float
     for col in dfAttr['ScalarCols']:
-        DataTypes[col] = np.float
+        if col in dfDat.columns:
+            DataTypes[col] = np.float
     for col in dfAttr['ArrayCols']:
-        DataTypes[col] = object
+        if col in dfDat.columns:
+            DataTypes[col] = object
     dfDat = dfDat.astype(DataTypes)
     
     ColUnits = {}

@@ -159,7 +159,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         keypath = os.path.join(os.path.dirname(__file__), 'key.key')
 
         self.DB = PyFETdb(open(keypath, 'rb').read())
-        self.DB._DEBUG = True
+        self.DB._DEBUG = False
 
         self.InitLists()
 
@@ -221,7 +221,6 @@ class DBViewApp(QtWidgets.QMainWindow):
 
     def LstChange(self):
         df = self.WafersDF.copy()
-
         sel = self.LstSubstrates.selectedItems()
         qs = []
         for s in sel:
@@ -324,8 +323,9 @@ class DBViewApp(QtWidgets.QMainWindow):
         idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
 
         Data = []
-        for Id in idchars:
-            Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id))
+        for ic, Id in enumerate(idchars):
+            print("Downloading {} of {}".format(ic, len(idchars)))
+            Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id, GetGate=True))
         dfRaw = Data2Pandas(Data)
 
         self.DataExp = DataExplorer(dfRaw, Paramters='DC')
@@ -337,8 +337,9 @@ class DBViewApp(QtWidgets.QMainWindow):
         idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
 
         Data = []
-        for Id in idchars:
-            Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id))
+        for ic, Id in enumerate(idchars):
+            print("Downloading {} of {}".format(ic, len(idchars)))
+            Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id, GetGate=True))
         dfRaw = Data2Pandas(Data)
 
         self.DataExp = DataExplorer(dfRaw, Paramters='AC')
