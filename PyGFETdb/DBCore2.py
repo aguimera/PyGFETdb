@@ -121,10 +121,10 @@ class PyFETdb():
             else:
                 ID = None
         elif len(Res) == 1:
-            ID = Res[0]['id{}'.format(Table)].decode()
+            ID = Res[0]['id{}'.format(Table)]
         elif len(Res) > 1:
             print('Warning', query, Res)
-            ID = Res[0]['id{}'.format(Table)].decode()
+            ID = Res[0]['id{}'.format(Table)]
 
         return int(ID)
 
@@ -137,7 +137,7 @@ class PyFETdb():
                                   'value': v,
                                   'type': WS_Types(k)}
         Res = self._execute(data, oper='insert')
-        return int(Res[0]['id'].decode())
+        return int(Res[0]['id'])
 
     def UpdateRow(self, Table, Fields, Condition):
         data = {}
@@ -420,10 +420,10 @@ class PyFETdb():
 
         # Check if exists
         sMeasDate = DCVals['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
-        Rows = self.MultiSelect(Table=('DCcharacts',),
-                                Conditions={'Trt_id=': Trt_id,
-                                            'MeasDate=': sMeasDate},
-                                FieldsOut=('Trt_id', 'idDCcharacts'))
+        Rows = self.MultiSelect(Table='DCcharacts',
+                                Conditions={'Trt_id=': (Trt_id, ),
+                                            'MeasDate=': (sMeasDate, )},
+                                Output=('Trt_id', 'idDCcharacts'))
 
         if len(Rows) == 0:  # New Record
             DCchatact_id = self.NewRow(Table='DCcharacts', Fields=NewData)
@@ -432,7 +432,7 @@ class PyFETdb():
             if OverWrite:  # OverWrite
                 DCchatact_id = Rows[0]['idDCcharacts']
                 print('Overwrite Record id ', DCchatact_id)
-                scond = 'idDCcharacts={}'.format(DCchatact_id)
+                scond = 'idDCcharacts = {}'.format(DCchatact_id)
                 self.UpdateRow(Table='DCcharacts',
                                Fields=NewData,
                                Condition=scond)
@@ -445,10 +445,10 @@ class PyFETdb():
             # FILL NewData structure
             NewData = {'Trt_id': Trt_id,
                        'User_id': Author_id,
-                       'UpdateDate': TimeNow,
+                       'UpdateDate': str(TimeNow),
                        'DC_id': DCchatact_id,
                        'Data': pickle.dumps(ACVals),
-                       'MeasDate': ACVals['DateTime']}
+                       'MeasDate': str(ACVals['DateTime'])}
             if 'IsOK' in ACVals:
                 NewData['IsOK'] = ACVals['IsOK']
             if OptFields:
@@ -456,10 +456,10 @@ class PyFETdb():
 
             # Check if exists
             sMeasDate = ACVals['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
-            Rows = self.MultiSelect(Table=('ACcharacts',),
-                                    Conditions={'Trt_id=': Trt_id,
-                                                'MeasDate=': sMeasDate},
-                                    FieldsOut=('Trt_id', 'idACcharacts'))
+            Rows = self.MultiSelect(Table='ACcharacts',
+                                    Conditions={'Trt_id=': (Trt_id,),
+                                                'MeasDate=': (sMeasDate,)},
+                                    Output=('Trt_id', 'idACcharacts'))
             if len(Rows) == 0:  # New Record
                 self.NewRow(Table='ACcharacts', Fields=NewData)
             else:
@@ -467,9 +467,49 @@ class PyFETdb():
                 if OverWrite:  # OverWrite
                     ACchatact_id = Rows[0]['idACcharacts']
                     print('Overwrite Record id ', ACchatact_id)
+                    scond = 'idACcharacts = {}'.format(ACchatact_id)
                     self.UpdateRow(Table='ACcharacts',
                                    Fields=NewData,
-                                   Condition=('idACcharacts=', ACchatact_id))
+                                   Condition= scond)
+                    
+
+    def InsertGateCharact(self, GateData, Fields, OverWrite=True):
+        # Set Get information in other tables
+        Author = Fields['User']
+        Author_id = self.GetId(Table='Users',
+                               Value=Author,
+                               NewVals={'Name': Author})
+        Fields.pop('User')
+
+        # Check if exists
+        sMeasDate = GateData['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
+        Rows = self.MultiSelect(Table='Gcharacts',
+                                Conditions={'Name=': (Fields['Name'],),
+                                            'MeasDate=': (sMeasDate, )},
+                                Output=('idGcharacts', ))
+
+        NewData = {'Data': pickle.dumps(GateData),
+                   'User_id': Author_id,
+                   'MeasDate': str(GateData['DateTime']),
+                   'UpdateDate': str(datetime.datetime.now())}
+        NewData.update(Fields)
+
+        if len(Rows) == 0:  # New Record
+            Gate_id = self.NewRow(Table='Gcharacts', Fields=NewData)
+        else:                        
+            Gate_id = Rows[0]['idGcharacts']
+            print ('Gate id foung {}'. format(Gate_id))
+            if OverWrite:  # OverWrite                
+                print ('WARNING EXISTS', Rows)
+                print ('Overwrite Record id ', Gate_id)
+                scond = 'idGcharacts = {}'.format(Gate_id)
+                self.UpdateRow(Table='Gcharacts',
+                               Fields=NewData,
+                               Condition=scond)
+        return Gate_id
+    
+    def InsertDataFrame(self, dfUpload):
+        pass
 
 
 def Data2Pandas(Data):

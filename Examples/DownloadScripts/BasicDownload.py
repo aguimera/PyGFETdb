@@ -10,18 +10,27 @@ from PyGFETdb.DBInterface import ClassQueries, pdAttr
 import pandas as pd
 from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
 
-DevicesList = ('B12744W3-Xip6NS',
-               )
+# DevicesList = ('B12744W3-Xip6NS',
+#                )
+# Conditions = {'Devices.name = ': DevicesList,
+#               }
+
+
+WafersList = ('6888BNHQ',
+                )
+Conditions = {'Wafers.name = ': WafersList,
+              }
 
 CharTable = 'ACcharacts'
-Conditions = {'Devices.name = ': DevicesList,
-              }
+
 
 GroupBase = {'Conditions': Conditions,
              'Table': CharTable,
              'Last': False,
              'GetGate': True,
              }
+
+
 
 
 # %% Get data from DataBase

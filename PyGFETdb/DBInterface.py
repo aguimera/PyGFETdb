@@ -195,7 +195,7 @@ def LoadPickleData(FileIn):
             GateDict = dat
             continue
         DCclass = DataCharDC(dat)
-        DictClDC[chn] = (DCclass, )
+        DictClDC[chn] = DCclass
 
         if DevACVals is None:
             continue
@@ -205,7 +205,7 @@ def LoadPickleData(FileIn):
         acDat.pop('Ids')
         acDat['Vgs'] = acDat.pop('VgsAC')
         acDat['Vds'] = acDat.pop('VdsAC')
-        DictClAC[chn] = (DataCharAC(acDat), )
+        DictClAC[chn] = DataCharAC(acDat)
     
     return DictClDC, DictClAC, GateDict
 
