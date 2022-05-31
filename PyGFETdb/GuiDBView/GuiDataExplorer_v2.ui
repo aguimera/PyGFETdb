@@ -148,7 +148,21 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
-              <item row="0" column="0" rowspan="5">
+              <item row="4" column="1">
+               <widget class="QCheckBox" name="CheckLinesMean">
+                <property name="text">
+                 <string>Mean</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="ButPlotVect">
+                <property name="text">
+                 <string>Plot Lines</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" rowspan="6">
                <widget class="QListWidget" name="LstLinesPars">
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -161,12 +175,8 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QPushButton" name="ButPlotVect">
-                <property name="text">
-                 <string>Plot Lines</string>
-                </property>
-               </widget>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="CmbLinesGroup"/>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_2">
@@ -178,20 +188,20 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="CmbLinesGroup"/>
-              </item>
-              <item row="3" column="1">
-               <widget class="QCheckBox" name="CheckLinesMean">
-                <property name="text">
-                 <string>Mean</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
+              <item row="5" column="1">
                <widget class="QCheckBox" name="CheckLinesStd">
                 <property name="text">
                  <string>Std</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="CheckLines">
+                <property name="text">
+                 <string>Lines</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>

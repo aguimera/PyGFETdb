@@ -210,6 +210,7 @@ class PyFETdb():
                   'TrtTypes.Pass',
                   'TrtTypes.Area',
                   'TrtTypes.Contact',
+                  'TrtTypes.Shape',
                   'Users.Name',
                   DataF,
                   '{}.Ph'.format(Table),

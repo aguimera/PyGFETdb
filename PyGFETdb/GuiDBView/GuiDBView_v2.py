@@ -2,6 +2,7 @@ import argparse
 import importlib
 import sys
 import os
+import warnings
 
 import numpy as np
 
@@ -530,7 +531,8 @@ class DataExplorer(QtWidgets.QMainWindow):
 
         self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
 
-        catCols = list(dfRaw.select_dtypes(include=('category', 'bool', 'datetime64[ns]')).columns)
+        includetypes = ('float', 'category', 'bool', 'datetime64[ns]')
+        catCols = list(dfRaw.select_dtypes(include=includetypes).columns)
         self.CmbBoxX.addItems(catCols)
         self.CmbBoxX.setCurrentText('Device')
         self.CmbBoxHue.addItems(catCols)
@@ -623,22 +625,27 @@ class DataExplorer(QtWidgets.QMainWindow):
                     if type(v) == float:
                         continue
                     try:
-                        ax.plot(xVar, v.transpose(),
-                                color=Col,
-                                alpha=0.8,
-                                label=gn)
+                        if self.CheckLines.isChecked():
+                            ax.plot(xVar, v.transpose(),
+                                    color=Col,
+                                    alpha=0.8,
+                                    label=gn)
                         Vals = np.vstack((Vals, v)) if Vals.size else v
                     except:
                         pass
 
                 Vals = Vals.magnitude.transpose()
-                mean = np.nanmedian(Vals, axis=1)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    mean = np.nanmedian(Vals, axis=1)
 
                 if self.CheckLinesMean.isChecked():
                     ax.plot(xVar, mean, '-.', color=Col, lw=1.5, label=gn)
 
                 if self.CheckLinesStd.isChecked():
-                    std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
                     ax.fill_between(xVar, mean + std, mean - std, color=Col, alpha=0.2)
 
                 handles, labels = ax.get_legend_handles_labels()
