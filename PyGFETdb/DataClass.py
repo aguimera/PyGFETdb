@@ -269,20 +269,25 @@ class DataCharDC(object):
 
         return self._FormatOutput(Vgs, **kwargs)
 
-    def GetVdsIndexes(self, Vds):
+    def GetVdsIndexes(self, Vds, MeasVds=None):
+        if MeasVds is None:
+            selfVds = self.Vds
+        else:
+            selfVds = MeasVds
+
         if Vds:
             if not hasattr(Vds, '__iter__'):
                 Vds = (Vds,)
             iVds = []
             for vd in Vds:
-                ind = np.where(self.Vds == vd)[0]
+                ind = np.where(selfVds == vd)[0]
                 if len(ind) > 0:
                     iVds.append(ind[0])
                 else:
-                    print ('Vds = ', vd, 'Not in data')
+                    print('Vds = ', vd, 'Not in data')
             iVds = np.array(iVds)
         else:
-            iVds = np.arange(len(self.Vds))
+            iVds = np.arange(len(selfVds))
         return iVds
 
     def GetIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
@@ -450,18 +455,24 @@ class DataCharDC(object):
     def GetIg(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'Ig' not in self.__dict__:
             return None
-        return self._GetParam('Ig', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        return self._GetParam('Ig',
+                              Vgs=Vgs,
+                              Vds=Vds,
+                              Ud0Norm=Ud0Norm,
+                              MeasVgs=self.Gate['Vgs'],
+                              MeasVds=self.Gate['Vds'],
+                              )
     
     def GetIgMax(self, **kwargs):
         return np.max(np.abs(self.GetIg(**kwargs)))
     
-    def CheckVgsInds(self, Vgs, iVds, Ud0Norm):
+    def CheckVgsInds(self, Vgs, iVds, Ud0Norm, MeasVgs=None):
         """
         Find the valid indexes for the vgs vector.
 
         Parameters
         ----------
-        vgs: vector with the vgs values to check
+        Vgs: vector with the vgs values to check
         iVds: list of indexes for Vds
         Ud0Norm: True, indicates that the vgs values are refered to CNP
 
@@ -473,11 +484,16 @@ class DataCharDC(object):
         """
         # TODO !!!!!! check for serveral Vds
 
+        if MeasVgs is None:
+            selfVgs = self.Vgs
+        else:
+            selfVgs = MeasVgs
+
         if Vgs is None:
-            return self.Vgs, np.arange(len(self.Vgs))
+            return selfVgs, np.arange(len(selfVgs))
 
         for ivd in iVds:
-            VgsM = self.Vgs
+            VgsM = selfVgs
             if Ud0Norm is None or Ud0Norm is False:
                 vg = Vgs
             else:
@@ -495,10 +511,15 @@ class DataCharDC(object):
                 return Vgs[Inds], Inds
         return Vgs, np.arange(Vgs.size)
 
-    def CheckVgsRange(self, Vgs, iVds, Ud0Norm):
+    def CheckVgsRange(self, Vgs, iVds, Ud0Norm, MeasVgs=None):
+        if MeasVgs is None:
+            selfVgs = self.Vgs
+        else:
+            selfVgs = MeasVgs
+
         if Vgs is not None:
             for ivd in iVds:
-                VgsM = self.Vgs
+                VgsM = selfVgs
                 if Ud0Norm is None or Ud0Norm is False:
                     vg = Vgs
                 else:
@@ -510,7 +531,7 @@ class DataCharDC(object):
                     return None
             return Vgs
         else:
-            return self.Vgs
+            return selfVgs
 
     def Get(self, Param, **kwargs):
         """
@@ -528,8 +549,8 @@ class DataCharDC(object):
         """
         return self.__getattribute__('Get' + Param)(**kwargs)
 
-    def _GetParam(self, Param, Vgs=None, Vds=None,
-                  Ud0Norm=False, Normalize=False, **kwargs):
+    def _GetParam(self, Param, Vgs=None, Vds=None, Ud0Norm=False, Normalize=False,
+                  MeasVgs=None, MeasVds=None, **kwargs):
         """
         Get any kind of value, generic form.
 
@@ -544,31 +565,37 @@ class DataCharDC(object):
 
         """
         # Get Valid Vds indexes
-        iVds = self.GetVdsIndexes(Vds)
+        iVds = self.GetVdsIndexes(Vds=Vds, MeasVds=MeasVds)
         if len(iVds) == 0:
             return None
 
-        # Check self consitency
+        # Check self consistency
         if Param not in self.__dict__:
             print(Param, 'Not valid parameter', self.Name)
             return None
         Par = self.__getattribute__(Param)
 
-        # vgs = self.CheckVgsRange(Vgs, iVds, Ud0Norm)
-        # if vgs is None:
-        #     return None
-        # if len(self.Vgs) < 2:
-        #     print ('self Vgs len error', self.Vgs)
-        #     return None
-
         # Get Valid Vgs indexes
-        vgs, vginds = self.CheckVgsInds(Vgs, iVds, Ud0Norm)
+        vgs, vginds = self.CheckVgsInds(Vgs=Vgs,
+                                        iVds=iVds,
+                                        Ud0Norm=Ud0Norm,
+                                        MeasVgs=MeasVgs)
         if vgs is None:
             return np.ones((1, iVds.size)) * np.NaN
 
+        if MeasVgs is None:
+            selfVgs = self.Vgs
+        else:
+            selfVgs = MeasVgs
+
+        if MeasVds is None:
+            selfVds = self.Vds
+        else:
+            selfVds = MeasVds
+
         # Dimensioning output
         if Vgs is None:
-            nVg = len(self.Vgs)
+            nVg = len(selfVgs)
         else:
             nVg = Vgs.size
         PAR = np.ones((nVg, iVds.size)) * np.NaN
@@ -580,9 +607,9 @@ class DataCharDC(object):
             else:
                 vg = vgs
 
-            par = interp1d(self.Vgs, Par[:, ivd], kind=self.IntMethod)(vg)
+            par = interp1d(selfVgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
-                par = par/self.Vds[ivd]
+                par = par/selfVds[ivd]
             PAR[vginds, ic] = par
 
         if Param in self.DefaultUnits:
