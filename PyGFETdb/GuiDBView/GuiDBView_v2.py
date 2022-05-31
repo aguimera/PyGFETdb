@@ -20,7 +20,7 @@ import math
 from PyGFETdb.GuiDBView import UpdateDialogs
 from PyGFETdb import DBInterface
 import copy
-
+from scipy import stats
 
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
@@ -623,23 +623,28 @@ class DataExplorer(QtWidgets.QMainWindow):
                     if type(v) == float:
                         continue
                     try:
-                        ax.plot(xVar, v.transpose(), color=Col, alpha=0.8)
+                        ax.plot(xVar, v.transpose(),
+                                color=Col,
+                                alpha=0.8,
+                                label=gn)
                         Vals = np.vstack((Vals, v)) if Vals.size else v
                     except:
                         pass
 
-                # Vals = Vals.magnitude.transpose()
-                # mean = np.nanmedian(Vals, axis=1)
-                # std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
-                #
-                # ax.plot(xVar, mean, color='k', lw=1.5, label=gn)
-                # if not dic['Ylog']:
-                #     ax.fill_between(xVar, mean + std, mean - std, color='k', alpha=0.2)
+                Vals = Vals.magnitude.transpose()
+                mean = np.nanmedian(Vals, axis=1)
 
-            # AxsDict['GM'].legend(fontsize='xx-small')
-            # fig.tight_layout()
-            # PDF.savefig(fig)
-            # plt.close(fig)
+                if self.CheckLinesMean.isChecked():
+                    ax.plot(xVar, mean, '-.', color=Col, lw=1.5, label=gn)
+
+                if self.CheckLinesStd.isChecked():
+                    std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
+                    ax.fill_between(xVar, mean + std, mean - std, color=Col, alpha=0.2)
+
+                handles, labels = ax.get_legend_handles_labels()
+                by_label = dict(zip(labels, handles))
+                ax.legend(by_label.values(), by_label.keys(), fontsize='xx-small')
+
         plt.show()
 
     def ButExportPkl_Click(self):
