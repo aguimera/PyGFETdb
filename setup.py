@@ -26,16 +26,15 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.3.2'
+_version = '0.4.0'
 
 long_description = """
                    Library for GFET analysis tools
                    """
 
-install_requires = ['pymysql',
-                    ]
+install_requires = [ ]
 
-console_scripts = ['GFETDbView3 = PyGFETdb.GuiDBView.GuiDBView:main',
+console_scripts = ['GFETDbView_v2 = PyGFETdb.GuiDBView.GuiDBView_v2:main',
                    ]
 
 entry_points = {'console_scripts': console_scripts, }
