@@ -1,2 +1,3 @@
 include PyGFETdb/GuiDBView/*.ui
+include PyGFETdb/*.bin
 
