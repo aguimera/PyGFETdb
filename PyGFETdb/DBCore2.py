@@ -35,7 +35,7 @@ class PyFETdb():
         # da = f.decrypt(open('./Connection', 'rb').read())
         da = f.decrypt(importlib.resources.read_binary('PyGFETdb', 'Connection'))
         self.connection = pickle.loads(da)
-        self._DEBUG = True
+        self._DEBUG = False
 
     def CreateQueryConditions(self, Conditions):
         Cond = []
@@ -509,8 +509,36 @@ class PyFETdb():
                                Condition=scond)
         return Gate_id
     
-    def InsertDataFrame(self, dfUpload):
-        pass
+    def InsertDataFrame(self, dfUpload):        
+        FieldsCols = ('User',
+                      'Wafer',
+                      'Device',
+                      'TrtType',
+                      'Trt')
+
+        DataFields = ('DCVals', 'ACVals', 'GateData', 'TrtTypeFields')
+        NonOptFields = list(FieldsCols) + list(DataFields)
+
+        for ir, r in dfUpload.iterrows():
+            print("Upload {} of {}  {}".format(ir, dfUpload.shape[0], r.Trt))
+            
+            GateId = None
+            if r.GateData is not None:
+                GateFields= {'User': r.User,
+                             'Name': '{}-Gate'.format(r.Device),
+                             'FileName': r.FileName}
+                GateId = self.InsertGateCharact(GateData=r.GateData,
+                                                Fields=GateFields)
+                    
+            Fields = r[list(FieldsCols)].to_dict()
+            Fields['Gate_id'] = GateId
+            
+            self.InsertCharact(DCVals=r.DCVals,
+                               Fields=Fields,
+                               ACVals=r.ACVals,
+                               OptFields=r.drop(NonOptFields).to_dict(),
+                               TrtTypeFields=r.TrtTypeFields)
+        
 
 
 def Data2Pandas(Data):
@@ -561,11 +589,11 @@ def Data2Pandas(Data):
     return dfRaw.astype(DataTypes, errors='ignore')
 
 
-if __name__ == '__main__':
-    # f = Fernet(open('key.key', 'rb').read())
-    # da = f.decrypt(open('Connection', 'rb').read())
-    # connection = pickle.loads(da)
-    MyDb = PyFETdb(open('key.key', 'rb').read())
+# if __name__ == '__main__':
+#     # f = Fernet(open('key.key', 'rb').read())
+#     # da = f.decrypt(open('Connection', 'rb').read())
+#     # connection = pickle.loads(da)
+#     MyDb = PyFETdb(open('key.key', 'rb').read())
 
 # %% Test insert bin data
 # OptFields = {}

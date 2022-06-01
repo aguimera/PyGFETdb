@@ -931,7 +931,7 @@ class DataCharAC(DataCharDC):
     def _CheckRMS(self, NFmin, NFmax):
         if NFmin is not None or NFmax is not None:
             if self.NFmin != NFmin or self.NFmax != NFmax:
-                print ('Calc IRMS')
+                # print ('Calc IRMS')
                 self.NFmin = NFmin
                 self.NFmax = NFmax
                 # if self.IsOK:
@@ -960,7 +960,7 @@ class DataCharAC(DataCharDC):
     def _CheckFitting(self, FFmin, FFmax):
         if FFmin is not None or FFmax is not None:
             if self.FFmin != FFmin or self.FFmax != FFmax:
-                print ('Calc fitting')
+                # print ('Calc fitting')
                 self.FFmin = FFmin
                 self.FFmax = FFmax
                 # if self.IsOK:
