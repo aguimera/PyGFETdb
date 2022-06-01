@@ -33,7 +33,7 @@ class PyFETdb():
     def __init__(self, connection):
         f = Fernet(connection)
         # da = f.decrypt(open('./Connection', 'rb').read())
-        da = f.decrypt(importlib.resources.read_binary('PyGFETdb', 'Connection'))
+        da = f.decrypt(importlib.resources.read_binary('PyGFETdb', 'Connection.bin'))
         self.connection = pickle.loads(da)
         self._DEBUG = False
 
