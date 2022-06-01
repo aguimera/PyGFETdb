@@ -23,6 +23,7 @@ from PyGFETdb import DBInterface
 import copy
 from scipy import stats
 
+
 class PandasModel(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
 
@@ -202,7 +203,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         if len(ucond['Users.Name =']):
             data = self.DB.GetCharactInfo(Table='DCcharacts',
                                           Conditions=ucond,
-                                          Output=('Wafers.Name', ))
+                                          Output=('Wafers.Name',))
             wcond = {'Wafers.Name =': list(pd.DataFrame(data)['Wafers_Name'])}
         else:
             wcond = {'Wafers.idWafers >': (0,), }
@@ -508,6 +509,14 @@ def FormatAxis(PlotPars, dfAttrs):
 
 
 class DataExplorer(QtWidgets.QMainWindow):
+    BoxPlotFunctions = {'Boxplot': sns.boxplot,
+                        'violinplot': sns.violinplot,
+                        'swarmplot': sns.swarmplot,
+                        'boxenplot': sns.boxenplot,
+                        'barplot': sns.barplot,
+                        'stripplot': sns.stripplot,
+                        }
+
     def __init__(self, dfRaw, Paramters='DC'):
         QtWidgets.QMainWindow.__init__(self)
 
@@ -537,7 +546,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.CmbBoxX.setCurrentText('Device')
         self.CmbBoxHue.addItems(catCols)
         self.CmbBoxHue.setCurrentText('Device')
-        self.CmbBoxType.addItems(['boxplot', 'swarmplot'])
+        self.CmbBoxType.addItems(self.BoxPlotFunctions.keys())
 
         self.LstLinesPars.addItems(self.dfDat.attrs['ArrayCols'])
         self.CmbLinesGroup.addItems(catCols)
@@ -581,14 +590,26 @@ class DataExplorer(QtWidgets.QMainWindow):
         else:
             Axs = Axs.flatten()
 
+        PltFunct = self.BoxPlotFunctions[self.CmbBoxType.currentText()]
+
         for ic, p in enumerate(PlotPars):
-            sns.boxplot(x=self.CmbBoxX.currentText(),
-                        y=p,
-                        hue=self.CmbBoxHue.currentText(),
-                        data=dSel,
-                        ax=Axs[ic])
+            PltFunct(x=self.CmbBoxX.currentText(),
+                     y=p,
+                     hue=self.CmbBoxHue.currentText(),
+                     data=dSel,
+                     ax=Axs[ic])
             if p in LogPars:
                 Axs[ic].set_yscale('log')
+
+            plt.setp(Axs[ic].get_legend().get_texts(),
+                     fontsize='xx-small')
+            plt.setp(Axs[ic].get_legend().get_title(),
+                     fontsize='xx-small')
+            plt.setp(Axs[ic].get_xticklabels(),
+                     rotation=45,
+                     ha="right",
+                     fontsize='xx-small',
+                     rotation_mode="anchor")
 
         plt.show()
 
