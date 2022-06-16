@@ -150,6 +150,11 @@ class DBViewApp(QtWidgets.QMainWindow):
                        'ACcharacts.DC_id',
                        'ACcharacts.FileName')
 
+    ClassQueriesDC = copy.deepcopy(DBInterface.ClassQueriesDC)
+    pdAttrDC = copy.deepcopy(DBInterface.pdAttrDC)
+    ClassQueries = copy.deepcopy(DBInterface.ClassQueries)
+    pdAttr = copy.deepcopy(DBInterface.pdAttr)
+
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
 
@@ -180,6 +185,8 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.ButEditTrtsType.clicked.connect(self.ButEditTrtsType_Click)
         self.ButEditDC.clicked.connect(self.ButEditDC_Click)
         self.ButEditAC.clicked.connect(self.ButEditAC_Click)
+        self.ButEditElecParsDC.clicked.connect(self.ButEditEleDC_Click)
+        self.ButEditElecParsAC.clicked.connect(self.ButEditEleAC_Click)
 
         self.LstWafers.itemSelectionChanged.connect(self.LstWafersChange)
         self.LstDevices.itemSelectionChanged.connect(self.LstDevicesChange)
@@ -330,7 +337,9 @@ class DBViewApp(QtWidgets.QMainWindow):
             Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id, GetGate=True))
         dfRaw = Data2Pandas(Data)
 
-        self.DataExp = DataExplorer(dfRaw, Paramters='DC')
+        self.DataExp = DataExplorer(dfRaw,
+                                    ClassQueries=self.ClassQueriesDC,
+                                    pdAttr=self.pdAttrDC)
         self.DataExp.show()
 
     def ButViewAC_Click(self):
@@ -344,7 +353,9 @@ class DBViewApp(QtWidgets.QMainWindow):
             Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id, GetGate=True))
         dfRaw = Data2Pandas(Data)
 
-        self.DataExp = DataExplorer(dfRaw, Paramters='AC')
+        self.DataExp = DataExplorer(dfRaw,
+                                    ClassQueries=self.ClassQueries,
+                                    pdAttr=self.pdAttr )
         self.DataExp.show()
 
     def ButEditWafer_Click(self):
@@ -473,6 +484,20 @@ class DBViewApp(QtWidgets.QMainWindow):
                                                           Conditions=cond,
                                                           Output=Columns.keys()))
 
+    def ButEditEleDC_Click(self):
+        self.UpdateWind = UpdateDialogs.ElectricalParamsEditor(ClassQueries=self.ClassQueriesDC,
+                                                               pdAttr=self.pdAttrDC)
+        self.UpdateWind.exec_()
+        self.ClassQueriesDC = copy.deepcopy(self.UpdateWind.ClassQueries)
+        self.pdAttrDC = copy.deepcopy(self.UpdateWind.pdAttr)
+
+    def ButEditEleAC_Click(self):
+        self.UpdateWind = UpdateDialogs.ElectricalParamsEditor(ClassQueries=self.ClassQueries,
+                                                               pdAttr=self.pdAttr)
+        self.UpdateWind.exec_()
+        self.ClassQueries = copy.deepcopy(self.UpdateWind.ClassQueries)
+        self.pdAttr = copy.deepcopy(self.UpdateWind.pdAttr)
+
 
 LogPars = ('Irms', 'Vrms', 'NoA', 'NoC', 'IrmsNorm', 'VrmsNorm', 'NoANorm', 'NoCNorm')
 
@@ -517,7 +542,7 @@ class DataExplorer(QtWidgets.QMainWindow):
                         'stripplot': sns.stripplot,
                         }
 
-    def __init__(self, dfRaw, Paramters='DC'):
+    def __init__(self, dfRaw, ClassQueries, pdAttr):
         QtWidgets.QMainWindow.__init__(self)
 
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
@@ -525,14 +550,9 @@ class DataExplorer(QtWidgets.QMainWindow):
 
         self.setWindowTitle('PyFETdb DataExplorer v0.4.3_v0')
 
-        if Paramters == 'DC':
-            self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
-                                                          DBInterface.ClassQueriesDC,
-                                                          DBInterface.pdAttrDC)
-        elif Paramters == 'AC':
-            self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
-                                                          DBInterface.ClassQueries,
-                                                          DBInterface.pdAttr)
+        self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
+                                                      ClassQueries,
+                                                      pdAttr)
 
         self.modelData = PandasModel(self.dfDat.copy())
         self.proxyData = QSortFilterProxyModel()

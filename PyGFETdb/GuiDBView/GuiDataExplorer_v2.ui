@@ -86,6 +86,23 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="1">
+               <widget class="QPushButton" name="ButBoxPlot">
+                <property name="text">
+                 <string>Plot Boxplot</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Hue</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="CmbBoxType"/>
+              </item>
               <item row="0" column="0" rowspan="4">
                <widget class="QListWidget" name="LstBoxYPars">
                 <property name="selectionMode">
@@ -116,25 +133,8 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QPushButton" name="ButBoxPlot">
-                <property name="text">
-                 <string>Plot Boxplot</string>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="1">
                <widget class="QComboBox" name="CmbBoxX"/>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Hue</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="CmbBoxType"/>
               </item>
              </layout>
             </widget>

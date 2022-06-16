@@ -18,6 +18,22 @@ import sys
 
 DebugPrint = True
 
+ParametersList = ['GM',
+                  'GMV',
+                  'Ig',
+                  'Ids',
+                  'Irms',
+                  'Vrms',
+                  'Rds',
+                  'NoA',
+                  'NoB',
+                  'NoC',
+                  'FEMmu',
+                  'FEMn',
+                  'FEMmuGm',
+                  'Ud0',
+                  'IgMax'
+                  ]
 
 class DataCharDC(object):
     """
