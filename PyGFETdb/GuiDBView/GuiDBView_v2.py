@@ -355,7 +355,7 @@ class DBViewApp(QtWidgets.QMainWindow):
 
         self.DataExp = DataExplorer(dfRaw,
                                     ClassQueries=self.ClassQueries,
-                                    pdAttr=self.pdAttr )
+                                    pdAttr=self.pdAttr)
         self.DataExp.show()
 
     def ButEditWafer_Click(self):
@@ -521,14 +521,25 @@ def FormatAxis(PlotPars, dfAttrs):
         slabel = '{}[{}]'.format(par, dfAttrs['ColUnits'][par])
         ax.set_ylabel(slabel)
 
-        if par in LogPars:
-            ax.set_yscale('log')
-
         # # select Vgs vector
-        if par.endswith('Norm'):
+        if (par in dfAttrs['ArrayColsNorm']) or par.endswith('Norm'):
             ax.set_xlabel('Vgs - CNP [V]')
         else:
             ax.set_xlabel('Vgs [V]')
+
+        if (par in LogPars) or ('rms' in par):
+            ax.set_yscale('log')
+        elif par == 'PSD':
+            ax.set_yscale('log')
+            ax.set_xscale('log')
+            ax.set_xlabel('Frequency [Hz]')
+        elif par == 'BodeMag':
+            ax.set_yscale('log')
+            ax.set_xscale('log')
+            ax.set_xlabel('Frequency [Hz]')
+        elif par == 'BodePhase':
+            ax.set_xscale('log')
+            ax.set_xlabel('Frequency [Hz]')
 
     return fig, AxsDict
 
@@ -570,7 +581,11 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.CmbBoxHue.setCurrentText('Device')
         self.CmbBoxType.addItems(self.BoxPlotFunctions.keys())
 
-        self.LstLinesPars.addItems(self.dfDat.attrs['ArrayCols'])
+        self.LstLinesPars.addItems(self.dfDat.attrs['ArrayCols'] + ['PSD', 'BodeMag', 'BodePhase'])
+        self.dfDat.attrs['ColUnits'].update({'PSD': 'A**2/Hz',
+                                             'BodeMag': 'S',
+                                             'BodePhase': 'Deg',
+                                             })
         self.CmbLinesGroup.addItems(catCols)
         self.CmbLinesGroup.setCurrentText('Device')
 
@@ -656,7 +671,7 @@ class DataExplorer(QtWidgets.QMainWindow):
             gg = dgroups.get_group(gn)
             Col = cmap.to_rgba(ic)
             for parn in PlotPars:
-                if parn.endswith('Norm'):
+                if parn in self.dfDat.attrs['ArrayColsNorm']:
                     xVar = self.dfDat.attrs['VgsNorm']
                 else:
                     xVar = self.dfDat.attrs['Vgs']
@@ -664,7 +679,25 @@ class DataExplorer(QtWidgets.QMainWindow):
                 Vals = np.array([])
                 ax = AxsDict[parn]
                 for index, row in gg.iterrows():
-                    v = row[parn]
+                    if parn == 'PSD':
+                        xVar = row.CharCl.GetFpsd()
+                        if xVar is None:
+                            continue
+                        v = row.CharCl.GetPSD().transpose()
+                        ax.loglog(xVar, row.CharCl.GetFitPSD(), 'k--', alpha=1)
+                    elif parn == 'BodeMag':
+                        xVar = row.CharCl.GetFgm()
+                        if xVar is None:
+                            continue
+                        v = row.CharCl.GetGmMag().transpose()
+                    elif parn == 'BodePhase':
+                        xVar = row.CharCl.GetFgm()
+                        if xVar is None:
+                            continue
+                        v = row.CharCl.GetGmPh().transpose()
+                    else:
+                        v = row[parn]
+
                     if type(v) == float:
                         continue
                     try:
@@ -676,6 +709,9 @@ class DataExplorer(QtWidgets.QMainWindow):
                         Vals = np.vstack((Vals, v)) if Vals.size else v
                     except:
                         pass
+
+                if Vals.size == 0:
+                    continue
 
                 Vals = Vals.magnitude.transpose()
                 with warnings.catch_warnings():

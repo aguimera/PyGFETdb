@@ -623,23 +623,28 @@ class ElecParamsEditor(pTypes.GroupParameter):
                                                  VgsVals=self.param('VgsVals'),
                                                  VgsNormVals=self.param('VgsNormVals'),
                                                  cldatkw={'Param': 'Ids',
-                                                          'Vgs': 0*pq.V}))
+                                                          'Vgs': 0 * pq.V}))
 
     def GetQueries(self):
         Quer = {}
         ArrayCols = []
         ScalarCols = []
+        ArrayColsNorm = []
         for p in self.param('Queries').children():
             Quer[p.name()] = p.GetArgKwargs()
             if p.param('Vgs').value() == 'SinglePoint':
                 ScalarCols.append(p.name())
             else:
                 ArrayCols.append(p.name())
+                if 'Ud0Norm' in Quer[p.name()]:
+                    if Quer[p.name()]['Ud0Norm']:
+                        ArrayColsNorm.append(p.name())
 
         pdAttr = {'Vgs': self.param('VgsVals').SweepVals * pq.V,
                   'VgsNorm': self.param('VgsNormVals').SweepVals * pq.V,
                   'ScalarCols': ScalarCols,
                   'ArrayCols': ArrayCols,
+                  'ArrayColsNorm': ArrayColsNorm,
                   }
 
         return Quer, pdAttr

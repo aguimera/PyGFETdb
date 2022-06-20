@@ -76,6 +76,7 @@ VgsNorm = np.linspace(-0.4, 0.4, 100) * pq.V
 ArrayParamsDC = ['Ids', 'GM', 'GMV', 'Ig']
 ArrayParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
 ArrayQueriesDC = {}
+ArrayQueriesNormDC = {}
 for par in ArrayParamsDC:
     d = {'Param': par,
          'Vgs': Vgs,
@@ -89,9 +90,10 @@ for par in ArrayParamsDC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ArrayQueriesDC[par+'Norm']=d
+    ArrayQueriesNormDC[par+'Norm']=d
 
 ArrayQueries = ArrayQueriesDC.copy()
+ArrayQueriesNorm = ArrayQueriesNormDC.copy()
 for par in ArrayParamsAC:
     d = {'Param': par,
          'Vgs': Vgs,
@@ -105,7 +107,7 @@ for par in ArrayParamsAC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ArrayQueries[par+'Norm']=d
+    ArrayQueriesNorm[par+'Norm']=d
 
 ########################################################################################################################
 ## Define default Array parameters
@@ -113,18 +115,22 @@ for par in ArrayParamsAC:
 
 ClassQueries = ScalarQueries.copy()
 ClassQueries.update(ArrayQueries)
+ClassQueries.update(ArrayQueriesNorm)
 pdAttr = {'Vgs': Vgs,
           'VgsNorm': VgsNorm,
           'ScalarCols': list(ScalarQueries.keys()),
-          'ArrayCols': list(ArrayQueries.keys()),
+          'ArrayCols': list(ArrayQueries.keys()) + list(ArrayQueriesNorm.keys()),
+          'ArrayColsNorm': list(ArrayQueriesNorm.keys())
           }
 
 ClassQueriesDC = ScalarQueriesDC.copy()
 ClassQueriesDC.update(ArrayQueriesDC)
+ClassQueriesDC.update(ArrayQueriesNormDC)
 pdAttrDC = {'Vgs': Vgs,
             'VgsNorm': VgsNorm,
             'ScalarCols': list(ScalarQueriesDC.keys()),
-            'ArrayCols': list(ArrayQueriesDC.keys()),
+            'ArrayCols': list(ArrayQueriesDC.keys()) + list(ArrayQueriesNormDC.keys()),
+            'ArrayColsNorm': list(ArrayQueriesNormDC.keys())
             }
 
 

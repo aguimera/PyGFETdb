@@ -919,12 +919,19 @@ class DataCharAC(DataCharDC):
         return self.FitPSD[SiVds[0]][VgsInd, :].transpose()
 
     def GetPSD(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'PSD' not in self.__dict__:
+            print('PSD is not a valid parameter ', self.Name)
+            return None
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
         if VgsInd is None:
             return None
         return self.PSD[SiVds[0]][VgsInd, :].transpose()
 
     def GetGmMag(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'gm' not in self.__dict__:
+            print('gm is not a valid parameter ', self.Name)
+            return None
+
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
         if VgsInd is None:
             return None
@@ -932,6 +939,10 @@ class DataCharAC(DataCharDC):
         return np.abs(self.gm[SiVds[0]][VgsInd, :].transpose())
 
     def GetGmPh(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
+        if 'gm' not in self.__dict__:
+            print('gm is not a valid parameter ', self.Name)
+            return None
+
         SiVds, VgsInd = self._GetFreqVgsInd(Vgs, Vds, Ud0Norm)
         if VgsInd is None:
             return None
@@ -939,9 +950,15 @@ class DataCharAC(DataCharDC):
         return np.angle(self.gm[SiVds[0]][VgsInd, :].transpose(), deg=True)
 
     def GetFpsd(self, **kwargs):
+        if 'Fpsd' not in self.__dict__:
+            print('Fpsd is not a valid parameter ', self.Name)
+            return None
         return self.Fpsd
 
     def GetFgm(self, **kwargs):
+        if 'Fgm' not in self.__dict__:
+            print('Fgm is not a valid parameter ', self.Name)
+            return None
         return self.Fgm
 
     def _CheckRMS(self, NFmin, NFmax):
