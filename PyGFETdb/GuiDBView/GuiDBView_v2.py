@@ -161,7 +161,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDBView_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.setWindowTitle('PyFETdb Viewer v0.4.3_v0')
+        self.setWindowTitle('PyFETdb Viewer v0.4.3_v1')
 
         keypath = os.path.join(os.path.dirname(__file__), 'key.key')
 
@@ -559,7 +559,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.setWindowTitle('PyFETdb DataExplorer v0.4.3_v0')
+        self.setWindowTitle('PyFETdb DataExplorer v0.4.3_v1')
 
         self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
                                                       ClassQueries,
