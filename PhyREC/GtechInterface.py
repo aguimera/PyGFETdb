@@ -242,7 +242,7 @@ def Calibrate(DCChar, FbData, VgsExp, CalTime=(60*pq.s, None),
             continue
 
         Tchar = DataTrts[Csig.name][0]
-        Vsig = Spro.CalcVgeff(Csig.time_slice(*CalTime),
+        Vsig = Spro.CalcVgeff2(Csig.time_slice(*CalTime),
                               Tchar=Tchar,
                               VgsExp=VgsExp,
                               Regim=Regim,

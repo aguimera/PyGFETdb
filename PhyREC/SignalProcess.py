@@ -9,11 +9,12 @@ import numpy as np
 from scipy import signal
 from fractions import Fraction
 from PhyREC.NeoInterface import NeoSegment, NeoSignal, NeoTrain
+from neo.core import AnalogSignal
 import PhyREC.SignalAnalysis as Ran
 import quantities as pq
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
-import elephant
+# import elephant
 import scipy.stats as stats
 from scipy import interpolate
 import sys
@@ -309,37 +310,37 @@ def ThresholdTrianGen(sig, RelaxTime=0.4*pq.s, threshold=None):
                      )
 
 
-def ThresholdInstantRate(sig, RelaxTime=0.1*pq.s, threshold=None,
-                         OutSampling=0.01*pq.s,):
+# def ThresholdInstantRate(sig, RelaxTime=0.1*pq.s, threshold=None,
+#                          OutSampling=0.01*pq.s,):
 
     
 
-    return elephant.statistics.instantaneous_rate(ThresholdTrianGen(sig,
-                                                                    RelaxTime,
-                                                                    threshold),
-                                                  sampling_period=OutSampling)
+#     return elephant.statistics.instantaneous_rate(ThresholdTrianGen(sig,
+#                                                                     RelaxTime,
+#                                                                     threshold),
+#                                                   sampling_period=OutSampling)
 
 
-def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):
-    SigH = elephant.signal_processing.hilbert(sig)
-    insfreq = np.diff(np.angle(SigH)[:, 0]) / np.diff(SigH.times)
+# def HilbertInstantFreq(sig, MaxFreq=20, MinFreq=0):
+#     SigH = elephant.signal_processing.hilbert(sig)
+#     insfreq = np.diff(np.angle(SigH)[:, 0]) / np.diff(SigH.times)
 
-    return NeoSignal(signal=np.clip(insfreq.magnitude, 0, 20),
-                     units='Hz',
-                     name=sig.name,
-                     sampling_rate=SigH.sampling_rate,
-                     t_start=SigH.t_start)
+#     return NeoSignal(signal=np.clip(insfreq.magnitude, 0, 20),
+#                      units='Hz',
+#                      name=sig.name,
+#                      sampling_rate=SigH.sampling_rate,
+#                      t_start=SigH.t_start)
 
-def HilbertAngle(sig):
-    SigH = elephant.signal_processing.hilbert(sig)   
-    return sig.duplicate_with_new_data(signal=np.angle(SigH),
-                                       units=pq.radians)
+# def HilbertAngle(sig):
+#     SigH = elephant.signal_processing.hilbert(sig)   
+#     return sig.duplicate_with_new_data(signal=np.angle(SigH),
+#                                        units=pq.radians)
 
 
-def HilbertAmp(sig):
-    SigH = elephant.signal_processing.hilbert(sig)
+# def HilbertAmp(sig):
+#     SigH = elephant.signal_processing.hilbert(sig)
     
-    return sig.duplicate_with_new_data(signal=np.array(np.abs(SigH))*sig.units)
+#     return sig.duplicate_with_new_data(signal=np.array(np.abs(SigH))*sig.units)
 
 
 def SplineSmooth(sig, sFact=2, **kwargs):
@@ -641,14 +642,14 @@ def CalcVgeff2(Sig, Tchar, VgsExp, Regim='hole', CalType='interp'):
                    'GM': float(GM.magnitude),
                    }
 
-    CalSig = NeoSignal(st,
+    CalSig = AnalogSignal(st,
                        units='V',
                        t_start=Sig.t_start,
                        sampling_rate=Sig.sampling_rate,
                        name=str(Sig.name),
                        file_origin=Sig.file_origin)
 
-    CalSig.annotate(**annotations)
+    CalSig.array_annotate(**annotations)
     # CalSig.array_aºnnotate(**annotations)
 
     return CalSig

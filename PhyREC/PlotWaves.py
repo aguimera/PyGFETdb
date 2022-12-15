@@ -16,7 +16,7 @@ from scipy.interpolate import interp2d
 from matplotlib.widgets import Slider, Button, TextBox
 from matplotlib.artist import ArtistInspector
 import PhyREC.SignalProcess as Spro
-from . import SpectColBars
+from PhyREC import SpectColBars
 from sklearn.impute import KNNImputer
 from copy import deepcopy
 
@@ -1178,7 +1178,7 @@ class ImgSlot():
         sig = self.GetSignal(Time, Units)
     
         self.Img.set_array(np.array(sig[0, :, :]))        
-        self.Ax.set_title(str(sig.t_start))
+        self.Ax.set_title('{0:.1f}'.format(sig.t_start))
         self.current_time = (sig.t_start.rescale('s'),
                              sig.t_stop.rescale('s'))
         self.Ax.figure.canvas.draw()
