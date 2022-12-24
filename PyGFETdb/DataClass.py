@@ -16,7 +16,7 @@ import copy
 from PyGFETdb import PlotDataClass
 import sys
 
-DebugPrint = True
+DebugPrint = False
 
 ParametersList = ['GM',
                   'GMV',
@@ -35,6 +35,7 @@ ParametersList = ['GM',
                   'IgMax'
                   ]
 
+
 class DataCharDC(object):
     """
     Class to manage the DC characteristics of GFET characteristics.
@@ -42,10 +43,10 @@ class DataCharDC(object):
     """
 
     PolyOrder = 10
-#    FEMn0 = 8e11  # 1/cm^2
-#    FEMq = 1.602176565e-19
-#    FEMRc = 300  # absolute value Ohms
-#    FEMCdl = 2e-6  # F/cm^2
+    #    FEMn0 = 8e11  # 1/cm^2
+    #    FEMq = 1.602176565e-19
+    #    FEMRc = 300  # absolute value Ohms
+    #    FEMCdl = 2e-6  # F/cm^2
     IntMethod = 'linear'
     DefaultUnits = {'Vds': pq.V,
                     'Ud0': pq.V,
@@ -61,12 +62,12 @@ class DataCharDC(object):
                     'Vrms': pq.V,
                     'Ids': pq.A,
                     'Rds': pq.ohm,
-                    'NoA': pq.A**2,
-                    'NoC': pq.A**2,
+                    'NoA': pq.A ** 2,
+                    'NoC': pq.A ** 2,
                     'NoB': pq.dimensionless,
-                    'FEMmu': pq.cm**2/(pq.s*pq.V),
-                    'FEMn': pq.cm**-2,
-                    'FEMmuGm': pq.cm**2/(pq.s*pq.V),
+                    'FEMmu': pq.cm ** 2 / (pq.s * pq.V),
+                    'FEMn': pq.cm ** -2,
+                    'FEMmuGm': pq.cm ** 2 / (pq.s * pq.V),
                     }
 
     def RawData(self):
@@ -163,9 +164,9 @@ class DataCharDC(object):
         if 'IdsPoly' not in self.__dict__:
             self.CalcIdsPoly()
 
-        vgs = np.linspace(self.Vgs[0], self.Vgs[-1], len(self.Vgs)*10000)
+        vgs = np.linspace(self.Vgs[0], self.Vgs[-1], len(self.Vgs) * 10000)
 
-        self.Ud0 = np.ones(len(self.Vds))*np.NaN
+        self.Ud0 = np.ones(len(self.Vds)) * np.NaN
         for ivd, Vds in enumerate(self.Vds):
             self.Ud0[ivd] = vgs[np.argmin(np.polyval(self.IdsPoly[:, ivd],
                                                      vgs.magnitude))]
@@ -176,7 +177,7 @@ class DataCharDC(object):
             self.PolyOrder = PolyOrder
         Ord = self.PolyOrder
 
-        self.IdsPoly = np.ones((Ord+1, len(self.Vds)))*np.NaN
+        self.IdsPoly = np.ones((Ord + 1, len(self.Vds))) * np.NaN
         for ivd, Vds in enumerate(self.Vds):
             self.IdsPoly[:, ivd] = np.polyfit(self.Vgs, self.Ids[:, ivd], Ord)
 
@@ -188,7 +189,7 @@ class DataCharDC(object):
             self.PolyOrder = PolyOrder
         Ord = self.PolyOrder
 
-        self.GMPoly = np.ones((Ord, len(self.Vds)))*np.NaN
+        self.GMPoly = np.ones((Ord, len(self.Vds))) * np.NaN
 
         for ivd, Vds in enumerate(self.Vds):
             self.GMPoly[:, ivd] = np.polyder(self.IdsPoly[:, ivd])
@@ -203,17 +204,17 @@ class DataCharDC(object):
         if 'IdsPoly' not in self.__dict__:
             self.CalcIdsPoly()
 
-        self.FEMn = np.ones((len(self.Vgs), len(self.Vds)))*np.NaN
-        self.FEMmu = np.ones((len(self.Vgs), len(self.Vds)))*np.NaN
-        self.FEMmuGm = np.ones((len(self.Vgs), len(self.Vds)))*np.NaN
+        self.FEMn = np.ones((len(self.Vgs), len(self.Vds))) * np.NaN
+        self.FEMmu = np.ones((len(self.Vgs), len(self.Vds))) * np.NaN
+        self.FEMmuGm = np.ones((len(self.Vgs), len(self.Vds))) * np.NaN
 
         if FEMRcVgs is not None:
-            FEMRc = np.ones(len(self.Vgs))*np.NaN
+            FEMRc = np.ones(len(self.Vgs)) * np.NaN
             RcVgs = FEMRcVgs[0, :]
             RcVgsRc = FEMRcVgs[1, :]
             rcint = interp1d(RcVgs, RcVgsRc)
             Vgmeas = self.GetVgs(Ud0Norm=True)
-            VgInds =  np.where((Vgmeas>np.min(RcVgs)) & (Vgmeas<np.max(RcVgs)))[0]
+            VgInds = np.where((Vgmeas > np.min(RcVgs)) & (Vgmeas < np.max(RcVgs)))[0]
             FEMRc[VgInds] = rcint(Vgmeas[VgInds, 0])
 
         # print(FEMRc, FEMCdl)
@@ -225,15 +226,15 @@ class DataCharDC(object):
         Ids = self.GetIds().magnitude
         Gm = np.abs(self.GetGM()).magnitude
         for ivd, Vds in enumerate(self.Vds.magnitude):
-            n = (FEMCdl * VgUd[:, ivd])/FEMq
-            self.FEMn[:, ivd] = np.sqrt(n**2 + FEMn0**2)
+            n = (FEMCdl * VgUd[:, ivd]) / FEMq
+            self.FEMn[:, ivd] = np.sqrt(n ** 2 + FEMn0 ** 2)
 
-            Ieff = Vds/(Vds/Ids[:, ivd] - FEMRc)
-            mu = (Ieff*L)/(W*Vds*n*FEMq)
+            Ieff = Vds / (Vds / Ids[:, ivd] - FEMRc)
+            mu = (Ieff * L) / (W * Vds * n * FEMq)
             self.FEMmu[:, ivd] = mu
 
-            Vdseff = Vds - Ids[:, ivd]*FEMRc
-            muGM = (Gm[:, ivd]*L)/(FEMCdl*Vdseff*W)
+            Vdseff = Vds - Ids[:, ivd] * FEMRc
+            muGM = (Gm[:, ivd] * L) / (FEMCdl * Vdseff * W)
             self.FEMmuGm[:, ivd] = muGM
 
         self.FEMn *= self.DefaultUnits['FEMn']
@@ -253,7 +254,7 @@ class DataCharDC(object):
         for ivd in iVds:
             ud0 = self.Ud0[ivd]
             if Normalize:
-                ud0 = ud0-(self.Vds[ivd]/2)
+                ud0 = ud0 - (self.Vds[ivd] / 2)
             Ud0 = np.vstack((Ud0, ud0)) * pq.V if Ud0.size else ud0
 
         return self._FormatOutput(Ud0, **kwargs)
@@ -405,7 +406,7 @@ class DataCharDC(object):
                 vg = vgs
             gm = np.polyval(self.GMPoly[:, ivd], vg.rescale('V').magnitude)
             if Normalize:
-                gm = gm/self.Vds[ivd]
+                gm = gm / self.Vds[ivd]
                 # *(self.TrtTypes['Length']/self.TrtTypes['Width'])/
             GM[vginds, ic] = gm
 
@@ -422,18 +423,17 @@ class DataCharDC(object):
             return np.abs(self.GetGM(**kwargs))
         else:
             return self.GetGM(**kwargs)
-    
+
     def GetGMVWL(self, AbsVal=True, **kwargs):
         kwargs.update({'Normalize': True})
         if AbsVal:
-            return np.abs(self.GetGM(**kwargs))*(self.TrtTypes['Length']/self.TrtTypes['Width'])
+            return np.abs(self.GetGM(**kwargs)) * (self.TrtTypes['Length'] / self.TrtTypes['Width'])
         else:
-            return self.GetGM(**kwargs)*(self.TrtTypes['Length']/self.TrtTypes['Width'])
-        
+            return self.GetGM(**kwargs) * (self.TrtTypes['Length'] / self.TrtTypes['Width'])
+
     def GetGMMax(self, **kwargs):
         return np.max(np.abs(self.GetGM(**kwargs)))
-    
-    
+
     def GetRds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
 
@@ -443,30 +443,31 @@ class DataCharDC(object):
         iVds = self.GetVdsIndexes(Vds)
 
         Rds = np.ndarray(Ids.shape) * pq.Ohm
-        for iid, ivd in enumerate(iVds):            
-            Rds[iid, :] = (self.Vds[ivd]/Ids[iid, :])
+        for iid, ivd in enumerate(iVds):
+            Rds[iid, :] = (self.Vds[ivd] / Ids[iid, :])
 
         return self._FormatOutput(Rds.transpose(), **kwargs)
+
     def GetConductivity(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
-        Rds = self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)   
-        sigma = (1/Rds)*(self.TrtTypes['Length']/self.TrtTypes['Width'])
+        Rds = self.GetRds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
+        sigma = (1 / Rds) * (self.TrtTypes['Length'] / self.TrtTypes['Width'])
 
         return self._FormatOutput(sigma.transpose(), **kwargs)
 
     def GetFEMn(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMn' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
+        return self._GetParam('FEMn', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetFEMmu(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmu' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
+        return self._GetParam('FEMmu', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetFEMmuGm(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'FEMmuGm' not in self.__dict__:
             self.CalcFEM(**kwargs)
-        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm,**kwargs)
+        return self._GetParam('FEMmuGm', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm, **kwargs)
 
     def GetIg(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         if 'Ig' not in self.__dict__:
@@ -478,10 +479,10 @@ class DataCharDC(object):
                               MeasVgs=self.Gate['Vgs'],
                               MeasVds=self.Gate['Vds'],
                               )
-    
+
     def GetIgMax(self, **kwargs):
         return np.max(np.abs(self.GetIg(**kwargs)))
-    
+
     def CheckVgsInds(self, Vgs, iVds, Ud0Norm, MeasVgs=None):
         """
         Find the valid indexes for the vgs vector.
@@ -625,7 +626,7 @@ class DataCharDC(object):
 
             par = interp1d(selfVgs, Par[:, ivd], kind=self.IntMethod)(vg)
             if Normalize:
-                par = par/selfVds[ivd]
+                par = par / selfVds[ivd]
             PAR[vginds, ic] = par
 
         if Param in self.DefaultUnits:
@@ -640,7 +641,7 @@ class DataCharDC(object):
 
     def GetWL(self, **kwargs):
         """Get the Width Length ratio."""
-        return self.TrtTypes['Width']/self.TrtTypes['Length']
+        return self.TrtTypes['Width'] / self.TrtTypes['Length']
 
     def GetPass(self, **kwargs):
         """Get the Passivation Length."""
@@ -686,11 +687,11 @@ class DataCharDC(object):
 
 
 def Fnoise(f, a, b):
-    return a/f**b
+    return a / f ** b
 
 
 def LogFnoise(f, a, b):
-    return b*f+a
+    return b * f + a
 
 
 def FitFNoise(Freq, psd):
@@ -728,7 +729,7 @@ def FnoiseTh(f, a, b, c):
     noise array with the same shape as f
 
     """
-    return (a/f**b)+c
+    return (a / f ** b) + c
 
 
 def LogFnoiseTh(f, a, b, c):
@@ -751,10 +752,10 @@ def LogFnoiseTh(f, a, b, c):
 
     """
 
-    f1 = 10**f
-    a1 = 10**a
-    c1 = 10**c
-    return np.log10(a1+c1*f1**b)-b*f
+    f1 = 10 ** f
+    a1 = 10 ** a
+    c1 = 10 ** c
+    return np.log10(a1 + c1 * f1 ** b) - b * f
 
 
 def FitLogFnoiseTh(Freq, psd):
@@ -807,6 +808,20 @@ class DataCharAC(DataCharDC):
             if self.NFmin is None:
                 self._CheckRMS(NFmin=5, NFmax=5e3)
 
+        if len(self.Vgs) == 1:
+            self.Vgs = np.array((self.Vgs, self.Vgs + 0.05 * pq.V))[:, 0] * pq.V
+            if 'PSD' in self.__dict__:
+                for k, v in self.PSD.items():
+                    self.PSD[k] = np.repeat(v, 2, axis=0)
+                self.NFmin = None
+                self.FFmin = None
+                self._CheckRMS(NFmin=5, NFmax=5e3)
+                self._CheckFitting(FFmin=5, FFmax=7e3)
+
+            if 'gm' in self.__dict__:
+                for k, v in self.gm.items():
+                    self.gm[k] = np.repeat(v, 2, axis=0)
+
     def InterpolatePSD(self, Points=100):
         Flin = np.array(self.Fpsd[1:])
         Flog = np.logspace(np.log10(Flin[0]),
@@ -831,12 +846,12 @@ class DataCharAC(DataCharDC):
         if vgs is None:
             return None, None
 
-# TODO check for more than 1 vds
+        # TODO check for more than 1 vds
         if Ud0Norm is True:
             vgs = vgs - self.Ud0[iVds[0]]
 
         VGS = self.GetVgs(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        vgsmeas = [min(VGS, key=lambda x:abs(x-vg)) for vg in vgs]
+        vgsmeas = [min(VGS, key=lambda x: abs(x - vg)) for vg in vgs]
         VgsInd = [np.where(VGS == vg)[0][0] for vg in vgsmeas]
 
         SiVds = ['Vd{}'.format(i) for i in iVds]
@@ -857,12 +872,12 @@ class DataCharAC(DataCharDC):
 
         self.__setattr__('NoC', [])
 
-        NoA = np.ones((nVgs, nVds))*np.NaN
-        NoB = np.ones((nVgs, nVds))*np.NaN
-        NoC = np.ones((nVgs, nVds))*np.NaN
-        FitErrA = np.ones((nVgs, nVds))*np.NaN
-        FitErrB = np.ones((nVgs, nVds))*np.NaN
-        FitErrC = np.ones((nVgs, nVds))*np.NaN
+        NoA = np.ones((nVgs, nVds)) * np.NaN
+        NoB = np.ones((nVgs, nVds)) * np.NaN
+        NoC = np.ones((nVgs, nVds)) * np.NaN
+        FitErrA = np.ones((nVgs, nVds)) * np.NaN
+        FitErrB = np.ones((nVgs, nVds)) * np.NaN
+        FitErrC = np.ones((nVgs, nVds)) * np.NaN
         FitPSD = copy.deepcopy(self.PSD)
 
         for ivd in range(nVds):
@@ -894,13 +909,13 @@ class DataCharAC(DataCharDC):
                     self.FitErrC = FitErrC
                     self.FitPSD = FitPSD
                 except:
-                    print ("Fitting error:", sys.exc_info()[0])
+                    print("Fitting error:", sys.exc_info()[0])
 
     def CalcIRMS(self, Fmin, Fmax):
         nVgs = len(self.Vgs)
         nVds = len(self.Vds)
 
-        Irms = np.ones((nVgs, nVds))*np.NaN
+        Irms = np.ones((nVgs, nVds)) * np.NaN
         for ivd in range(nVds):
             for ivg in range(nVgs):
                 psd = self.PSD['Vd{}'.format(ivd)][ivg, :]
@@ -985,7 +1000,7 @@ class DataCharAC(DataCharDC):
         if Irms is None:
             return None
         gm = np.abs(self.GetGM(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm))
-        PAR = (Irms/gm).transpose()
+        PAR = (Irms / gm).transpose()
         if Units is not None:
             kwargs['Units'] = Units
         return self._FormatOutput(PAR, **kwargs)
@@ -1018,7 +1033,7 @@ class DataCharAC(DataCharDC):
     def GetNoAIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         NoA = self._GetParam('NoA', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return NoA/(Ids**2)
+        return NoA / (Ids ** 2)
 
     def GetIrmsVds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         return self._GetParam('Irms', Vgs=Vgs, Vds=Vds,
@@ -1027,21 +1042,20 @@ class DataCharAC(DataCharDC):
     def GetIrmsIds2(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/(Ids**2)
+        return Irms / (Ids ** 2)
 
     def GetIrmsIds15(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/(Ids**1.5)
+        return Irms / (Ids ** 1.5)
 
     def GetIrmsIds(self, Vgs=None, Vds=None, Ud0Norm=False, **kwargs):
         Irms = self._GetParam('Irms', Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
         Ids = self.GetIds(Vgs=Vgs, Vds=Vds, Ud0Norm=Ud0Norm)
-        return Irms/Ids
+        return Irms / Ids
 
 
 class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
-
     # (logY, logX, X variable)
     AxsProp = {'Vrms': (1, 0, 'Vgs'),
                'Irms': (1, 0, 'Vgs'),
@@ -1083,7 +1097,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 v = Data.__getattribute__(self.ColorParams[ColorOn][1])
         elif ColorOn == 'W/L':
             p = Data.__getattribute__('TrtTypes')
-            v = p['Width']/p['TrtTypes']['Length']
+            v = p['Width'] / p['TrtTypes']['Length']
         return v
 
     def PlotDataCh(self, DataDict, Trts, Vgs=None, Vds=None, Ud0Norm=False,
@@ -1096,7 +1110,7 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
                 self.Plot(DataDict, Vgs=Vgs, Vds=Vds,
                           Ud0Norm=Ud0Norm, PltIsOK=PltIsOK)
             except:  # catch *all* exceptions
-                print (sys.exc_info()[0])
+                print(sys.exc_info()[0])
 
     def PlotDataSet(self, DataDict, Trts=None,
                     Vgs=None, Vds=None, Ud0Norm=False,
@@ -1122,13 +1136,13 @@ class PyFETPlotDataClass(PlotDataClass.PyFETPlotBase):
             for Dat in DataDict[TrtN]:
                 self.color = ColPar[self.GetColorValue(Dat, ColorOn)]
                 if MarkOn == 'Cycle':
-                    self.NextMark()                    
+                    self.NextMark()
 
                 try:
                     self.Plot(Dat, Vgs=Vgs, Vds=Vds,
                               Ud0Norm=Ud0Norm, PltIsOK=PltIsOK, **kwargs)
                 except:  # catch *all* exceptions
-                    print (TrtN, sys.exc_info()[0])
+                    print(TrtN, sys.exc_info()[0])
 
     def Plot(self, Data, Vgs=None, Vds=None,
              Ud0Norm=False, PltIsOK=True, ColorOnVgs=False, **kwargs):

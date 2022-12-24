@@ -9,6 +9,7 @@ from PyGFETdb.DBInterface import GetFromDB, CalcElectricalParams
 from PyGFETdb.DBInterface import ClassQueries, pdAttr
 import pandas as pd
 from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
+from datetime import datetime
 
 # DevicesList = ('B12744W3-Xip6NS',
 #                )
@@ -16,8 +17,8 @@ from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
 #               }
 
 
-WafersList = ('B15778W3-R4',)
-Conditions = {'Devices.name = ': WafersList,
+WafersList = ('B15778W3',)
+Conditions = {'Wafers.name = ': WafersList,
               }
 
 CharTable = 'ACcharacts'
@@ -34,12 +35,26 @@ GroupBase = {'Conditions': Conditions,
 
 # %% Get data from DataBase
 
+T1 = datetime.now()
 MyDB = PyFETdb(open('key.key', 'rb').read(), Multiprocess=True)
 MyDB._DEBUG = False
-
 Data = MyDB.GetData2(**GroupBase)
+print("Multiprocess ", datetime.now()-T1)
 
+# T1 = datetime.now()
+# MyDB = PyFETdb(open('key.key', 'rb').read(), Multiprocess=False)
+# MyDB._DEBUG = False
+# Data = MyDB.GetData2(**GroupBase)
+# print("Single process ", datetime.now()-T1)
+
+T1 = datetime.now()
 dfRaw = Data2Pandas(Data)
+print("Multiprocess ", datetime.now()-T1)
+
+# T1 = datetime.now()
+# dfRaw = Data2Pandas(Data, Threads=1)
+# print("Single process ", datetime.now()-T1)
+
 
 dfRaw.to_pickle('RawDat.pkl')
 

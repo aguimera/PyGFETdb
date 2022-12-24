@@ -17,6 +17,7 @@ import traceback
 import base64
 from cryptography.fernet import Fernet
 import importlib
+from multiprocessing import Pool
 
 
 def WS_Types(name):
@@ -29,13 +30,15 @@ def WS_Types(name):
 
 
 class PyFETdb():
+    Threads = 8
 
-    def __init__(self, connection):
+    def __init__(self, connection, Multiprocess=True):
         f = Fernet(connection)
         # da = f.decrypt(open('./Connection', 'rb').read())
         da = f.decrypt(importlib.resources.read_binary('PyGFETdb', 'Connection.bin'))
         self.connection = pickle.loads(da)
         self._DEBUG = False
+        self.Multiprocess = Multiprocess
 
     def CreateQueryConditions(self, Conditions):
         Cond = []
@@ -264,7 +267,7 @@ class PyFETdb():
                 Dat['Info'] = fn
             elif fp[0] == 'Users':
                 fn = Dat.get('Info', {})
-                fn['User'+fp[1]] = Res[f]
+                fn['User' + fp[1]] = Res[f]
                 Dat['Info'] = fn
             else:
                 fn = Dat.get(fp[0], {})
@@ -274,26 +277,26 @@ class PyFETdb():
         Dat['Name'] = Res['Trts_Name']
 
         if GetGate:
-            if Table == 'DCcharacts':                
+            if Table == 'DCcharacts':
                 Dat['Gate'] = self.GetGateFromId(Res['DCcharacts_Gate_id'])
             elif Table == 'ACcharacts':
-                cond = {'idDCcharacts = ': (Res['ACcharacts_DC_id'], )}
+                cond = {'idDCcharacts = ': (Res['ACcharacts_DC_id'],)}
                 Res = self.MultiSelect(Table='DCcharacts',
-                                        Conditions=cond,
-                                        Output=('Gate_id', ))
+                                       Conditions=cond,
+                                       Output=('Gate_id',))
 
-                Dat['Gate'] = self.GetGateFromId(Res[0]['Gate_id'])             
+                Dat['Gate'] = self.GetGateFromId(Res[0]['Gate_id'])
 
         return Dat
 
     def GetGateFromId(self, idg):
         Rows = self.MultiSelect(Table='Gcharacts',
-                                Conditions={'idGcharacts=': (idg, )},
-                                Output=('Data', ))
+                                Conditions={'idGcharacts=': (idg,)},
+                                Output=('Data',))
         if len(Rows):
             GateData = pickle.loads(Rows[0]['Data'], encoding='latin')
             Res = self.GetCharactInfo(Table='DCcharacts',
-                                      Conditions={'DCcharacts.Gate_id = ': (idg, )},
+                                      Conditions={'DCcharacts.Gate_id = ': (idg,)},
                                       Output=('Trts.Name',))
             Trts = []
             for re in Res:
@@ -334,12 +337,20 @@ class PyFETdb():
         else:
             ids = list(dfr['id{}'.format(Table)])
 
-        Data = []
-        for ic, Id in enumerate(ids):
-            print("Downloading {} of {}".format(ic, len(ids)))
-            Data.append(self.GetCharactFromId(Table=Table,
-                                              Id=Id,
-                                              GetGate=GetGate))
+        if self.Multiprocess:
+            Args = []
+            for Id in ids:
+                Args.append((Table, Id, GetGate))
+            print("Downloading {} Records".format(len(ids)))
+            with Pool(self.Threads) as p:
+                Data = p.starmap(self.GetCharactFromId, Args)
+        else:
+            Data = []
+            for ic, Id in enumerate(ids):
+                print("Downloading {} of {}".format(ic, len(ids)))
+                Data.append(self.GetCharactFromId(Table=Table,
+                                                  Id=Id,
+                                                  GetGate=GetGate))
 
         return Data
 
@@ -422,8 +433,8 @@ class PyFETdb():
         # Check if exists
         sMeasDate = DCVals['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
         Rows = self.MultiSelect(Table='DCcharacts',
-                                Conditions={'Trt_id=': (Trt_id, ),
-                                            'MeasDate=': (sMeasDate, )},
+                                Conditions={'Trt_id=': (Trt_id,),
+                                            'MeasDate=': (sMeasDate,)},
                                 Output=('Trt_id', 'idDCcharacts'))
 
         if len(Rows) == 0:  # New Record
@@ -471,8 +482,7 @@ class PyFETdb():
                     scond = 'idACcharacts = {}'.format(ACchatact_id)
                     self.UpdateRow(Table='ACcharacts',
                                    Fields=NewData,
-                                   Condition= scond)
-                    
+                                   Condition=scond)
 
     def InsertGateCharact(self, GateData, Fields, OverWrite=True):
         # Set Get information in other tables
@@ -486,8 +496,8 @@ class PyFETdb():
         sMeasDate = GateData['DateTime'].strftime("%Y-%m-%d %H:%M:%S")
         Rows = self.MultiSelect(Table='Gcharacts',
                                 Conditions={'Name=': (Fields['Name'],),
-                                            'MeasDate=': (sMeasDate, )},
-                                Output=('idGcharacts', ))
+                                            'MeasDate=': (sMeasDate,)},
+                                Output=('idGcharacts',))
 
         NewData = {'Data': pickle.dumps(GateData),
                    'User_id': Author_id,
@@ -497,19 +507,19 @@ class PyFETdb():
 
         if len(Rows) == 0:  # New Record
             Gate_id = self.NewRow(Table='Gcharacts', Fields=NewData)
-        else:                        
+        else:
             Gate_id = Rows[0]['idGcharacts']
-            print ('Gate id foung {}'. format(Gate_id))
+            print('Gate id foung {}, Overwriting'.format(Gate_id))
             if OverWrite:  # OverWrite                
-                print ('WARNING EXISTS', Rows)
-                print ('Overwrite Record id ', Gate_id)
+                # print ('WARNING EXISTS', Rows)
+                # print ('Overwrite Record id ', Gate_id)
                 scond = 'idGcharacts = {}'.format(Gate_id)
                 self.UpdateRow(Table='Gcharacts',
                                Fields=NewData,
                                Condition=scond)
         return Gate_id
-    
-    def InsertDataFrame(self, dfUpload):        
+
+    def InsertDataFrame(self, dfUpload):
         FieldsCols = ('User',
                       'Wafer',
                       'Device',
@@ -521,57 +531,66 @@ class PyFETdb():
 
         for ir, r in dfUpload.iterrows():
             print("Upload {} of {}  {}".format(ir, dfUpload.shape[0], r.Trt))
-            
+
             GateId = None
             if r.GateData is not None:
-                GateFields= {'User': r.User,
-                             'Name': '{}-Gate'.format(r.Device),
-                             'FileName': r.FileName}
+                GateFields = {'User': r.User,
+                              'Name': '{}-Gate'.format(r.Device),
+                              'FileName': r.FileName}
                 GateId = self.InsertGateCharact(GateData=r.GateData,
                                                 Fields=GateFields)
-                    
+
             Fields = r[list(FieldsCols)].to_dict()
             Fields['Gate_id'] = GateId
-            
+
             self.InsertCharact(DCVals=r.DCVals,
                                Fields=Fields,
                                ACVals=r.ACVals,
                                OptFields=r.drop(NonOptFields).to_dict(),
                                TrtTypeFields=r.TrtTypeFields)
-        
 
 
-def Data2Pandas(Data):
-    pdSeries = []
-    for ic, dd in enumerate(Data):
-        print("Converting {} of {}".format(ic, len(Data)))
-        pdser = {}
-        d = DataCharAC(dd)
-        pdser['Name'] = d.Name
-        pdser['CharCl'] = d
-        pdser['IsOk'] = d.IsOK
-        pdser['ChName'] = d.ChName
-        pdser['Date'] = d.GetDateTime()
-        for k, v in d['Wafers'].items():
-            if k == 'Name':
-                pdser['Wafer'] = v
-            else:
-                pdser['Waf' + k] = v
-        for k, v in d['Devices'].items():
-            if k == 'Name':
-                pdser['Device'] = v
-            else:
-                pdser['Dev' + k] = v
-        for k, v in d['TrtTypes'].items():
-            if k == 'Name':
-                pdser['TrtType'] = v
-            else:
-                pdser[k] = v
-        for k, v in d['Info'].items():
-            if k == 'Gate_id':
-                continue
+def GetSerie(Data):
+    pdser = {}
+    d = DataCharAC(Data)
+    pdser['Name'] = d.Name
+    pdser['CharCl'] = d
+    pdser['IsOk'] = d.IsOK
+    pdser['ChName'] = d.ChName
+    pdser['Date'] = d.GetDateTime()
+    for k, v in d['Wafers'].items():
+        if k == 'Name':
+            pdser['Wafer'] = v
+        else:
+            pdser['Waf' + k] = v
+    for k, v in d['Devices'].items():
+        if k == 'Name':
+            pdser['Device'] = v
+        else:
+            pdser['Dev' + k] = v
+    for k, v in d['TrtTypes'].items():
+        if k == 'Name':
+            pdser['TrtType'] = v
+        else:
             pdser[k] = v
-        pdSeries.append(pd.Series(pdser))
+    for k, v in d['Info'].items():
+        if k == 'Gate_id':
+            continue
+        pdser[k] = v
+
+    return pd.Series(pdser)
+
+
+def Data2Pandas(Data, Threads=8):
+    if Threads > 1:
+        print("Converting {} Records".format(len(Data)))
+        with Pool(Threads) as p:
+            pdSeries = p.map(GetSerie, Data)
+    else:
+        pdSeries = []
+        for ic, dd in enumerate(Data):
+            print("Converting {} of {}".format(ic, len(Data)))
+            pdSeries.append(GetSerie(Data=dd))
 
     dfRaw = pd.concat(pdSeries, axis=1).transpose()
     DataTypes = {}
@@ -587,7 +606,6 @@ def Data2Pandas(Data):
     DataTypes['Date'] = 'datetime64[ns]'
 
     return dfRaw.astype(DataTypes, errors='ignore')
-
 
 # if __name__ == '__main__':
 #     # f = Fernet(open('key.key', 'rb').read())

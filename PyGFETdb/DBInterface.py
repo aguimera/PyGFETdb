@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import quantities as pq
 import pickle
+from multiprocessing import Pool
 
 # Array values on measured Vgs range
 OutUnits = {'Ids': 'uA',
@@ -28,27 +29,27 @@ OutUnits = {'Ids': 'uA',
 ########################################################################################################################
 ScalarParamsDC = ['Ids', 'GM', 'GMV']
 ScalarParamsAC = ['Irms', 'Vrms', 'NoA', 'NoB', 'NoC']
-VgsScalar = -0.1*pq.V
+VgsScalar = -0.1 * pq.V
 ScalarQueriesDC = {'CNP': {'Param': 'Ud0',
-                            'Units': 'mV'},
+                           'Units': 'mV'},
                    'IgMax': {'Param': 'IgMax',
-                              'Units': 'nA'
-                              },
+                             'Units': 'nA'
+                             },
                    'IdsV01': {'Param': 'Ids',
-                              'Vgs': 0.1*pq.V,
+                              'Vgs': 0.1 * pq.V,
                               'Ud0Norm': False,
                               'Units': 'uA'
                               },
                    'RdsCNP': {'Param': 'Rds',
-                              'Vgs': 0*pq.V,
+                              'Vgs': 0 * pq.V,
                               'Ud0Norm': True,
                               'Units': 'kOhm'
                               },
                    'IdsCNP': {'Param': 'Ids',
-                              'Vgs': 0*pq.V,
+                              'Vgs': 0 * pq.V,
                               'Ud0Norm': True,
                               'Units': 'uA'
-                              } ,
+                              },
                    }
 
 for par in ScalarParamsDC:
@@ -57,7 +58,7 @@ for par in ScalarParamsDC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ScalarQueriesDC[par+'01'] = d
+    ScalarQueriesDC[par + '01'] = d
 
 ScalarQueries = ScalarQueriesDC.copy()
 for par in ScalarParamsAC:
@@ -66,7 +67,7 @@ for par in ScalarParamsAC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ScalarQueries[par+'01'] = d
+    ScalarQueries[par + '01'] = d
 
 ########################################################################################################################
 ## Define default Array parameters
@@ -90,7 +91,7 @@ for par in ArrayParamsDC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ArrayQueriesNormDC[par+'Norm']=d
+    ArrayQueriesNormDC[par + 'Norm'] = d
 
 ArrayQueries = ArrayQueriesDC.copy()
 ArrayQueriesNorm = ArrayQueriesNormDC.copy()
@@ -107,7 +108,7 @@ for par in ArrayParamsAC:
          'Ud0Norm': True}
     if par in OutUnits:
         d['Units'] = OutUnits[par]
-    ArrayQueriesNorm[par+'Norm']=d
+    ArrayQueriesNorm[par + 'Norm'] = d
 
 ########################################################################################################################
 ## Define default Array parameters
@@ -134,33 +135,45 @@ pdAttrDC = {'Vgs': Vgs,
             }
 
 
-def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False):
-    PdSeries = []
+def CalcElect(ClsQueries, char, vds, row, pErrors):
+    vals = {'Vds': vds.flatten()}
+    for parn, park in ClsQueries.items():
+        park['Vds'] = vds
+        try:
+            val = char.Get(**park)
+        except:
+            if pErrors:
+                print('Error', parn, char.Name)
+            continue
+        if val is None:
+            continue
+        if val.size > 1:
+            vals[parn] = val
+        else:
+            vals[parn] = val.flatten()
+    return pd.concat((row, pd.Series(vals)))
+
+
+def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=8):
+    Args = []
     for index, row in dbRaw.iterrows():
-        print("Calculating {} of {}".format(index, dbRaw.shape[0]))
         char = row['CharCl']
         Vds = char.GetVds()
         for vds in Vds:
-            vals = {}
-            vals['Vds'] = vds.flatten()
-            for parn, park in ClsQueries.items():
-                park['Vds'] = vds
-                try:
-                    val = char.Get(**park)
-                except:
-                    if pErrors:
-                        print('Error', parn, char.Name)
-                    continue
-                if val is None:
-                    continue
-                if val.size > 1:
-                    vals[parn] = val
-                else:
-                    vals[parn] = val.flatten()
-            PdSeries.append(pd.concat((row, pd.Series(vals))))
-    
-    dfDat = pd.concat(PdSeries, axis=1).transpose()       
-    
+            Args.append((ClsQueries, char, vds, row, pErrors))
+
+    if Threads > 1:
+        print("Calculating {} rows ".format(len(Args)))
+        with Pool(Threads) as p:
+            PdSeries = p.starmap(CalcElect, Args)
+    else:
+        PdSeries = []
+        for ia, a in enumerate(Args):
+            print("Calculating {} of {}".format(ia, len(Args)))
+            PdSeries.append(CalcElect(*a))
+
+    dfDat = pd.concat(PdSeries, axis=1).transpose()
+
     DataTypes = dbRaw.dtypes
     DataTypes['Vds'] = np.float
     for col in dfAttr['ScalarCols']:
@@ -170,19 +183,20 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False):
         if col in dfDat.columns:
             DataTypes[col] = object
     dfDat = dfDat.astype(DataTypes)
-    
+
     ColUnits = {}
     for col, p in ClsQueries.items():
         if 'Units' in p:
             ColUnits[col] = p['Units']
         else:
             ColUnits[col] = ''
-    
+
     dfAttr['ColUnits'] = ColUnits
-    
+
     dfDat.attrs.update(dfAttr)
 
     return dfDat
+
 
 def LoadPickleData(FileIn):
     DataIn = pickle.load(open(FileIn, 'rb'), encoding='latin')
@@ -212,7 +226,7 @@ def LoadPickleData(FileIn):
         acDat['Vgs'] = acDat.pop('VgsAC')
         acDat['Vds'] = acDat.pop('VdsAC')
         DictClAC[chn] = DataCharAC(acDat)
-    
+
     return DictClDC, DictClAC, GateDict
 
 
@@ -221,7 +235,7 @@ def CheckConditionsCharTable(Conditions, Table):
         if k.startswith('CharTable'):
             nk = k.replace('CharTable', Table)
             Conditions.update({nk: Conditions[k]})
-            del(Conditions[k])
+            del (Conditions[k])
     return Conditions
 
 
@@ -274,7 +288,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True):
                                 Last=Last,
                                 GetGate=GetGate)
 
-    del(MyDb)
+    del (MyDb)
     Trts = list(Trts)
 
     Data = {}
@@ -289,7 +303,7 @@ def GetFromDB(Conditions, Table='ACcharacts', Last=True, GetGate=True):
                 print(Dat)
         Data[Trtn] = Chars
 
-    print ('Trts Found ->', len(Trts))
+    print('Trts Found ->', len(Trts))
     return Data, Trts
 
 
@@ -323,19 +337,17 @@ def Data2Pandas(DictData):
                     continue
                 pdser[k] = v
             pdSeries.append(pd.Series(pdser))
-        
+
     dfRaw = pd.concat(pdSeries, axis=1).transpose()
     DataTypes = {}
-    for col in dfRaw.keys():    
+    for col in dfRaw.keys():
         if col in ('Width', 'Length', 'Pass', 'Area', 'Ph', 'IonStrength', 'AnalyteCon'):
             DataTypes[col] = np.float
         else:
             DataTypes[col] = 'category'
-    
+
     DataTypes['CharCl'] = object
     DataTypes['IsOk'] = bool
     DataTypes['Date'] = 'datetime64[ns]'
-    
+
     return dfRaw.astype(DataTypes)
-
-
