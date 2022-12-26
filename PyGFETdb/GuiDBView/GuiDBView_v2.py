@@ -3,6 +3,7 @@ import importlib
 import sys
 import os
 import warnings
+from multiprocessing import Pool
 
 import numpy as np
 
@@ -19,7 +20,7 @@ import pandas as pd
 import seaborn as sns
 import math
 from PyGFETdb.GuiDBView import UpdateDialogs
-from PyGFETdb import DBInterface
+from PyGFETdb import DBInterface, __version__
 import copy
 from scipy import stats
 
@@ -161,7 +162,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDBView_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.setWindowTitle('PyFETdb Viewer v0.4.3_v1')
+        self.setWindowTitle('PyFETdb Viewer v' + __version__)
 
         keypath = os.path.join(os.path.dirname(__file__), 'key.key')
 
@@ -326,15 +327,21 @@ class DBViewApp(QtWidgets.QMainWindow):
         self.TblAC.setModel(self.proxyACChars)
         self.TblAC.show()
 
+    def GetData(self, Table, idchars):
+        Args = [(Table, Id, True) for Id in idchars]
+        print('Get records ', len(Args))
+        with Pool(8) as p:
+            Data = p.starmap(self.DB.GetCharactFromId, Args)
+
+        return Data
+
+
     def ButViewDC_Click(self):
         Sel = self.TblDC.selectedIndexes()
         rows = set([self.proxyDCChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfDCchars.loc[list(rows)]['DCcharacts_idDCcharacts'])
 
-        Data = []
-        for ic, Id in enumerate(idchars):
-            print("Downloading {} of {}".format(ic, len(idchars)))
-            Data.append(self.DB.GetCharactFromId(Table='DCcharacts', Id=Id, GetGate=True))
+        Data = self.GetData(Table='DCcharacts', idchars=idchars)
         dfRaw = Data2Pandas(Data)
 
         self.DataExp = DataExplorer(dfRaw,
@@ -347,10 +354,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         rows = set([self.proxyACChars.mapToSource(s).row() for s in Sel])
         idchars = list(self.dfACchars.loc[list(rows)]['ACcharacts_idACcharacts'])
 
-        Data = []
-        for ic, Id in enumerate(idchars):
-            print("Downloading {} of {}".format(ic, len(idchars)))
-            Data.append(self.DB.GetCharactFromId(Table='ACcharacts', Id=Id, GetGate=True))
+        Data = self.GetData(Table='ACcharacts', idchars=idchars)
         dfRaw = Data2Pandas(Data)
 
         self.DataExp = DataExplorer(dfRaw,
@@ -559,7 +563,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.setWindowTitle('PyFETdb DataExplorer v0.4.3_v1')
+        self.setWindowTitle('PyFETdb DataExplorer v0.4.4_v0')
 
         self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
                                                       ClassQueries,
