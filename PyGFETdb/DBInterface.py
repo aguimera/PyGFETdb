@@ -175,10 +175,10 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=8):
     dfDat = pd.concat(PdSeries, axis=1).transpose()
 
     DataTypes = dbRaw.dtypes
-    DataTypes['Vds'] = np.float
+    DataTypes['Vds'] = float
     for col in dfAttr['ScalarCols']:
         if col in dfDat.columns:
-            DataTypes[col] = np.float
+            DataTypes[col] = float
     for col in dfAttr['ArrayCols']:
         if col in dfDat.columns:
             DataTypes[col] = object

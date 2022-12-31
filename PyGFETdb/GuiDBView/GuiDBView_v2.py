@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import multiprocessing
 import sys
 import os
 import warnings
@@ -563,7 +564,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiDataExplorer_v2.ui')
         uic.loadUi(uipath, self)
 
-        self.setWindowTitle('PyFETdb DataExplorer v0.4.4_v0')
+        self.setWindowTitle('PyFETdb DataExplorer')
 
         self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
                                                       ClassQueries,
@@ -770,4 +771,8 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.platform.startswith('win'):
+        # On Windows calling this function is necessary.
+        multiprocessing.freeze_support()
+
     main()
