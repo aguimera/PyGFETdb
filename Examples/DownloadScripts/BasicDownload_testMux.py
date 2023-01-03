@@ -18,7 +18,7 @@ from datetime import datetime
 
 if __name__ == '__main__':
 
-    WafersList = ('B15778W3-M3',)
+    WafersList = ('B15778W3-R3',)
     Conditions = {'Devices.name = ': WafersList,
                   }
 
