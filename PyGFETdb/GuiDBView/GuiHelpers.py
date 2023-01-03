@@ -1,15 +1,18 @@
 import glob
 import math
+import os
+import platform
 import subprocess
 import tempfile
 
+import matplotlib as mpl
 import numpy as np
 import pandas as pd
 from PyPDF2 import PdfMerger
-from qtpy.QtCore import Qt
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex
 from matplotlib import pyplot as plt
-import matplotlib as mpl
+from matplotlib.backends.backend_pdf import PdfPages
+from qtpy.QtCore import Qt
 from tqdm.contrib.concurrent import process_map
 
 
@@ -161,7 +164,6 @@ def GenPSDBodeFigure(Args):
 
 
 def GenPSDBodeReport(dfData):
-    FileName = 'Report.pdf'
     dfData.attrs['ColUnits'].update({'PSD': 'A**2/Hz',
                                      'BodeMag': 'S',
                                      'BodePhase': 'Deg',
@@ -188,11 +190,26 @@ def GenPSDBodeReport(dfData):
     plt.ion()
 
     merger = PdfMerger()
+    FileName = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
 
     for pdf in glob.glob(tmpDir.name + '/*.pdf'):
         merger.append(pdf)
 
-    merger.write(FileName)
+    print(FileName.name)
+
+    merger.write(FileName.name)
     merger.close()
     tmpDir.cleanup()
-    subprocess.call(['xdg-open', FileName])
+
+    if platform.system() == 'Darwin':  # macOS
+        subprocess.call(('open', FileName.name))
+    elif platform.system() == 'Windows':  # Windows
+        os.startfile(FileName.name)
+    else:  # linux variants
+        subprocess.call(('xdg-open', FileName.name))
+
+
+
+def PDFForce():
+    PDF = PdfPages('test.pdf')
+    PDF.close()
