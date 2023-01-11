@@ -650,7 +650,7 @@ def CalcVgeff2(Sig, Tchar, VgsExp, Regim='hole', CalType='interp'):
                        file_origin=Sig.file_origin)
 
     CalSig.array_annotate(**annotations)
-    # CalSig.array_aºnnotate(**annotations)
+    # CalSig.array_annotate(**annotations)
 
     return CalSig
 

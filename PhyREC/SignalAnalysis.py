@@ -134,7 +134,7 @@ def PlotPSD(Signals, Time=None, nFFT=2**17, FMin=None, Ax=None,
         noverlap = nFFT/Noverlap
 
         ff, psd = signal.welch(x=sig, fs=sig.sampling_rate, axis=0,
-                               window='hanning',
+                               # window='hanning',
                                nperseg=nFFT,
                                noverlap=noverlap,
                                scaling=scaling)
