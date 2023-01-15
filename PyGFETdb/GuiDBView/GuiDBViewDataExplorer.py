@@ -1,21 +1,14 @@
-
-
 import os
-import warnings
 
-import numpy as np
 
 from matplotlib import pyplot as plt
-import matplotlib as mpl
 from qtpy.QtWidgets import QFileDialog
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import QSortFilterProxyModel
 import seaborn as sns
-import math
 from PyGFETdb import DBInterface
-from scipy import stats
-
-from PyGFETdb.GuiDBView.GuiHelpers import FormatAxis, GenPSDBodeReport, PandasModel, LogPars
+from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, GenDeviceReportGui
+import tempfile
 
 
 class DataExplorer(QtWidgets.QMainWindow):
@@ -47,7 +40,7 @@ class DataExplorer(QtWidgets.QMainWindow):
 
         self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
 
-        includetypes = ('float', 'category', 'bool', 'datetime64[ns]')
+        includetypes = ('float', 'category', 'bool', 'datetime64[ns]', 'int')
         catCols = list(dfRaw.select_dtypes(include=includetypes).columns)
         self.CmbBoxX.addItems(catCols)
         self.CmbBoxX.setCurrentText('Device')
@@ -68,6 +61,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.ButExportPkl.clicked.connect(self.ButExportPkl_Click)
         self.ButExportCSV.clicked.connect(self.ButExportCSV_Click)
         self.ButRepPSDBode.clicked.connect(self.RepPSDBode_Click)
+        self.ButRepDevice.clicked.connect(self.ButRepDevice_Click)
 
     def GetSelection(self):
         Sel = self.TblData.selectedIndexes()
@@ -94,35 +88,12 @@ class DataExplorer(QtWidgets.QMainWindow):
 
         dSel = self.GetSelection()
 
-        nRows = math.ceil(np.sqrt(len(PlotPars)))
-        nCols = math.ceil(len(PlotPars) / nRows)
-        fig, Axs = plt.subplots(nrows=nRows, ncols=nCols)
-        if nRows == 1 and nCols == 1:
-            Axs = [Axs, ]
-        else:
-            Axs = Axs.flatten()
-
-        PltFunct = self.BoxPlotFunctions[self.CmbBoxType.currentText()]
-
-        for ic, p in enumerate(PlotPars):
-            PltFunct(x=self.CmbBoxX.currentText(),
-                     y=p,
-                     hue=self.CmbBoxHue.currentText(),
-                     data=dSel,
-                     ax=Axs[ic])
-            if p in LogPars:
-                Axs[ic].set_yscale('log')
-
-            plt.setp(Axs[ic].get_legend().get_texts(),
-                     fontsize='xx-small')
-            plt.setp(Axs[ic].get_legend().get_title(),
-                     fontsize='xx-small')
-            plt.setp(Axs[ic].get_xticklabels(),
-                     rotation=45,
-                     ha="right",
-                     fontsize='xx-small',
-                     rotation_mode="anchor")
-
+        GenScalarFigures(Data=dSel,
+                         PlotPars=PlotPars,
+                         Xvar=self.CmbBoxX.currentText(),
+                         Huevar=self.CmbBoxHue.currentText(),
+                         PltFunct=self.BoxPlotFunctions[self.CmbBoxType.currentText()],
+                         )
         plt.show()
 
     def ButPlotVect_Click(self):
@@ -133,79 +104,14 @@ class DataExplorer(QtWidgets.QMainWindow):
         PlotPars = [s.text() for s in Sel]
 
         dSel = self.GetSelection()
-        GroupBy = self.CmbLinesGroup.currentText()
-        dgroups = dSel.groupby(GroupBy, observed=True)
 
-        # Colors iteration
-        Norm = mpl.colors.Normalize(vmin=0, vmax=len(dgroups))
-        cmap = mpl.cm.ScalarMappable(norm=Norm, cmap='jet')
-
-        fig, AxsDict = FormatAxis(PlotPars, self.dfDat.attrs)
-
-        for ic, gn in enumerate(dgroups.groups):
-            gg = dgroups.get_group(gn)
-            Col = cmap.to_rgba(ic)
-            for parn in PlotPars:
-                if parn in self.dfDat.attrs['ArrayColsNorm']:
-                    xVar = self.dfDat.attrs['VgsNorm']
-                else:
-                    xVar = self.dfDat.attrs['Vgs']
-
-                Vals = np.array([])
-                ax = AxsDict[parn]
-                for index, row in gg.iterrows():
-                    if parn == 'PSD':
-                        xVar = row.CharCl.GetFpsd()
-                        if xVar is None:
-                            continue
-                        v = row.CharCl.GetPSD().transpose()
-                        ax.loglog(xVar, row.CharCl.GetFitPSD(), 'k--', alpha=1)
-                    elif parn == 'BodeMag':
-                        xVar = row.CharCl.GetFgm()
-                        if xVar is None:
-                            continue
-                        v = row.CharCl.GetGmMag().transpose()
-                    elif parn == 'BodePhase':
-                        xVar = row.CharCl.GetFgm()
-                        if xVar is None:
-                            continue
-                        v = row.CharCl.GetGmPh().transpose()
-                    else:
-                        v = row[parn]
-
-                    if type(v) == float:
-                        continue
-                    try:
-                        if self.CheckLines.isChecked():
-                            ax.plot(xVar, v.transpose(),
-                                    color=Col,
-                                    alpha=0.8,
-                                    label=gn)
-                        Vals = np.vstack((Vals, v)) if Vals.size else v
-                    except:
-                        pass
-
-                if Vals.size == 0:
-                    continue
-
-                Vals = Vals.magnitude.transpose()
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    mean = np.nanmedian(Vals, axis=1)
-
-                if self.CheckLinesMean.isChecked():
-                    ax.plot(xVar, mean, '-.', color=Col, lw=1.5, label=gn)
-
-                if self.CheckLinesStd.isChecked():
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore")
-                        std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
-                    ax.fill_between(xVar, mean + std, mean - std, color=Col, alpha=0.2)
-
-                handles, labels = ax.get_legend_handles_labels()
-                by_label = dict(zip(labels, handles))
-                ax.legend(by_label.values(), by_label.keys(), fontsize='xx-small')
-
+        GenVectorFigures(data=dSel,
+                         GroupBy=self.CmbLinesGroup.currentText(),
+                         PlotPars=PlotPars,
+                         Lines=self.CheckLines.isChecked(),
+                         Mean=self.CheckLinesMean.isChecked(),
+                         Std=self.CheckLinesStd.isChecked(),
+                         )
         plt.show()
 
     def ButExportPkl_Click(self):
@@ -228,3 +134,30 @@ class DataExplorer(QtWidgets.QMainWindow):
         dSel = self.GetSelection()
         GenPSDBodeReport(dfData=dSel)
 
+    def ButRepDevice_Click(self):
+        dSel = self.GetSelection()
+        Sel = self.LstBoxYPars.selectedItems()
+        if len(Sel) == 0:
+            print('Select Y var')
+            return
+        ScalarPars = [s.text() for s in Sel]
+        Sel = self.LstLinesPars.selectedItems()
+        if len(Sel) == 0:
+            print('Select Y var')
+            return
+        VectorPars = [s.text() for s in Sel]
+
+        FileName = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+
+        GenDeviceReportGui(Data=dSel,
+                           FileOut=FileName.name,
+                           ScalarPars=ScalarPars,
+                           ScalarPltFunct=self.BoxPlotFunctions[self.CmbBoxType.currentText()],
+                           VectorPars=VectorPars)
+
+        # if platform.system() == 'Darwin':  # macOS
+        #     subprocess.call(('open', FileName.name))
+        # elif platform.system() == 'Windows':  # Windows
+        #     os.startfile(FileName.name)
+        # else:  # linux variants
+        #     subprocess.call(('xdg-open', FileName.name))

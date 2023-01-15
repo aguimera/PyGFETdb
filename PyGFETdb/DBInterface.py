@@ -154,7 +154,7 @@ def CalcElect(ClsQueries, char, vds, row, pErrors):
     return pd.concat((row, pd.Series(vals)))
 
 
-def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=8):
+def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=True):
     Args = []
     for index, row in dbRaw.iterrows():
         char = row['CharCl']
@@ -162,9 +162,9 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=8):
         for vds in Vds:
             Args.append((ClsQueries, char, vds, row, pErrors))
 
-    if Threads > 1:
+    if Threads:
         print("Calculating {} rows ".format(len(Args)))
-        with Pool(Threads) as p:
+        with Pool() as p:
             PdSeries = p.starmap(CalcElect, Args)
     else:
         PdSeries = []

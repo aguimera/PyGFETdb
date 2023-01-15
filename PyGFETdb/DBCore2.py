@@ -581,10 +581,10 @@ def GetSerie(Data):
     return pd.Series(pdser)
 
 
-def Data2Pandas(Data, Threads=8):
-    if Threads > 1:
+def Data2Pandas(Data, Threads=True):
+    if Threads:
         print("Converting {} Records".format(len(Data)))
-        with Pool(Threads) as p:
+        with Pool() as p:
             pdSeries = p.map(GetSerie, Data)
     else:
         pdSeries = []

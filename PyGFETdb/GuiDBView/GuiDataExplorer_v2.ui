@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>925</width>
-    <height>728</height>
+    <height>675</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -74,14 +74,6 @@
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QPushButton" name="ButRepPSDBode">
-                <property name="text">
-                 <string>PDF Report  
- Transistor PSD Bode</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </widget>
            </item>
@@ -94,24 +86,7 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="0" column="1">
-               <widget class="QPushButton" name="ButBoxPlot">
-                <property name="text">
-                 <string>Plot Boxplot</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Hue</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="CmbBoxType"/>
-              </item>
-              <item row="0" column="0" rowspan="4">
+              <item row="2" column="0" rowspan="11">
                <widget class="QListWidget" name="LstBoxYPars">
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -124,25 +99,64 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="CmbBoxHue"/>
-              </item>
-              <item row="2" column="2">
+              <item row="7" column="2">
                <widget class="QLabel" name="label">
                 <property name="text">
                  <string>X</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
+              <item row="5" column="2">
                <widget class="QLabel" name="label_4">
                 <property name="text">
                  <string>Type</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="11" column="2">
+               <widget class="QPushButton" name="ButBoxPlot">
+                <property name="text">
+                 <string>Plot Boxplot</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="2">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Hue</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QComboBox" name="CmbBoxType"/>
+              </item>
+              <item row="8" column="2">
                <widget class="QComboBox" name="CmbBoxX"/>
+              </item>
+              <item row="3" column="2">
+               <widget class="QPushButton" name="ButRepDevice">
+                <property name="text">
+                 <string>PDF Report  
+ Device Cycles 
+ with selection</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="2">
+               <widget class="QComboBox" name="CmbBoxHue"/>
+              </item>
+              <item row="4" column="2">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -156,7 +170,22 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
-              <item row="6" column="1">
+              <item row="10" column="1">
+               <widget class="QCheckBox" name="CheckLinesStd">
+                <property name="text">
+                 <string>Std</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QPushButton" name="ButRepPSDBode">
+                <property name="text">
+                 <string>PDF Report  
+ Transistor PSD Bode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
                <widget class="QCheckBox" name="CheckLines">
                 <property name="text">
                  <string>Lines</string>
@@ -166,7 +195,17 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0" rowspan="9">
+              <item row="11" column="1">
+               <widget class="QPushButton" name="ButPlotVect">
+                <property name="text">
+                 <string>Plot Lines</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="CmbLinesGroup"/>
+              </item>
+              <item row="2" column="0" rowspan="11">
                <widget class="QListWidget" name="LstLinesPars">
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -179,7 +218,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="6" column="1">
                <widget class="QLabel" name="label_2">
                 <property name="text">
                  <string>Group By</string>
@@ -190,28 +229,24 @@
                </widget>
               </item>
               <item row="9" column="1">
-               <widget class="QPushButton" name="ButPlotVect">
-                <property name="text">
-                 <string>Plot Lines</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="1">
-               <widget class="QCheckBox" name="CheckLinesStd">
-                <property name="text">
-                 <string>Std</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="CmbLinesGroup"/>
-              </item>
-              <item row="7" column="1">
                <widget class="QCheckBox" name="CheckLinesMean">
                 <property name="text">
                  <string>Mean</string>
                 </property>
                </widget>
+              </item>
+              <item row="5" column="1">
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>

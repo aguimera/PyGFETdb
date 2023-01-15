@@ -13,7 +13,7 @@ from PyGFETdb.GuiDBView import UpdateDialogs
 from PyGFETdb import DBInterface, __version__
 import copy
 from PyGFETdb.GuiDBView.GuiDBViewDataExplorer import DataExplorer
-from PyGFETdb.GuiDBView.GuiHelpers import PandasModel
+from PyGFETdb.GuiDBView.GuiHelpers import PandasModel, AddCycle, AddColRow
 
 
 class DBViewApp(QtWidgets.QMainWindow):
@@ -280,6 +280,7 @@ class DBViewApp(QtWidgets.QMainWindow):
 
         Data = self.GetData(Table='DCcharacts', idchars=idchars)
         dfRaw = Data2Pandas(Data)
+        AddCycle(dfRaw)
 
         self.DataExp = DataExplorer(dfRaw,
                                     ClassQueries=self.ClassQueriesDC,
@@ -293,6 +294,7 @@ class DBViewApp(QtWidgets.QMainWindow):
 
         Data = self.GetData(Table='ACcharacts', idchars=idchars)
         dfRaw = Data2Pandas(Data)
+        AddCycle(dfRaw)
 
         self.DataExp = DataExplorer(dfRaw,
                                     ClassQueries=self.ClassQueries,

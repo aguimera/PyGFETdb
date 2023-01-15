@@ -6,7 +6,7 @@ Created on Fri Feb 18 14:41:57 2022
 @author: aguimera
 """
 from PyGFETdb.DBInterface import GetFromDB, CalcElectricalParams
-from PyGFETdb.DBInterface import ClassQueries, pdAttr
+from PyGFETdb.DBInterface import ClassQueries, pdAttr, ClassQueriesDC, pdAttrDC
 import pandas as pd
 from PyGFETdb.DBCore2 import PyFETdb, Data2Pandas
 from datetime import datetime
@@ -17,13 +17,11 @@ from datetime import datetime
 #               }
 
 if __name__ == '__main__':
-
-    WafersList = ('B15778W3-R3',)
-    Conditions = {'Devices.name = ': WafersList,
+    DevicesList = ('B15778W3',)
+    Conditions = {'Wafers.name = ': DevicesList,
                   }
 
-    CharTable = 'ACcharacts'
-
+    CharTable = 'DCcharacts'
 
     GroupBase = {'Conditions': Conditions,
                  'Table': CharTable,
@@ -31,16 +29,13 @@ if __name__ == '__main__':
                  'GetGate': True,
                  }
 
-
-
-
     # %% Get data from DataBase
 
     T1 = datetime.now()
     MyDB = PyFETdb(open('key.key', 'rb').read(), Multiprocess=True)
     MyDB._DEBUG = False
     Data = MyDB.GetData2(**GroupBase)
-    print("Multiprocess ", datetime.now()-T1)
+    print("Multiprocess ", datetime.now() - T1)
 
     # T1 = datetime.now()
     # MyDB = PyFETdb(open('key.key', 'rb').read(), Multiprocess=False)
@@ -50,12 +45,11 @@ if __name__ == '__main__':
 
     T1 = datetime.now()
     dfRaw = Data2Pandas(Data)
-    print("Multiprocess ", datetime.now()-T1)
+    print("Multiprocess ", datetime.now() - T1)
 
     # T1 = datetime.now()
     # dfRaw = Data2Pandas(Data, Threads=1)
     # print("Single process ", datetime.now()-T1)
-
 
     dfRaw.to_pickle('RawDat.pkl')
 
@@ -106,11 +100,7 @@ if __name__ == '__main__':
 
     dfRaw = pd.read_pickle('RawDat.pkl')
     dfDat = CalcElectricalParams(dbRaw=dfRaw,
-                                 ClsQueries=ClassQueries,
-                                 dfAttr=pdAttr)
+                                 ClsQueries=ClassQueriesDC,
+                                 dfAttr=pdAttrDC)
 
-    dfDat.to_pickle('Data.pkl')
-
-
-
-
+    dfDat.to_pickle('DCData.pkl')
