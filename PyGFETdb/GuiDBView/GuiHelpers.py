@@ -145,8 +145,11 @@ def GenScalarFigures(Data, PlotPars, Xvar, Huevar, PltFunct):
                      hue=Huevar,
                      data=Data,
                      ax=Axs[ic])
-        if p in LogPars:
-            Axs[ic].set_yscale('log')
+
+        for pc in LogPars:
+            if p.find(pc) != -1:
+                Axs[ic].set_yscale('log')
+                break
 
         leg = Axs[ic].get_legend()
         if leg is not None:
