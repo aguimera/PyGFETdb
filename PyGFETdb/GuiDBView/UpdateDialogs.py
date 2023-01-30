@@ -511,6 +511,7 @@ class ElecParam(pTypes.GroupParameter):
 
         if cldatkw['Param'] in ('Ud0', 'IgMax'):
             self.param('Vgs').setOpts(**{'visible': False})
+            self.param('Vgs').setValue('SinglePoint')
         else:
             self.addChild({'name': 'Ud0Norm',
                            'type': 'bool'})
