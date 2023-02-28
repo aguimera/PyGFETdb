@@ -1,13 +1,13 @@
 import os
 
-
 from matplotlib import pyplot as plt
 from qtpy.QtWidgets import QFileDialog
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import QSortFilterProxyModel
 import seaborn as sns
 from PyGFETdb import DBInterface
-from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, GenDeviceReportGui
+from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, \
+    GenDeviceReportGui
 import tempfile
 
 
@@ -93,6 +93,7 @@ class DataExplorer(QtWidgets.QMainWindow):
                          Xvar=self.CmbBoxX.currentText(),
                          Huevar=self.CmbBoxHue.currentText(),
                          PltFunct=self.BoxPlotFunctions[self.CmbBoxType.currentText()],
+                         SeparateLegend=self.CheckBoxLegend.isChecked(),
                          )
         plt.show()
 
@@ -111,6 +112,7 @@ class DataExplorer(QtWidgets.QMainWindow):
                          Lines=self.CheckLines.isChecked(),
                          Mean=self.CheckLinesMean.isChecked(),
                          Std=self.CheckLinesStd.isChecked(),
+                         SeparateLegend=self.CheckVectLegend.isChecked(),
                          )
         plt.show()
 

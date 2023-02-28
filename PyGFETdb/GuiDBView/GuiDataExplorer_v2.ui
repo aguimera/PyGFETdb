@@ -10,6 +10,12 @@
     <height>675</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <weight>50</weight>
+    <bold>false</bold>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -86,7 +92,21 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="2" column="0" rowspan="11">
+              <item row="12" column="2">
+               <widget class="QPushButton" name="ButBoxPlot">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Plot Boxplot</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" rowspan="12">
                <widget class="QListWidget" name="LstBoxYPars">
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -101,34 +121,17 @@
               </item>
               <item row="7" column="2">
                <widget class="QLabel" name="label">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>X</string>
                 </property>
                </widget>
-              </item>
-              <item row="5" column="2">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Type</string>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="2">
-               <widget class="QPushButton" name="ButBoxPlot">
-                <property name="text">
-                 <string>Plot Boxplot</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="2">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Hue</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="2">
-               <widget class="QComboBox" name="CmbBoxType"/>
               </item>
               <item row="8" column="2">
                <widget class="QComboBox" name="CmbBoxX"/>
@@ -142,8 +145,50 @@
                 </property>
                </widget>
               </item>
-              <item row="10" column="2">
-               <widget class="QComboBox" name="CmbBoxHue"/>
+              <item row="5" column="2">
+               <widget class="QLabel" name="label_4">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Type</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>true</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Plot Scalar Values</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QComboBox" name="CmbBoxType"/>
+              </item>
+              <item row="9" column="2">
+               <widget class="QLabel" name="label_3">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Hue</string>
+                </property>
+               </widget>
               </item>
               <item row="4" column="2">
                <spacer name="verticalSpacer">
@@ -158,6 +203,16 @@
                 </property>
                </spacer>
               </item>
+              <item row="10" column="2">
+               <widget class="QComboBox" name="CmbBoxHue"/>
+              </item>
+              <item row="11" column="2">
+               <widget class="QCheckBox" name="CheckBoxLegend">
+                <property name="text">
+                 <string>Separate Legend</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -170,10 +225,10 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
-              <item row="10" column="1">
-               <widget class="QCheckBox" name="CheckLinesStd">
+              <item row="9" column="1">
+               <widget class="QCheckBox" name="CheckLinesMean">
                 <property name="text">
-                 <string>Std</string>
+                 <string>Mean</string>
                 </property>
                </widget>
               </item>
@@ -185,27 +240,7 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
-               <widget class="QCheckBox" name="CheckLines">
-                <property name="text">
-                 <string>Lines</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="1">
-               <widget class="QPushButton" name="ButPlotVect">
-                <property name="text">
-                 <string>Plot Lines</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QComboBox" name="CmbLinesGroup"/>
-              </item>
-              <item row="2" column="0" rowspan="11">
+              <item row="2" column="0" rowspan="12">
                <widget class="QListWidget" name="LstLinesPars">
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -218,20 +253,17 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Group By</string>
+              <item row="12" column="1">
+               <widget class="QPushButton" name="ButPlotVect">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
                 </property>
-                <property name="alignment">
-                 <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QCheckBox" name="CheckLinesMean">
                 <property name="text">
-                 <string>Mean</string>
+                 <string>Plot Lines</string>
                 </property>
                </widget>
               </item>
@@ -247,6 +279,64 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>true</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Plot Vector Values</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="CmbLinesGroup"/>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLabel" name="label_2">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Group By</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="1">
+               <widget class="QCheckBox" name="CheckLinesStd">
+                <property name="text">
+                 <string>Std</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QCheckBox" name="CheckLines">
+                <property name="text">
+                 <string>Lines</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1">
+               <widget class="QCheckBox" name="CheckVectLegend">
+                <property name="text">
+                 <string>Separate Legend</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

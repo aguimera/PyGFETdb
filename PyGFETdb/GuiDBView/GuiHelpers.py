@@ -125,7 +125,7 @@ def FormatAxis(PlotPars, dfAttrs):
     return fig, AxsDict
 
 
-def GenScalarFigures(Data, PlotPars, Xvar, Huevar, PltFunct):
+def GenScalarFigures(Data, PlotPars, Xvar, Huevar, PltFunct, SeparateLegend=False):
     """
         BoxPlotFunctions = {'Boxplot': sns.boxplot,
                         'violinplot': sns.violinplot,
@@ -152,11 +152,14 @@ def GenScalarFigures(Data, PlotPars, Xvar, Huevar, PltFunct):
                 break
 
         leg = Axs[ic].get_legend()
-        if leg is not None:
+        if SeparateLegend is True:
+            Axs[ic]._remove_legend(Axs[ic].get_legend())
+        elif leg is not None:
             plt.setp(leg.get_texts(),
                      fontsize='xx-small')
             plt.setp(leg.get_title(),
                      fontsize='xx-small')
+
         plt.setp(Axs[ic].get_xticklabels(),
                  rotation=45,
                  ha="right",
@@ -165,10 +168,16 @@ def GenScalarFigures(Data, PlotPars, Xvar, Huevar, PltFunct):
         plt.setp(Axs[ic].get_yticklabels(),
                  fontsize='xx-small')
 
+    if SeparateLegend is True:
+        fl, axl = plt.subplots()
+        axl.axis('off')
+        axl.legend(*Axs[ic].get_legend_handles_labels(), title=Huevar)
+
     return fig
 
 
-def GenVectorFigures(data, GroupBy, PlotPars, Lines=True, Mean=False, Std=False):
+def GenVectorFigures(data, GroupBy, PlotPars, Lines=True, Mean=False, Std=False, SeparateLegend=False):
+
     dgroups = data.groupby(GroupBy, observed=True)
 
     # Colors iteration
@@ -237,9 +246,17 @@ def GenVectorFigures(data, GroupBy, PlotPars, Lines=True, Mean=False, Std=False)
                     std = stats.tstd(Vals, axis=1)  # changed to mad for robustness
                 ax.fill_between(xVar, mean + std, mean - std, color=Col, alpha=0.2)
 
-            handles, labels = ax.get_legend_handles_labels()
-            by_label = dict(zip(labels, handles))
-            ax.legend(by_label.values(), by_label.keys(), fontsize='xx-small')
+            if SeparateLegend is False:
+                handles, labels = ax.get_legend_handles_labels()
+                by_label = dict(zip(labels, handles))
+                ax.legend(by_label.values(), by_label.keys(), fontsize='xx-small')
+
+    if SeparateLegend is True:
+        fig, axl = plt.subplots()
+        axl.axis('off')
+        handles, labels = ax.get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        axl.legend(by_label.values(), by_label.keys(), title=GroupBy)
 
     return fig, AxsDict
 
