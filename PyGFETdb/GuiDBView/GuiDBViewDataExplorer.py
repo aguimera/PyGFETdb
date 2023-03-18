@@ -9,7 +9,8 @@ from PyGFETdb import DBInterface
 from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, \
     GenDeviceReportGui
 import tempfile
-
+from PyGFETdb.GuiDBView.NormGui import NormGui
+from copy import deepcopy
 
 class DataExplorer(QtWidgets.QMainWindow):
     BoxPlotFunctions = {'Boxplot': sns.boxplot,
@@ -18,6 +19,7 @@ class DataExplorer(QtWidgets.QMainWindow):
                         'boxenplot': sns.boxenplot,
                         'barplot': sns.barplot,
                         'stripplot': sns.stripplot,
+                        'scatterplot': sns.scatterplot,
                         }
 
     def __init__(self, dfRaw, ClassQueries, pdAttr):
@@ -41,7 +43,7 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.LstBoxYPars.addItems(self.dfDat.attrs['ScalarCols'])
 
         includetypes = ('float', 'category', 'bool', 'datetime64[ns]', 'int')
-        catCols = list(dfRaw.select_dtypes(include=includetypes).columns)
+        catCols = list(self.dfDat.select_dtypes(include=includetypes).columns)
         self.CmbBoxX.addItems(catCols)
         self.CmbBoxX.setCurrentText('Device')
         self.CmbBoxHue.addItems(catCols)
@@ -62,6 +64,8 @@ class DataExplorer(QtWidgets.QMainWindow):
         self.ButExportCSV.clicked.connect(self.ButExportCSV_Click)
         self.ButRepPSDBode.clicked.connect(self.RepPSDBode_Click)
         self.ButRepDevice.clicked.connect(self.ButRepDevice_Click)
+        self.ButPlotCount.clicked.connect(self.ButPlotCount_Click)
+        self.ButNorm.clicked.connect(self.ButNorm_Click)
 
     def GetSelection(self):
         Sel = self.TblData.selectedIndexes()
@@ -77,7 +81,14 @@ class DataExplorer(QtWidgets.QMainWindow):
         except:
             print("Error in query execution")
 
+        dSel.attrs = deepcopy(self.dfDat.attrs)
+
         return dSel
+
+    def ButNorm_Click(self):
+        dSel = self.GetSelection()
+        self.NormGui = NormGui(dSel)
+        self.NormGui.show()
 
     def ButBoxPlot_Click(self):
         Sel = self.LstBoxYPars.selectedItems()
@@ -95,6 +106,15 @@ class DataExplorer(QtWidgets.QMainWindow):
                          PltFunct=self.BoxPlotFunctions[self.CmbBoxType.currentText()],
                          SeparateLegend=self.CheckBoxLegend.isChecked(),
                          )
+        plt.show()
+
+    def ButPlotCount_Click(self):
+        dSel = self.GetSelection()
+        fig, ax = plt.subplots()
+        sns.countplot(x=self.CmbBoxX.currentText(),
+                      hue=self.CmbBoxHue.currentText(),
+                      data=dSel,
+                      ax=ax)
         plt.show()
 
     def ButPlotVect_Click(self):

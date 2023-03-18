@@ -191,7 +191,7 @@ class DBViewApp(QtWidgets.QMainWindow):
         for s in sel:
             if s.text() == 'None':
                 break
-                qs.append("Run == '{}'".format(s.text()))
+            qs.append("Run == '{}'".format(s.text()))
         if len(qs):
             df.query(' | '.join(qs), inplace=True)
 
