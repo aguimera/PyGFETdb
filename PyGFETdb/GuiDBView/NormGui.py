@@ -1,5 +1,5 @@
 import os
-
+from copy import deepcopy
 import numpy as np
 import pandas as pd
 from qtpy import QtWidgets, uic
@@ -92,7 +92,7 @@ class NormGui(QtWidgets.QMainWindow):
             DataTypes[f] = float
 
         dfDat = dfn1.astype(DataTypes)
-        dfDat.attrs = self.dfData.attrs
+        dfDat.attrs = deepcopy(self.dfData.attrs)
         for f in GainPars:
             dfDat.attrs['ScalarCols'].append(f)
 
