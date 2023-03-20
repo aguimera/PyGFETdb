@@ -5,4 +5,4 @@ Created on Tue Nov 15 17:27:23 2016
 @author: aguimera
 """
 
-__version__ = "0.4.5"
+__version__ = "0.5.0"

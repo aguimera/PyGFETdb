@@ -9,8 +9,9 @@ from PyGFETdb import DBInterface
 from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, \
     GenDeviceReportGui
 import tempfile
-from PyGFETdb.GuiDBView.NormGui import NormGui
 from copy import deepcopy
+from PyGFETdb.GuiDBView.NormGui import NormGui
+
 
 class DataExplorer(QtWidgets.QMainWindow):
     BoxPlotFunctions = {'Boxplot': sns.boxplot,
@@ -30,9 +31,12 @@ class DataExplorer(QtWidgets.QMainWindow):
 
         self.setWindowTitle('PyFETdb DataExplorer')
 
-        self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
-                                                      ClassQueries,
-                                                      pdAttr)
+        if ClassQueries is not None:
+            self.dfDat = DBInterface.CalcElectricalParams(dfRaw,
+                                                          ClassQueries,
+                                                          pdAttr)
+        else:
+            self.dfDat = dfRaw
 
         self.modelData = PandasModel(self.dfDat.copy())
         self.proxyData = QSortFilterProxyModel()

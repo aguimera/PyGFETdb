@@ -1,19 +1,18 @@
 import os
 
-from matplotlib import pyplot as plt
-from qtpy.QtWidgets import QFileDialog
+import numpy as np
+import pandas as pd
 from qtpy import QtWidgets, uic
 from qtpy.QtCore import QSortFilterProxyModel
-from PyGFETdb import DBInterface
-from PyGFETdb.GuiDBView.GuiHelpers import GenPSDBodeReport, PandasModel, GenScalarFigures, GenVectorFigures, \
-    GenDeviceReportGui
-import tempfile
+from PyGFETdb.GuiDBView.GuiHelpers import PandasModel
+
 
 
 class NormGui(QtWidgets.QMainWindow):
     def __init__(self, dfData):
         QtWidgets.QMainWindow.__init__(self)
 
+        self.DataExp = None
         self.SelCol = None
         uipath = os.path.join(os.path.dirname(__file__), 'GuiNormalization.ui')
         uic.loadUi(uipath, self)
@@ -24,9 +23,10 @@ class NormGui(QtWidgets.QMainWindow):
 
         self.ButGen.clicked.connect(self.ButGen_Click)
 
-        includetypes = ('float', 'category', 'bool', 'datetime64[ns]', 'int')
-        catCols = list(self.dfData.select_dtypes(include=includetypes).columns)
-        self.LstColumn.addItems(catCols)
+        # includetypes = ('float', 'category', 'bool', 'datetime64[ns]', 'int')
+        # catCols = list(self.dfData.select_dtypes(include=includetypes).columns)
+        SelCols = ('Comments', 'FuncStep', 'Cycle')
+        self.LstColumn.addItems(SelCols)
 
         self.LstColumn.itemSelectionChanged.connect(self.LstColumn_Changed)
         self.LstValue.itemSelectionChanged.connect(self.LstValue_Changed)
@@ -34,7 +34,7 @@ class NormGui(QtWidgets.QMainWindow):
     def LstColumn_Changed(self):
         Sel = self.LstColumn.selectedItems()
         if len(Sel) == 0:
-            print('Select Y var')
+            print('Select Column')
             return
         SelCol = [s.text() for s in Sel][0]
 
@@ -45,9 +45,10 @@ class NormGui(QtWidgets.QMainWindow):
     def LstValue_Changed(self):
         Sel = self.LstValue.selectedItems()
         if len(Sel) == 0:
-            print('Select Y var')
+            print('Select Value')
             return
         SelVal = [s.text() for s in Sel][0]
+        self.SelVal = SelVal
 
         if self.dfData[self.SelCol].dtype == int or self.dfData[self.SelCol].dtype == float:
             q = "{} == {}".format(self.SelCol, SelVal)
@@ -62,4 +63,40 @@ class NormGui(QtWidgets.QMainWindow):
         self.TblRefValues.show()
 
     def ButGen_Click(self):
-        pass
+        from PyGFETdb.GuiDBView.GuiDBViewDataExplorer import DataExplorer
+
+        pdSeries = []
+        gTrts = self.dfData.groupby('Name', observed=True)
+        for nTrt in gTrts.groups:
+            Trt = gTrts.get_group(nTrt)
+            gFuncs = Trt.groupby(self.SelCol, observed=True)
+            if self.SelVal in gFuncs.groups:
+                refVal = gFuncs.get_group(self.SelVal).iloc[0, :]
+            else:
+                print(nTrt, 'Not Ref val')
+                continue
+            for nFunc in gFuncs.groups:
+                Func = gFuncs.get_group(nFunc)
+                ic, ir = Func.shape
+
+                for icc in range(ic):
+                    gds = Func.iloc[icc, :].copy()
+                    for par in self.dfData.attrs['ScalarCols']:
+                        gds[par + 'Ref'] = refVal[par] - gds[par]
+                    pdSeries.append(gds)
+        dfn1 = pd.concat(pdSeries, axis=1).transpose()
+
+        DataTypes = self.dfData.dtypes
+        GainPars = np.setdiff1d(list(dfn1.keys()), list(self.dfData.keys()))
+        for f in GainPars:
+            DataTypes[f] = float
+
+        dfDat = dfn1.astype(DataTypes)
+        dfDat.attrs = self.dfData.attrs
+        for f in GainPars:
+            dfDat.attrs['ScalarCols'].append(f)
+
+        self.DataExp = DataExplorer(dfDat,
+                                    ClassQueries=None,
+                                    pdAttr=dfDat.attrs)
+        self.DataExp.show()
