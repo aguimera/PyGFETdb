@@ -7,6 +7,7 @@ block_cipher = None
 added_files = [
     ('PyGFETdb\\GuiDBView\\GuiDBView_v2.ui', '.'),
     ('PyGFETdb\\GuiDBView\\GuiDataExplorer_v2.ui', 'PyGFETdb\\GuiDBView'),
+    ('PyGFETdb\\GuiDBView\\GuiNormalization.ui', 'PyGFETdb\\GuiDBView'),
     ('PyGFETdb\\GuiDBView\\key.key', '.'),
     ('PyGFETdb\\Connection.bin', 'PyGFETdb'),
 ]
