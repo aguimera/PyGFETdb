@@ -75,9 +75,9 @@ class DataExplorer(QtWidgets.QMainWindow):
         Sel = self.TblData.selectedIndexes()
         rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
         dSel = self.dfDat.loc[list(rows)]
-        print(self.proxyData)
-        print(self.modelData)
-        print('Selected Rows', rows)
+        # print(self.proxyData)
+        # print(self.modelData)
+        # print('Selected Rows', rows)
 
         if not self.ChckQueries.isChecked():
             return dSel
