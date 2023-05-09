@@ -6,8 +6,6 @@ from qtpy import QtWidgets, uic
 from qtpy.QtCore import QSortFilterProxyModel
 from PyGFETdb.GuiDBView.GuiHelpers import PandasModel
 
-
-
 class NormGui(QtWidgets.QMainWindow):
     def __init__(self, dfData):
         QtWidgets.QMainWindow.__init__(self)
@@ -17,7 +15,7 @@ class NormGui(QtWidgets.QMainWindow):
         uipath = os.path.join(os.path.dirname(__file__), 'GuiNormalization.ui')
         uic.loadUi(uipath, self)
 
-        self.dfData = dfData
+        self.dfData = deepcopy(dfData)
 
         self.setWindowTitle('Normalization Dialog')
 
@@ -100,7 +98,7 @@ class NormGui(QtWidgets.QMainWindow):
         for f in GainPars:
             dfDat.attrs['ScalarCols'].append(f)
 
-        self.DataExp = DataExplorer(dfDat,
+        self.DataExp = DataExplorer(dfDat.sort_index(),
                                     ClassQueries=None,
                                     pdAttr=dfDat.attrs)
         self.DataExp.show()

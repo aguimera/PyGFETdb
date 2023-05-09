@@ -36,9 +36,9 @@ class DataExplorer(QtWidgets.QMainWindow):
                                                           ClassQueries,
                                                           pdAttr)
         else:
-            self.dfDat = dfRaw
+            self.dfDat = deepcopy(dfRaw)
 
-        self.modelData = PandasModel(self.dfDat.copy())
+        self.modelData = PandasModel(self.dfDat)
         self.proxyData = QSortFilterProxyModel()
         self.proxyData.setSourceModel(self.modelData)
         self.TblData.setModel(self.proxyData)
@@ -75,6 +75,9 @@ class DataExplorer(QtWidgets.QMainWindow):
         Sel = self.TblData.selectedIndexes()
         rows = set([self.proxyData.mapToSource(s).row() for s in Sel])
         dSel = self.dfDat.loc[list(rows)]
+        print(self.proxyData)
+        print(self.modelData)
+        print('Selected Rows', rows)
 
         if not self.ChckQueries.isChecked():
             return dSel
