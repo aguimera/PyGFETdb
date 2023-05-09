@@ -176,13 +176,20 @@ def CalcElectricalParams(dbRaw, ClsQueries, dfAttr, pErrors=False, Threads=True)
 
     DataTypes = dbRaw.dtypes
     DataTypes['Vds'] = float
+    sCols = []
     for col in dfAttr['ScalarCols']:
         if col in dfDat.columns:
             DataTypes[col] = float
+            sCols.append(col)
+    aCols = []
     for col in dfAttr['ArrayCols']:
         if col in dfDat.columns:
             DataTypes[col] = object
+            aCols.append(col)
     dfDat = dfDat.astype(DataTypes)
+
+    dfAttr['ArrayCols'] = aCols
+    dfAttr['ScalarCols'] = sCols
 
     ColUnits = {}
     for col, p in ClsQueries.items():

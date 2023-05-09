@@ -70,11 +70,15 @@ class NormGui(QtWidgets.QMainWindow):
         for nTrt in gTrts.groups:
             Trt = gTrts.get_group(nTrt)
             gFuncs = Trt.groupby(self.SelCol, observed=True)
-            if self.SelVal in gFuncs.groups:
+            try:
                 refVal = gFuncs.get_group(self.SelVal).iloc[0, :]
-            else:
-                print(nTrt, 'Not Ref val')
-                continue
+            except:
+                try:
+                    refVal = gFuncs.get_group(float(self.SelVal)).iloc[0, :]
+                except:
+                    print(nTrt, 'Not Ref val')
+                    continue
+
             for nFunc in gFuncs.groups:
                 Func = gFuncs.get_group(nFunc)
                 ic, ir = Func.shape
